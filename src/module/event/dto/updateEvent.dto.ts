@@ -1,36 +1,19 @@
-import { ModalityEvent } from './event.dto'
-import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString } from 'class-validator'
+import { PartialType } from '@nestjs/mapped-types'
+import { IsNotEmpty, IsOptional, ValidateNested } from 'class-validator'
+import { EventDto } from './event.dto'
+import { Type } from 'class-transformer'
+import { AddressDto } from 'src/module/address/dto/address.dto'
+
+export class PartialAddressDto extends PartialType(AddressDto) {}
 
 export class UpdateEventDto {
-  @IsString()
-  @IsOptional()
-  link?: string
-
-  @IsString()
-  @IsOptional()
-  description?: string
-
-  @IsDateString()
-  @IsOptional()
-  start_date_time?: Date
-
-  @IsDateString()
-  @IsOptional()
-  end_date_time?: Date
-
-  @IsBoolean()
-  @IsOptional()
-  is_active?: boolean
-
-  @IsString()
-  @IsOptional()
-  title?: string
+  @ValidateNested()
+  @IsNotEmpty()
+  @Type(() => EventDto)
+  event: EventDto
 
   @IsOptional()
-  @IsOptional()
-  capa_url?: string
-
-  @IsEnum(ModalityEvent)
-  @IsOptional()
-  modality?: ModalityEvent
+  @ValidateNested()
+  @Type(() => PartialAddressDto)
+  address?: PartialAddressDto
 }

@@ -76,8 +76,8 @@ describe('Community Tests', () => {
   })
 
   it('Should throw NotFoundException when trying find a non-existing community', async () => {
-    mockCommunityRepository.getByID.mockResolvedValue(undefined)
+    mockCommunityRepository.getByID(undefined)
 
-    await expect(communityService.getByID(10)).rejects.toThrow(NotFoundException)
+    expect(communityService.getByID(10)).rejects.toThrow(NotFoundException)
   })
 })

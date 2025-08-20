@@ -1,4 +1,5 @@
-/*import { Injectable } from '@nestjs/common';
+/*
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -56,4 +57,5 @@ export class AppConfigService {
   get jwtSecret(): string {
     return this.config.get<string>('JWT_SECRET');
   }
-}*/
+}
+*/

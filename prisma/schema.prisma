@@ -37,7 +37,7 @@ model address {
   number        String   @db.VarChar(10)
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
-  event         event[]
+  event         event?
 
   @@index([state, city])
 }
@@ -51,7 +51,7 @@ enum modality_event {
 model event {
   id              Int       @id @default(autoincrement())
   id_community    Int
-  id_address      Int
+  id_address      Int?      @unique()
   title           String    @db.VarChar(255)
   capa_url        String?    @db.VarChar(255)
   link            String?   @db.VarChar(255)
@@ -62,8 +62,8 @@ model event {
   end_date_time   DateTime  @db.Timestamp(6)
   created_at      DateTime  @default(now())
   updated_at      DateTime  @default(now()) @updatedAt
-  address         address   @relation(fields: [id_address], references: [id], onDelete: Cascade)
-  community       community @relation(fields: [id_community], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  address         address?   @relation(fields: [id_address], references: [id], onDelete: Cascade)
+  community       community @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model post {

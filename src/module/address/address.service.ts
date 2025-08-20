@@ -1,13 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { AddressDto } from "./dto/address.dto";
-import { AddressRepository } from "./address.repository";
-import { IAddress } from "./interfaces/createAddress.interface";
+import { Injectable } from '@nestjs/common'
+import { AddressDto } from './dto/address.dto'
+import { AddressRepository } from './address.repository'
+import { PartialAddressDto } from '../event/dto/updateEvent.dto'
 
 @Injectable()
 export class AddressService {
-    constructor(private readonly addressRepository: AddressRepository) {}
+  constructor(private readonly addressRepository: AddressRepository) {}
 
-    async create(address: AddressDto){
-        return await this.addressRepository.create(address);
-    }
+  async create(address: AddressDto) {
+    return await this.addressRepository.create(address)
+  }
+
+  async update(address: PartialAddressDto, idAddress: number) {
+    return await this.addressRepository.updateMany(address, idAddress)
+  }
 }

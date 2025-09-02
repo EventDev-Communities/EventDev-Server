@@ -37,12 +37,6 @@ cp .env.example .env
 ```
 > **Importante:** Revise o arquivo `.env` e ajuste as portas ou senhas se necessário.
 
-**3. Instale as Dependências do Projeto**
-Este comando irá instalar todos os pacotes necessários para rodar a aplicação.
-```bash
-npm install
-```
-
 ---
 
 ### 📦 Rodando a Aplicação
@@ -52,6 +46,7 @@ Neste modo, o banco de dados e o PgAdmin rodam em contêineres Docker, enquanto 
 
 **1. Inicie os Contêineres de Suporte**
 Este comando irá iniciar o banco de dados PostgreSQL e o PgAdmin em segundo plano.
+
 ```bash
 docker-compose up -d
 ```
@@ -65,7 +60,7 @@ npx prisma db seed
 > **Nota:** Na primeira vez que rodar `migrate dev`, o Prisma pedirá um nome para a migração. Você pode dar um nome como "initial-setup".
 
 **3. Inicie a Aplicação NestJS**
-Finalmente, inicie o servidor de desenvolvimento.
+Finalmente, inicie o servidor de desenvolvimento. Ele irá recarregar automaticamente a cada alteração no código.
 ```bash
 npm run start:dev
 ```
@@ -90,8 +85,3 @@ docker-compose --profile prod up --build -d
 * `npm run build`: Compila o código TypeScript para JavaScript.
 * `npm run start:prod`: Inicia a aplicação em modo de produção (requer um build prévio).
 * `npx prisma studio`: Abre a interface visual do Prisma para explorar seu banco de dados.
-
-npm run start:dev
-```
-### e pronto, já estará com o banco de dados em um container docker, alimentado e pronto para consumo. e rotas prontas para serem testadas.
-```

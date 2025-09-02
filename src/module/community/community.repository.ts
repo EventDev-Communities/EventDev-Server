@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common'
-import { PrismaService } from 'src/prisma/prisma.service'
-import { CreateCommunityDto } from './dto/createCommunity.dto'
-import { UpdateCommunityDto } from './dto/updateCommunity.dto'
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "src/prisma/prisma.service";
+import { UpdateCommunityDto } from "./dto/updateCommunity.dto";
+import { CreateCommunityDto } from "./dto/createCommunity.dto";
 
 @Injectable()
 export class CommunityRepository {
@@ -11,21 +12,17 @@ export class CommunityRepository {
     return await this.prismaService.community.findMany({
       take: take,
       skip: skip
-    })
+    });
   }
 
   async create(data: CreateCommunityDto) {
     return await this.prismaService.community.create({
       data
-    })
+    });
   }
 
   async getByID(id: number) {
-    return await this.prismaService.community.findUnique({
-      where: {
-        id
-      }
-    })
+    return await this.prismaService.community.findUnique({ where: { id } });
   }
 
   async update(id: number, data: UpdateCommunityDto) {
@@ -34,10 +31,10 @@ export class CommunityRepository {
         id
       },
       data
-    })
+    });
   }
 
   async delete(id: number) {
-    await this.prismaService.community.delete({ where: { id } })
+    await this.prismaService.community.delete({ where: { id } });
   }
 }

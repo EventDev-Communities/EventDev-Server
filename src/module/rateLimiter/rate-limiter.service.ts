@@ -1,5 +1,5 @@
 import { ForbiddenException, Inject, Injectable } from '@nestjs/common'
-import Redis from 'ioredis'
+import { Redis } from 'ioredis'
 import { Request } from 'express'
 import { IRateLimitPolicyData } from './interface/rate-limiter-policy.interface'
 import { AvailableDomainsType } from './interface/structure-key-rate-limiter.interface'

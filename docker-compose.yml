@@ -1,6 +1,8 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: final_prod
     container_name: event_prod_backend
     profiles: ["prod"]
     env_file:
@@ -9,19 +11,13 @@ services:
     ports:
       - "${NODE_PORT}:${NODE_PORT}"
     environment:
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
-      - DATABASE_NAME=${POSTGRES_DB}
-      - DATABASE_USER=${POSTGRES_USER}
-      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
-      - DATABASE_ENGINE=${DATABASE_ENGINE}
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public"
       - NODE_PORT=${NODE_PORT}
       - NODE_ENV=production
-    command: sh -c "npx prisma migrate deploy && node dist/src/main.js"
+    command: node dist/src/main.js
     depends_on:
-      db:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - my-network
 
@@ -43,6 +39,22 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    build:
+      context: .
+      target: runner
+    container_name: event_prod_migrate
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+    command: sh -c "npx prisma migrate deploy"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - my-network
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin_gui
@@ -54,6 +66,19 @@ services:
       - "${PGADMIN_PORT}:80"
     depends_on:
       - db
+    networks:
+      - my-network
+
+  supertokens:
+    image: supertokens/supertokens-postgresql
+    restart: unless-stopped
+    ports:
+      - "3567:3567"
+    environment:
+      - POSTGRESQL_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - my-network
 

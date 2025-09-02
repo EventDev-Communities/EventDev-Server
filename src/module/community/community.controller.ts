@@ -8,7 +8,6 @@ import { Prisma } from "@prisma/client";
  * PARA TODOS, ADICIONE O DECORADOR @PublicAccess DO supertokens-nestjs
  * (import { PublicAccess } from "supertokens-nestjs";)
  * */
-
 @Controller('community')
 export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}

@@ -26,6 +26,7 @@ async function main() {
   console.log('🌱 Iniciando o processo de seed...');
 
   console.log('🗑️ Limpando dados antigos...');
+  await prisma.community_user_request.deleteMany({});
   await prisma.community_user.deleteMany({});
   await prisma.community.deleteMany({});
   await prisma.user.deleteMany({});
@@ -67,7 +68,9 @@ async function main() {
     let availableUsers = [...createdUsers];
     faker.helpers.shuffle(availableUsers);
 
-    const memberCount = Math.min(15, availableUsers.length);
+    const memberCount = Math.min(faker.number.int({ min: 5, max: 15 }), availableUsers.length);
+
+    if (memberCount === 0) continue;
 
     const leader = availableUsers.pop();
     if (leader) {
@@ -90,8 +93,10 @@ async function main() {
     }
   }
 
+  const uniqueMemberships = Array.from(new Map(memberships.map(item => [`${item.community_id}-${item.user_id}`, item])).values());
+
   await prisma.community_user.createMany({
-    data: memberships,
+    data: uniqueMemberships,
     skipDuplicates: true,
   });
 

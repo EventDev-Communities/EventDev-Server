@@ -1,28 +1,33 @@
-import { modality_event } from "@prisma/client"
-import { IsBoolean, IsDate, IsDateString, IsEnum, IsOptional, IsString } from "class-validator"
+import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString } from 'class-validator'
+
+export enum ModalityEvent {
+  ONLINE = 'ONLINE',
+  PRESENTIAL = 'PRESENTIAL',
+  HYBRID = 'HYBRID'
+}
 
 export class EventDto {
-    @IsString()
-    link: string
+  @IsString()
+  link: string
 
-    @IsString()
-    description: string
+  @IsString()
+  description: string
 
-    @IsDateString()
-    start_date_time: Date
+  @IsDateString()
+  start_date_time: Date
 
-    @IsDateString()
-    end_date_time: Date
+  @IsDateString()
+  end_date_time: Date
 
-    @IsBoolean()
-    is_active: boolean
+  @IsBoolean()
+  is_active: boolean
 
-    @IsString()
-    title: string
-    
-    @IsOptional()
-    capa_url: string
+  @IsString()
+  title: string
 
-    @IsEnum(modality_event)
-    modality: modality_event
+  @IsOptional()
+  capa_url: string
+
+  @IsEnum(ModalityEvent)
+  modality: ModalityEvent
 }

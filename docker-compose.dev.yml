@@ -1,0 +1,113 @@
+services:
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis-cache-dev
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - redis-cache-dev-data:/data
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    networks:
+      - eventdev-dev-network
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: postgres-db-dev
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "${DATABASE_PORT}:${DATABASE_PORT}"
+    volumes:
+      - postgres-db-dev-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # Para desenvolvimento/debug (seção "command" também)
+      - POSTGRES_INITDB_ARGS=--auth-host=md5
+    command: >
+      postgres
+      -c log_statement=all
+      -c log_destination=stderr
+      -c log_min_messages=info
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_checkpoints=on
+      -c log_lock_waits=on
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - eventdev-dev-network
+
+  api:
+    build:
+      context: .
+      dockerfile: .docker/node/Dockerfile.dev
+      args:
+        - NODE_ENV=development
+    container_name: api-dev
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - "${NODE_PORT}:${NODE_PORT}"
+      - "9229:9229" # Node.js Inspector
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis-cache:${REDIS_PORT}
+      - NODE_PORT=${NODE_PORT}
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
+    volumes:
+      - ./:/app/
+      - /app/node_modules
+    depends_on:
+      redis-cache:
+        condition: service_started
+      postgres-db:
+        condition: service_healthy
+      supertokens-auth:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${NODE_PORT}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - eventdev-dev-network
+
+  supertokens-auth:
+    image: supertokens/supertokens-postgresql
+    container_name: supertokens-auth-dev
+    restart: unless-stopped
+    ports:
+      - "${SUPERTOKENS_PORT}:${SUPERTOKENS_PORT}"
+    environment:
+      - POSTGRESQL_HOST=postgres-db
+      - POSTGRESQL_PORT=${DATABASE_PORT}
+      - POSTGRESQL_USER=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE_NAME=${POSTGRES_DB}
+      - POSTGRESQL_TABLE_SCHEMA=supertokens
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    networks:
+      - eventdev-dev-network
+
+volumes:
+  postgres-db-dev-data:
+  redis-cache-dev-data:
+
+networks:
+  eventdev-dev-network:
+    driver: bridge

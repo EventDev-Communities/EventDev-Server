@@ -2,14 +2,14 @@
 
 -- Função principal de controle de rate limiting via Sliding Window
 local function sliding_window_control(zkey, banKey, now, window, limit, banSeconds)
-  
+
   -- Checa se existe um ban ativo; se sim, retorna 0 e TTL restante
   local banTtl = redis.call('TTL', banKey)
   if banTtl > 0 then
     return {0, banTtl}
   end
 
-  -- Calcula a pontuação mínima da janela de tempo (janela deslizante), essa pontuação é calculada atráves do evento (ação que pode ser contabilizada)
+  -- Calcula a pontuação mínima da janela de tempo (janela deslizante), essa pontuação é calculada através do evento (ação que pode ser contabilizada)
   local minScore = now - window
   -- Remove entradas antigas fora da janela de tempo
   redis.call('ZREMRANGEBYSCORE', zkey, 0, minScore)

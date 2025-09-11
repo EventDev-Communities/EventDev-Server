@@ -6,10 +6,16 @@ export class AppService {
   constructor(private readonly prismaService: PrismaService) {}
 
   getApiStats(): { status: string; api: string; version: string } {
-    return { status: 'online', api: 'Event-Dev-Api', version: 'v1' }
+    return { status: 'online', api: 'eventdev-api', version: 'v1' }
   }
 
-  getHealth() {
-    return this.prismaService.$connect
+  async getHealth() {
+    return this.prismaService
+      .$connect()
+      .then(() => ({ status: 'database ok' }))
+      .catch(() => ({ status: 'database error' }))
+      .finally(() => {
+        void this.prismaService.$disconnect()
+      })
   }
 }

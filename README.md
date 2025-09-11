@@ -1,87 +1,209 @@
-# Event Dev Server API
+# EventDev Server API
 
-API backend para a plataforma Event Dev, construída com NestJS, Prisma e PostgreSQL.
+API backend para a plataforma EventDev construída com NestJS, Prisma, PostgreSQL, Redis e SuperTokens.
 
----
+## Setup Rápido
 
-## 🚀 Começando
-
-Siga estas instruções para configurar e rodar o ambiente de desenvolvimento em sua máquina local.
-
-### ✅ Pré-requisitos
-
-Antes de começar, garanta que você tem as seguintes ferramentas instaladas:
-* [Node.js](https://nodejs.org/) (v22.x ou superior)
-* [Docker](https://www.docker.com/products/docker-desktop/) e Docker Compose
-
----
-
-### ⚙️ Instalação e Configuração
-
-**1. Clone o Repositório**
-```bash
-git clone [https://github.com/mathewvieira/Event-Dev-Server.git](https://github.com/mathewvieira/Event-Dev-Server.git)
-cd Event-Dev-Server
-```
-> Se precisar, troque para a branch desejada: `git checkout <nome-da-branch>`
-
-**2. Configure as Variáveis de Ambiente**
-Copie o arquivo de exemplo `.env.example` para um novo arquivo chamado `.env`. Este arquivo guardará suas senhas e configurações locais e não deve ser enviado para o Git.
+### Desenvolvimento
 
 ```bash
-# No Windows (PowerShell)
-copy .env.example .env
-
-# No Linux ou macOS
-cp .env.example .env
+make setup-dev    # Criar .env
+make dev-up       # Iniciar containers
+make dev-logs     # Ver logs
 ```
-> **Importante:** Revise o arquivo `.env` e ajuste as portas ou senhas se necessário.
 
----
-
-### 📦 Rodando a Aplicação
-
-#### Opção 1: Ambiente de Desenvolvimento (Recomendado)
-Neste modo, o banco de dados e o PgAdmin rodam em contêineres Docker, enquanto a aplicação NestJS roda diretamente na sua máquina, permitindo o hot-reload.
-
-**1. Inicie os Contêineres de Suporte**
-Este comando irá iniciar o banco de dados PostgreSQL e o PgAdmin em segundo plano.
+### Produção
 
 ```bash
-docker-compose up -d
+# Configurar DNS: A api.eventdev.org → 192.168.1.100
+make check-dns    # Verificar DNS
+make setup-prod   # Criar .env (editar senhas!)
+make prod-up      # Deploy com SSL automático
 ```
 
-**2. Prepare o Banco de Dados (Migrations & Seed)**
-Este comando irá aplicar as migrações do Prisma para criar as tabelas e, em seguida, popular o banco com dados iniciais.
+## Comandos
+
+| Comando | Descrição |
+|---------|-----------|
+| `make dev-up` | Desenvolvimento |
+| `make prod-up` | Produção com SSL automático |
+| `make health` | Testar API HTTP |
+| `make health-https` | Testar API HTTPS |
+| `make status` | Status dos containers |
+| `make clean` | Limpar tudo |
+
+### Banco de Dados
+
+| Comando | Descrição |
+|---------|-----------|
+| `make db-migrate` | Executar migrações |
+| `make db-seed` | Popular dados iniciais |
+| `make db-studio` | Interface visual |
+| `make db-reset` | Reset completo (dev) |
+
+### Logs
+
+| Comando | Descrição |
+|---------|-----------|
+| `make dev-logs` | Logs desenvolvimento |
+| `make prod-logs` | Logs produção |
+| `make prod-nginx-logs` | Logs Nginx |
+| `make logs-all` | Todos os logs |
+
+## Arquitetura
+
+### Ambiente Dev
+
+- Dockerfile.dev simplificado (sem build steps)
+- Hot reload e debug port 9229
+- Health checks similares ao prod
+- Volume mapping para desenvolvimento
+
+### Ambiente Prod
+
+- SSL automático com certbot oficial
+- Nginx reverse proxy
+- Health checks robustos
+- Limites de recursos definidos
+
+## URLs de Acesso
+
+### Dev
+
+- API: <http://localhost:5122>
+- Health: <http://localhost:5122/health>
+- Debug: `localhost:9229`
+
+### Prod
+
+- API: <https://api.eventdev.org>
+- Health: <https://api.eventdev.org/health>
+
+## Configuração DNS
+
+Configure no provedor DNS:
+
+```text
+Tipo: A
+Nome: api.eventdev.org
+Valor: 192.168.1.100
+```
+
+Verificar: `make check-dns`
+
+## SSL Automático
+
+O SSL é configurado automaticamente usando **certbot oficial** no primeiro `make prod-up`:
+
+1. Verifica DNS automaticamente
+2. Usa certbot para Let's Encrypt se DNS estiver correto
+3. Fallback para certificado auto-assinado se falhar
+4. Configura Nginx automaticamente
+5. Persiste certificados em volumes Docker
+
+## Troubleshooting
+
+### DNS não resolve
+
 ```bash
-npx prisma migrate dev
-npx prisma db seed
-```
-> **Nota:** Na primeira vez que rodar `migrate dev`, o Prisma pedirá um nome para a migração. Você pode dar um nome como "initial-setup".
-
-**3. Inicie a Aplicação NestJS**
-Finalmente, inicie o servidor de desenvolvimento. Ele irá recarregar automaticamente a cada alteração no código.
-```bash
-npm run start:dev
+make check-dns
+nslookup api.eventdev.org
 ```
 
-**Pronto!** 🎉 Sua aplicação estará rodando e acessível em:
-* **API:** `http://localhost:5122` (ou a porta definida em `NODE_PORT`)
-* **PgAdmin (Admin do Banco):** `http://localhost:5514` (ou a porta definida em `PGADMIN_PORT`)
-
-#### Opção 2: Ambiente de Produção (Tudo com Docker)
-Este comando constrói a imagem da sua aplicação e sobe todos os serviços (API, Banco de Dados, PgAdmin) em contêineres, simulando um ambiente de produção.
+### SSL falha
 
 ```bash
-docker-compose --profile prod up --build -d
+make check-dns    # DNS deve estar OK
+make prod-up      # SSL automático
 ```
-> Para parar todos os contêineres, use: `docker-compose down`
 
----
+### Containers não iniciam
 
-### 📜 Scripts Disponíveis
+```bash
+make status
+make prod-logs
+make clean        # Reset completo
+```
 
-* `npm run start:dev`: Inicia a aplicação em modo de desenvolvimento com hot-reload.
-* `npm run build`: Compila o código TypeScript para JavaScript.
-* `npm run start:prod`: Inicia a aplicação em modo de produção (requer um build prévio).
-* `npx prisma studio`: Abre a interface visual do Prisma para explorar seu banco de dados.
+## Configuração
+
+### Dev (.env)
+
+```bash
+NODE_ENV=development
+NODE_PORT=5122
+DATABASE_URL="postgresql://user:pass@localhost:5432/eventdev"
+REDIS_URL="redis://localhost:6379"
+```
+
+### Prod (.env)
+
+```bash
+NODE_ENV=production
+NODE_PORT=5122
+DATABASE_URL="postgresql://user:STRONG_PASS@postgres-db:5432/eventdev"
+REDIS_URL="redis://redis-cache:6379"
+ALLOWED_ORIGINS="https://eventdev.org,https://api.eventdev.org"
+```
+
+## Estrutura
+
+```text
+EventDev-Server/
+├── docker-compose.dev.yml     # Desenvolvimento
+├── docker-compose.prod.yml    # Produção
+├── Makefile                   # Comandos
+├── .docker/
+│   ├── nginx/nginx.conf      # Configuração Nginx
+│   ├── ssl/                  # Certificados SSL
+│   └── node/
+│       ├── Dockerfile.dev    # Build desenvolvimento
+│       └── Dockerfile.prod   # Build produção
+├── src/                      # Código fonte
+└── prisma/                   # Schema e migrações
+```
+
+## Tecnologias
+
+- **NestJS**: Framework Node.js
+- **Prisma**: ORM TypeScript
+- **PostgreSQL**: Banco relacional
+- **Redis**: Cache e sessões
+- **SuperTokens**: Autenticação
+- **Docker**: Containerização
+- **Nginx**: Proxy reverso
+- **Let's Encrypt**: SSL gratuito
+
+## Deploy
+
+```bash
+git pull
+make prod-down
+make prod-up
+make health-https
+```
+
+## Monitoramento
+
+### Health Checks
+
+- API, Database, Cache, Auth
+- Checks a cada 30s
+- Restart automático
+
+### Log Files
+
+```bash
+make dev-logs | grep ERROR
+make prod-logs | grep -i health
+```
+
+## Diferenças Dev vs Prod
+
+| Aspecto | Dev | Prod |
+|---------|-----|------|
+| Build | Hot reload | Otimizado |
+| Debug | Port 9229 | Disabled |
+| SSL | HTTP | HTTPS automático |
+| Logs | Verbosos | Estruturados |
+| Resources | Ilimitados | Limitados |

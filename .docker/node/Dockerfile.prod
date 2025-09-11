@@ -1,0 +1,76 @@
+FROM node:22-alpine AS base
+WORKDIR /app
+
+ARG NODE_ENV
+ENV NODE_ENV=${NODE_ENV}
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs
+RUN chown -R nestjs:nodejs /app && chmod -R 755 /app
+
+RUN apk add --no-cache curl libc6-compat git
+
+
+FROM base AS deps
+
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN chown -R nestjs:nodejs /app
+USER nestjs
+
+RUN pnpm install --frozen-lockfile
+
+
+FROM base AS prod-deps
+
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN chown -R nestjs:nodejs /app
+USER nestjs
+
+RUN pnpm install --frozen-lockfile --prod
+
+
+FROM base AS builder
+
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY . .
+
+RUN chown -R nestjs:nodejs /app
+
+USER nestjs
+RUN pnpm exec prisma generate
+RUN pnpm run build
+
+
+FROM base AS app
+
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+COPY --from=prod-deps --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nestjs:nodejs /app/.scripts ./.scripts
+COPY --chown=nestjs:nodejs package*.json ./
+
+USER nestjs
+EXPOSE 5122
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:5122/health || exit 1
+
+CMD ["sh", "-c", "\
+  echo 'Generating Prisma client...' && \
+  pnpm exec prisma generate && \
+  echo 'Running database migration...' && \
+  pnpm exec prisma migrate deploy && \
+  echo 'Migration completed. Starting application...' && \
+  exec node dist/src/main.js \
+  "]

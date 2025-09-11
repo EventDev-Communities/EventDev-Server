@@ -1,8 +1,8 @@
 {
   "name": "EventDev",
   "dockerComposeFile": "../docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/app",
+  "service": "api",
+  "workspaceFolder": "/api",
   "forwardPorts": [5122],
   "portsAttributes": {
     "5122": {

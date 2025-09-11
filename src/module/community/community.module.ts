@@ -4,8 +4,8 @@ import { CommunityService } from './community.service'
 import { CommunityController } from './community.controller'
 
 @Module({
-    providers: [CommunityRepository, CommunityService],
-    controllers: [CommunityController],
-    exports: [CommunityService]
+  providers: [CommunityRepository, CommunityService],
+  controllers: [CommunityController],
+  exports: [CommunityService]
 })
-export class CommunityModule { }
+export class CommunityModule {}

@@ -1,0 +1,4 @@
+# Certificados SSL (gerados automaticamente)
+*.crt
+*.key
+*.pem

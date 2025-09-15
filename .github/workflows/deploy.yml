@@ -17,6 +17,7 @@ jobs:
         run: |
             cd /var/www/EventDev-Server
             git pull
+            echo "${{ secrets.PROD_ENV }}" > .env
             make prod-down
             make prod-up
 

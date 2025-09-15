@@ -1,4 +1,52 @@
 services:
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    restart: unless-stopped
+    volumes:
+      - ssl-data:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+    entrypoint: >
+      sh -c "
+      echo 'Iniciando o container de renovação Certbot...'
+      until nc -z nginx 80; do
+          echo 'Aguardando o Nginx...'
+          sleep 5s
+      done
+      certbot certonly --webroot -w /var/www/certbot --email eventdevcommunities@gmail.com --agree-tos --non-interactive --staging -d api.eventdev.org
+      certbot renew --quiet
+      /usr/sbin/nginx -s reload
+      "
+    networks:
+      - eventdev-prod-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./.docker/ssl:/etc/nginx/ssl:ro
+      - certbot-webroot:/var/www/certbot
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      - certbot
+      - api
+      - supertokens-auth
+    networks:
+      - eventdev-prod-network
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
   redis-cache:
     image: redis:7-alpine
     container_name: redis-cache-prod
@@ -118,6 +166,9 @@ services:
 volumes:
   postgres-db-prod-data:
   redis-cache-prod-data:
+  nginx-logs:
+  ssl-data:
+  certbot-webroot:
 
 networks:
   eventdev-prod-network:

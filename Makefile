@@ -108,6 +108,8 @@ health: ## Check API health
 health-https: ## Check HTTPS API health
 	@echo " ✦  Checking HTTPS API health..."
 	@curl -k --fail https://api.eventdev.org/health && echo "✓  HTTPS API is healthy!" || echo "⚠  HTTPS API is not responding"
+	@echo "✦  Checking HTTPS API health..."
+	@curl -k --fail https://api.eventdev.org/health && echo "✓  HTTPS API is healthy!" || echo "⚠  HTTPS API is not responding"
 
 clean: ## Clean all containers, images and volumes
 	@echo " ✦  Cleaning containers and volumes..."

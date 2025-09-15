@@ -18,8 +18,10 @@ jobs:
       - name: Deploy to DigitalOcean VPS
         run: |
           cd /var/www/EventDev-Server
-          git pull
-          echo "${{ secrets.PROD_ENV }}" > .env
+          git pull --rebase
+          cat <<EOF > .env
+          ${{ secrets.PROD_ENV }}
+          EOF
           make prod-down
           make prod-up
 

@@ -1,85 +1,14 @@
 services:
-  ssl-setup:
-    image: alpine:latest
-    container_name: ssl-setup-prod
-    restart: "no"
-    volumes:
-      - ./.docker/ssl:/ssl
-      - ssl-data:/etc/letsencrypt
-    environment:
-      - DOMAIN=api.eventdev.org
-      - EMAIL=admin@eventdev.org
-    command: >
-      sh -c "
-      apk add --no-cache curl certbot openssl &&
-      echo 'Verificando DNS para $$DOMAIN...' &&
-      if nslookup $$DOMAIN | grep -q '192.168.1.100'; then
-        echo 'DNS OK - Configurando SSL com certbot...' &&
-        mkdir -p /ssl &&
-        if [ ! -f /ssl/api.eventdev.org.crt ]; then
-          echo 'Gerando certificado SSL com certbot...' &&
-          (certbot certonly --standalone --non-interactive --agree-tos --email $$EMAIL -d $$DOMAIN --http-01-port=80 || (
-            echo 'Falha no certbot. Criando certificado auto-assinado...' &&
-            openssl req -x509 -newkey rsa:4096 -keyout /ssl/api.eventdev.org.key -out /ssl/api.eventdev.org.crt -days 365 -nodes -subj '/CN=$$DOMAIN'
-          )) &&
-          if [ -f /etc/letsencrypt/live/$$DOMAIN/fullchain.pem ]; then
-            cp /etc/letsencrypt/live/$$DOMAIN/fullchain.pem /ssl/api.eventdev.org.crt &&
-            cp /etc/letsencrypt/live/$$DOMAIN/privkey.pem /ssl/api.eventdev.org.key
-          fi &&
-          chmod 644 /ssl/api.eventdev.org.crt &&
-          chmod 600 /ssl/api.eventdev.org.key &&
-          echo 'SSL configurado com sucesso!'
-        else
-          echo 'Certificados SSL já existem'
-        fi
-      else
-        echo 'AVISO: DNS não configurado. Configure: A api.eventdev.org → 192.168.1.100' &&
-        echo 'Criando certificado auto-assinado temporário...' &&
-        mkdir -p /ssl &&
-        openssl req -x509 -newkey rsa:4096 -keyout /ssl/api.eventdev.org.key -out /ssl/api.eventdev.org.crt -days 365 -nodes -subj '/CN=$$DOMAIN' &&
-        chmod 644 /ssl/api.eventdev.org.crt &&
-        chmod 600 /ssl/api.eventdev.org.key
-      fi
-      "
-    networks:
-      - eventdev-prod-network
-
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-prod
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./.docker/ssl:/etc/nginx/ssl:ro
-      - nginx-logs:/var/log/nginx
-    depends_on:
-      - ssl-setup
-      - api
-      - supertokens-auth
-    networks:
-      - eventdev-prod-network
-    environment:
-      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.conf
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-        reservations:
-          memory: 64M
-
   redis-cache:
     image: redis:7-alpine
     container_name: redis-cache-prod
     env_file:
       - .env
     restart: always
-    volumes:
-      - redis-cache-prod-data:/data
     expose:
       - "${REDIS_PORT}"
+    volumes:
+      - redis-cache-prod-data:/data
     networks:
       - eventdev-prod-network
     deploy:
@@ -105,10 +34,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 30s
-      timeout: 10s
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 60s
+      start_period: 30s
     networks:
       - eventdev-prod-network
     deploy:
@@ -136,11 +65,12 @@ services:
       - REDIS_URL=redis://redis-cache:${REDIS_PORT}
       - NODE_PORT=${NODE_PORT}
       - NODE_ENV=production
+      - SUPERTOKENS_CONNECTION_URI=http://supertokens-auth:${SUPERTOKENS_PORT}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NODE_PORT}/health"]
-      interval: 30s
-      timeout: 10s
-      start_period: 60s
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
       retries: 3
     depends_on:
       redis-cache:
@@ -157,6 +87,7 @@ services:
           memory: 1G
         reservations:
           memory: 512M
+
 
   supertokens-auth:
     image: supertokens/supertokens-postgresql
@@ -186,9 +117,8 @@ services:
 volumes:
   postgres-db-prod-data:
   redis-cache-prod-data:
-  nginx-logs:
-  ssl-data:
 
 networks:
   eventdev-prod-network:
-    external: true
+    name: eventdev-prod-network
+    driver: external

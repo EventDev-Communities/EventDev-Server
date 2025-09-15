@@ -12,25 +12,53 @@ make dev-up       # Iniciar containers
 make dev-logs     # Ver logs
 ```
 
-### Produção
+****
+
+### Testes Locais (Simula Produção)
 
 ```bash
-# Configurar DNS: A api.eventdev.org → 192.168.1.100
-make check-dns    # Verificar DNS
-make setup-prod   # Criar .env (editar senhas!)
-make prod-up      # Deploy com SSL automático
+make test-run     # Teste completo da arquitetura
+make test-up      # Ambiente de teste local
+make test-api     # Testar endpoints da API
+make test-down    # Parar ambiente de teste
+```
+
+**URLs de Teste:**
+
+- HTTP: <http://localhost:8080>
+- HTTPS: <https://localhost:8443> (certificado auto-assinado)
+- API Direta: <http://localhost:5123>
+
+### Produção
+
+#### Antes de Tudo: Configurar DNS
+
+> &nbsp;
+> Adicionar Registro (Painel de Domínios)
+>
+> - Type: A
+> - Hostname: api.eventdev.org
+> - Value: IP_DO_SEU_SERVIDOR
+> &nbsp;
+
+```bash
+make check-dns    # 1. Verificar DNS
+make setup-prod   # 2. Criar .env (editar senhas!)
+make prod-up      # 3. Deploy completo
 ```
 
 ## Comandos
 
-| Comando             | Descrição                   |
-|---------------------|-----------------------------|
-| `make dev-up`       | Desenvolvimento             |
-| `make prod-up`      | Produção com SSL automático |
-| `make health`       | Testar API HTTP             |
-| `make health-https` | Testar API HTTPS            |
-| `make status`       | Status dos containers       |
-| `make clean`        | Limpar tudo                 |
+| Comando             | Descrição                     |
+|---------------------|-------------------------------|
+| `make dev-up`       | Desenvolvimento               |
+| `make test-run`     | Teste completo da arquitetura |
+| `make test-up`      | Ambiente de teste local       |
+| `make prod-up`      | Produção                      |
+| `make health`       | Testar API HTTP               |
+| `make health-https` | Testar API HTTPS              |
+| `make status`       | Status dos containers         |
+| `make clean`        | Limpar tudo                   |
 
 ### Banco de Dados
 
@@ -47,7 +75,6 @@ make prod-up      # Deploy com SSL automático
 |------------------------|----------------------|
 | `make dev-logs`        | Logs desenvolvimento |
 | `make prod-logs`       | Logs produção        |
-| `make prod-nginx-logs` | Logs Nginx           |
 | `make logs-all`        | Todos os logs        |
 
 ## Arquitetura
@@ -61,8 +88,6 @@ make prod-up      # Deploy com SSL automático
 
 ### Ambiente Prod
 
-- SSL automático com certbot oficial
-- Nginx reverse proxy
 - Health checks robustos
 - Limites de recursos definidos
 
@@ -91,16 +116,6 @@ Valor: 192.168.1.100
 
 Verificar: `make check-dns`
 
-## SSL Automático
-
-O SSL é configurado automaticamente usando **certbot oficial** no primeiro `make prod-up`:
-
-1. Verifica DNS automaticamente
-2. Usa certbot para Let's Encrypt se DNS estiver correto
-3. Fallback para certificado auto-assinado se falhar
-4. Configura Nginx automaticamente
-5. Persiste certificados em volumes Docker
-
 ## Troubleshooting
 
 ### DNS não resolve
@@ -108,13 +123,6 @@ O SSL é configurado automaticamente usando **certbot oficial** no primeiro `mak
 ```bash
 make check-dns
 nslookup api.eventdev.org
-```
-
-### SSL falha
-
-```bash
-make check-dns    # DNS deve estar OK
-make prod-up      # SSL automático
 ```
 
 ### Containers não iniciam
@@ -148,14 +156,12 @@ ALLOWED_ORIGINS="https://eventdev.org,https://api.eventdev.org"
 
 ## Estrutura
 
-```text
+```sh
 EventDev-Server/
 ├── docker-compose.dev.yml    # Desenvolvimento
 ├── docker-compose.prod.yml   # Produção
 ├── Makefile                  # Comandos
 ├── .docker/
-│   ├── nginx/nginx.conf      # Configuração Nginx
-│   ├── ssl/                  # Certificados SSL
 │   └── node/
 │       ├── Dockerfile.dev    # Build desenvolvimento
 │       └── Dockerfile.prod   # Build produção
@@ -171,8 +177,6 @@ EventDev-Server/
 - **Redis**: Cache e sessões
 - **SuperTokens**: Autenticação
 - **Docker**: Containerização
-- **Nginx**: Proxy reverso
-- **Let's Encrypt**: SSL gratuito
 
 ## Deploy
 
@@ -204,6 +208,5 @@ make prod-logs | grep -i health
 |-----------|------------|------------------|
 | Build     | Hot reload | Otimizado        |
 | Debug     | Port 9229  | Disabled         |
-| SSL       | HTTP       | HTTPS automático |
 | Logs      | Verbosos   | Estruturados     |
 | Resources | Ilimitados | Limitados        |

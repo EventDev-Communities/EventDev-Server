@@ -43,6 +43,13 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# Certificados SSL (gerados automaticamente)
+*.crt
+*.key
+*.pem
+certs/
+test-certs/
+
 # temp directory
 .temp
 .tmp

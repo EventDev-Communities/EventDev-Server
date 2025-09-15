@@ -5,7 +5,7 @@ export class SignInDto {
   @IsNotEmpty({ message: 'O email não pode estar vazio.' })
   email: string
 
-  @IsString()
+  @IsString({ message: 'A senha deve ser string' })
   @IsNotEmpty({ message: 'A senha não pode estar vazia.' })
   password: string
 }

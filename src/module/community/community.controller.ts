@@ -2,6 +2,7 @@ import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, P
 import { CommunityService } from './community.service'
 import { UpdateCommunityDto } from './dto/updateCommunity.dto'
 import { CreateCommunityDto } from './dto/createCommunity.dto'
+import { PublicAccess } from 'supertokens-nestjs'
 // import { Prisma } from '@prisma/client'
 
 /*
@@ -17,6 +18,7 @@ export class CommunityController {
   constructor(private readonly communityService: CommunityService) {}
 
   @Get()
+  @PublicAccess()
   async getAll(
     @Query('take', new DefaultValuePipe(5), ParseIntPipe) take: number,
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number
@@ -30,6 +32,7 @@ export class CommunityController {
   }
 
   @Get(':id')
+  @PublicAccess()
   async getByID(@Param('id', ParseIntPipe) id: number) {
     return await this.communityService.getByID(id)
   }

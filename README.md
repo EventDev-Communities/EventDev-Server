@@ -23,32 +23,32 @@ make prod-up      # Deploy com SSL automático
 
 ## Comandos
 
-| Comando | Descrição |
-|---------|-----------|
-| `make dev-up` | Desenvolvimento |
-| `make prod-up` | Produção com SSL automático |
-| `make health` | Testar API HTTP |
-| `make health-https` | Testar API HTTPS |
-| `make status` | Status dos containers |
-| `make clean` | Limpar tudo |
+| Comando             | Descrição                   |
+|---------------------|-----------------------------|
+| `make dev-up`       | Desenvolvimento             |
+| `make prod-up`      | Produção com SSL automático |
+| `make health`       | Testar API HTTP             |
+| `make health-https` | Testar API HTTPS            |
+| `make status`       | Status dos containers       |
+| `make clean`        | Limpar tudo                 |
 
 ### Banco de Dados
 
-| Comando | Descrição |
-|---------|-----------|
-| `make db-migrate` | Executar migrações |
-| `make db-seed` | Popular dados iniciais |
-| `make db-studio` | Interface visual |
-| `make db-reset` | Reset completo (dev) |
+| Comando           | Descrição              |
+|-------------------|------------------------|
+| `make db-migrate` | Executar migrações     |
+| `make db-seed`    | Popular dados iniciais |
+| `make db-studio`  | Interface visual       |
+| `make db-reset`   | Reset completo (dev)   |
 
 ### Logs
 
-| Comando | Descrição |
-|---------|-----------|
-| `make dev-logs` | Logs desenvolvimento |
-| `make prod-logs` | Logs produção |
-| `make prod-nginx-logs` | Logs Nginx |
-| `make logs-all` | Todos os logs |
+| Comando                | Descrição            |
+|------------------------|----------------------|
+| `make dev-logs`        | Logs desenvolvimento |
+| `make prod-logs`       | Logs produção        |
+| `make prod-nginx-logs` | Logs Nginx           |
+| `make logs-all`        | Todos os logs        |
 
 ## Arquitetura
 
@@ -150,9 +150,9 @@ ALLOWED_ORIGINS="https://eventdev.org,https://api.eventdev.org"
 
 ```text
 EventDev-Server/
-├── docker-compose.dev.yml     # Desenvolvimento
-├── docker-compose.prod.yml    # Produção
-├── Makefile                   # Comandos
+├── docker-compose.dev.yml    # Desenvolvimento
+├── docker-compose.prod.yml   # Produção
+├── Makefile                  # Comandos
 ├── .docker/
 │   ├── nginx/nginx.conf      # Configuração Nginx
 │   ├── ssl/                  # Certificados SSL
@@ -200,10 +200,10 @@ make prod-logs | grep -i health
 
 ## Diferenças Dev vs Prod
 
-| Aspecto | Dev | Prod |
-|---------|-----|------|
-| Build | Hot reload | Otimizado |
-| Debug | Port 9229 | Disabled |
-| SSL | HTTP | HTTPS automático |
-| Logs | Verbosos | Estruturados |
-| Resources | Ilimitados | Limitados |
+| Aspecto   | Dev        | Prod             |
+|-----------|------------|------------------|
+| Build     | Hot reload | Otimizado        |
+| Debug     | Port 9229  | Disabled         |
+| SSL       | HTTP       | HTTPS automático |
+| Logs      | Verbosos   | Estruturados     |
+| Resources | Ilimitados | Limitados        |

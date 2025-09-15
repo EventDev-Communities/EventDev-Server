@@ -58,6 +58,7 @@ services:
     restart: unless-stopped
     ports:
       - "${NODE_PORT}:${NODE_PORT}"
+      - "${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}"
       - "9229:9229" # Node.js Inspector
     environment:
       - DATABASE_URL=${DATABASE_URL}

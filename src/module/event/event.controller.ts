@@ -2,6 +2,7 @@ import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, P
 import { EventService } from './event.service'
 import { CreateEventDto } from './dto/createEvent.dto'
 import { UpdateEventDto } from './dto/updateEvent.dto'
+import { PublicAccess } from 'supertokens-nestjs'
 
 @Controller('event')
 export class EventController {
@@ -13,11 +14,13 @@ export class EventController {
   }
 
   @Get(':id')
+  @PublicAccess()
   async getByID(@Param('id', ParseIntPipe) id: number) {
     return await this.eventService.getById(id)
   }
 
   @Get('')
+  @PublicAccess()
   async getAll(@Query('take', new DefaultValuePipe(5)) take: number, @Query('skip', new DefaultValuePipe(0)) skip: number) {
     return await this.eventService.getAll(take, skip)
   }

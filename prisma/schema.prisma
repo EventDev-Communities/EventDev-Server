@@ -8,23 +8,23 @@ datasource db {
 }
 
 model community {
-  id                      Int                      @id @default(autoincrement())
-  supertokens_id          String                   @unique @db.VarChar(255)
-  logo_url                String                   @db.VarChar(255)
-  link_instagram          String?                  @db.VarChar(255)
-  link_linkedin           String?                  @db.VarChar(255)
-  link_website            String?                  @db.VarChar(255)
-  link_github             String?                  @db.VarChar(255)
-  created_at              DateTime                 @default(now()) @db.Timestamp(6)
-  description             String?                  @db.VarChar(255)
-  is_active               Boolean                  @default(true)
-  name                    String                   @db.VarChar(255)
-  phone_number            String?                  @db.VarChar(255)
-  updated_at              DateTime?                @default(now()) @updatedAt
-  event                   event[]
-  post                    post[]
-  users                   community_user[]
-  users_requests          community_user_request[]
+  id             Int                      @id @default(autoincrement())
+  supertokens_id String                   @unique @db.VarChar(255)
+  logo_url       String                   @db.VarChar(255)
+  link_instagram String?                  @db.VarChar(255)
+  link_linkedin  String?                  @db.VarChar(255)
+  link_website   String?                  @db.VarChar(255)
+  link_github    String?                  @db.VarChar(255)
+  created_at     DateTime                 @default(now()) @db.Timestamp(6)
+  description    String?                  @db.VarChar(255)
+  is_active      Boolean                  @default(true)
+  name           String                   @db.VarChar(255)
+  phone_number   String?                  @db.VarChar(255)
+  updated_at     DateTime?                @default(now()) @updatedAt
+  event          event[]
+  post           post[]
+  users          community_user[]
+  users_requests community_user_request[]
 }
 
 model address {
@@ -77,16 +77,16 @@ model post {
 }
 
 model user {
-  id               Int                      @id @default(autoincrement())
-  supertokens_id   String                   @unique @db.VarChar(255)
-  email            String                   @unique @db.VarChar(255)
-  password         String                   @db.VarChar(255)
-  function         String                   @db.VarChar(255)
-  usuario_root     Boolean?                 @default(false)
-  is_active        Boolean                  @default(true)
-  updated_at       DateTime?                @db.Timestamp(6)
-  created_at       DateTime                 @default(now()) @db.Timestamp(6)
-  communities      community_user[]
+  id                Int                      @id @default(autoincrement())
+  supertokens_id    String                   @unique @db.VarChar(255)
+  email             String                   @unique @db.VarChar(255)
+  password          String                   @db.VarChar(255)
+  function          String                   @db.VarChar(255)
+  usuario_root      Boolean?                 @default(false)
+  is_active         Boolean                  @default(true)
+  updated_at        DateTime?                @db.Timestamp(6)
+  created_at        DateTime                 @default(now()) @db.Timestamp(6)
+  communities       community_user[]
   communityRequests community_user_request[]
 }
 

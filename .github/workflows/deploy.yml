@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: self-hosted
+    runs-on: [self-hosted, 'self-hosted-runner-group: Default']
 
     steps:
       - name: Checkout Code

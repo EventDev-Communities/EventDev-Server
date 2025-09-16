@@ -3,6 +3,7 @@ import { AppModule } from './app.module'
 import { ValidationPipe } from '@nestjs/common'
 import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
 import helmet from 'helmet'
+import { middleware } from 'supertokens-node/framework/express'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
@@ -13,12 +14,19 @@ async function bootstrap() {
     origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') || [] : true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'fdi-version', 'rid', 'st-auth-mode']
   })
 
+  app.use(middleware())
   app.useGlobalFilters(new SuperTokensExceptionFilter())
-  app.useGlobalPipes(new ValidationPipe())
-  app.setGlobalPrefix('api/v1', { exclude: ['/health', ''] })
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Remove propriedades não definidas no DTO
+      forbidNonWhitelisted: false, // Permite propriedades extras sem erro
+      transform: true // Transforma tipos automaticamente
+    })
+  )
+  app.setGlobalPrefix('api/v1', { exclude: ['/health', '', '/api/v1/auth'] })
 
   // Graceful shutdown
   process.on('SIGTERM', () => {

@@ -1,19 +1,50 @@
-import { PartialType } from '@nestjs/mapped-types'
-import { IsNotEmpty, IsOptional, ValidateNested } from 'class-validator'
-import { EventDto } from './event.dto'
 import { Type } from 'class-transformer'
-import { AddressDto } from 'src/module/address/dto/address.dto'
+import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, ValidateNested, IsUrl } from 'class-validator'
+import { AddressDto } from '../../address/dto/address.dto'
+import { ModalityEvent } from './createEvent.dto'
 
-export class PartialAddressDto extends PartialType(AddressDto) {}
+class EventUpdateData {
+  @IsOptional()
+  @IsString()
+  title?: string
+
+  @IsOptional()
+  @IsString()
+  description?: string
+
+  @IsOptional()
+  @IsDateString()
+  start_date_time?: string
+
+  @IsOptional()
+  @IsDateString()
+  end_date_time?: string
+
+  @IsOptional()
+  @IsEnum(ModalityEvent)
+  modality?: ModalityEvent
+
+  @IsOptional()
+  @IsUrl()
+  link?: string
+
+  @IsOptional()
+  @IsString()
+  capa_url?: string
+
+  @IsOptional()
+  @IsBoolean()
+  is_active?: boolean
+}
 
 export class UpdateEventDto {
+  @IsOptional()
   @ValidateNested()
-  @IsNotEmpty()
-  @Type(() => EventDto)
-  event: EventDto
+  @Type(() => EventUpdateData)
+  event?: EventUpdateData
 
   @IsOptional()
   @ValidateNested()
-  @Type(() => PartialAddressDto)
-  address?: PartialAddressDto
+  @Type(() => AddressDto)
+  address?: AddressDto
 }

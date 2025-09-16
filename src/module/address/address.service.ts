@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { AddressDto } from './dto/address.dto'
 import { AddressRepository } from './address.repository'
-import { PartialAddressDto } from '../event/dto/updateEvent.dto'
+import { PartialAddressDto } from './dto/partialAddress.dto'
 
 @Injectable()
 export class AddressService {
@@ -13,5 +13,9 @@ export class AddressService {
 
   async update(address: PartialAddressDto, idAddress: number) {
     return await this.addressRepository.updateMany(address, idAddress)
+  }
+
+  async getAll() {
+    return await this.addressRepository.getAll()
   }
 }

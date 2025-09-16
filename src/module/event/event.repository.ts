@@ -6,12 +6,19 @@ import { EventDto } from './dto/event.dto'
 export class EventRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(data: EventDto, idCommunity: number, idAddress?: number | null) {
-    await this.prismaService.event.create({
+  async create(data: EventDto, idCommunity: number) {
+    return await this.prismaService.event.create({
       data: {
-        ...data,
+        title: data.title,
+        description: data.description,
+        start_date_time: data.start_date_time,
+        end_date_time: data.end_date_time,
+        modality: data.modality,
+        is_active: data.is_active,
+        link: data.link,
+        capa_url: data.capa_url,
         id_community: idCommunity,
-        ...(idAddress && { id_address: idAddress })
+        id_address: data.id_address || undefined
       }
     })
   }
@@ -25,7 +32,14 @@ export class EventRepository {
       take,
       skip,
       include: {
-        address: true
+        address: true,
+        community: true
+      },
+      orderBy: {
+        created_at: 'desc'
+      },
+      where: {
+        is_active: true
       }
     })
   }

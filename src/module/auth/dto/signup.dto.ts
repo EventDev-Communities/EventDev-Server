@@ -20,8 +20,9 @@ export class CommunitySignUpDto {
   @IsOptional()
   description?: string
 
+  @IsOptional()
   @IsUrl({}, { message: 'A URL do logo é inválida.' })
-  logo_url: string
+  logo_url?: string
 
   @IsString()
   @IsOptional()
@@ -50,4 +51,21 @@ export class CommunitySignUpDto {
   is_active: boolean
 }
 
-export class UserSignUpDto {}
+export class UserSignUpDto {
+  @IsEmail({}, { message: 'O email informado é inválido.' })
+  @IsNotEmpty({ message: 'O email não pode estar vazio.' })
+  email: string
+
+  @IsNotEmpty({ message: 'A senha não pode estar vazia.' })
+  @IsStrongPassword(
+    { minLength: 8, minUppercase: 1, minSymbols: 1 },
+    { message: 'A senha deve ter no mínimo 8 caracteres, uma letra maiúscula e um símbolo.' }
+  )
+  password: string
+
+  @IsString()
+  @IsIn(['user', 'community'], { message: 'O papel (role) informado é inválido.' })
+  role: 'user' | 'community'
+
+  is_active: boolean
+}

@@ -6,11 +6,23 @@ import { CommunityModule } from './module/community/community.module'
 import { ConfigModule } from '@nestjs/config'
 import { AuthModule } from './module/auth/auth.module'
 import { EventModule } from './module/event/event.module'
+import { AddressModule } from './module/address/address.module'
 import { RateLimiterModule } from './module/rateLimiter/rate-limiter.module'
 import { RateLimitMiddleware } from './helper/abuse-limit-request.helper'
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, CommunityModule, AuthModule, EventModule, RateLimiterModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env'
+    }),
+    PrismaModule,
+    CommunityModule,
+    AuthModule,
+    EventModule,
+    AddressModule,
+    RateLimiterModule
+  ],
   controllers: [AppController],
   providers: [AppService]
 })

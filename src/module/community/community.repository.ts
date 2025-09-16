@@ -10,11 +10,14 @@ export class CommunityRepository {
   async getAll(take: number, skip: number) {
     return await this.prismaService.community.findMany({
       take: take,
-      skip: skip
+      skip: skip,
+      orderBy: {
+        name: 'asc'
+      }
     })
   }
 
-  async create(data: CreateCommunityDto) {
+  async create(data: CreateCommunityDto & { supertokens_id: string }) {
     return await this.prismaService.community.create({
       data
     })
@@ -22,6 +25,12 @@ export class CommunityRepository {
 
   async getByID(id: number) {
     return await this.prismaService.community.findUnique({ where: { id } })
+  }
+
+  async getByUserId(userId: string) {
+    return await this.prismaService.community.findUnique({
+      where: { supertokens_id: userId }
+    })
   }
 
   async update(id: number, data: UpdateCommunityDto) {

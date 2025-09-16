@@ -1,10 +1,6 @@
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator'
 
 export class CreateCommunityDto {
-  @IsNotEmpty()
-  @IsString()
-  supertokens_id: string;
-
   @IsString()
   @IsNotEmpty()
   name: string
@@ -13,8 +9,9 @@ export class CreateCommunityDto {
   @IsOptional()
   description?: string
 
-  @IsString()
-  logo_url: string
+  @IsOptional()
+  @IsUrl({}, { message: 'A URL do logo é inválida.' })
+  logo_url?: string
 
   @IsString()
   @IsOptional()
@@ -37,5 +34,6 @@ export class CreateCommunityDto {
   link_github?: string
 
   @IsBoolean()
-  is_active: boolean
+  @IsOptional()
+  is_active?: boolean
 }

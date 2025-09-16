@@ -49,16 +49,17 @@ make prod-up      # 3. Deploy completo
 
 ## Comandos
 
-| Comando             | Descrição                     |
-|---------------------|-------------------------------|
-| `make dev-up`       | Desenvolvimento               |
-| `make test-run`     | Teste completo da arquitetura |
-| `make test-up`      | Ambiente de teste local       |
-| `make prod-up`      | Produção                      |
-| `make health`       | Testar API HTTP               |
-| `make health-https` | Testar API HTTPS              |
-| `make status`       | Status dos containers         |
-| `make clean`        | Limpar tudo                   |
+| Comando                | Descrição                     |
+|------------------------|-------------------------------|
+| `make dev-up`          | Desenvolvimento               |
+| `make test-run`        | Teste completo da arquitetura |
+| `make test-up`         | Ambiente de teste local       |
+| `make prod-up`         | Produção                      |
+| `make health`          | Testar API HTTP               |
+| `make health-https`    | Testar API HTTPS              |
+| `make create-networks` | Criar redes Docker            |
+| `make status`          | Status dos containers         |
+| `make clean`           | Limpar tudo                   |
 
 ### Banco de Dados
 
@@ -210,3 +211,7 @@ make prod-logs | grep -i health
 | Debug     | Port 9229  | Disabled         |
 | Logs      | Verbosos   | Estruturados     |
 | Resources | Ilimitados | Limitados        |
+
+## Integração
+
+Este backend funciona em conjunto com o [EventDev-Front](https://github.com/EventDev-Communities/EventDev-Front), utilizando redes Docker compartilhadas para comunicação entre os serviços.

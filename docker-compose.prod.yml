@@ -66,7 +66,7 @@ services:
       - REDIS_URL=redis://redis-cache:${REDIS_PORT}
       - NODE_PORT=${NODE_PORT}
       - NODE_ENV=production
-      - SUPERTOKENS_CONNECTION_URI=http://supertokens-auth:${SUPERTOKENS_PORT}
+      - SUPERTOKENS_CONNECTION_URI=${SUPERTOKENS_CONNECTION_URI}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NODE_PORT}/health"]
       interval: 15s

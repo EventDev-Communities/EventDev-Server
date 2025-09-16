@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { AddressDto } from './dto/address.dto'
-import { PartialAddressDto } from '../event/dto/updateEvent.dto'
+import { PartialAddressDto } from './dto/partialAddress.dto'
 
 @Injectable()
 export class AddressRepository {
@@ -24,5 +24,9 @@ export class AddressRepository {
     return await this.prismaService.address.findUnique({
       where: { id: idAddress }
     })
+  }
+
+  async getAll() {
+    return await this.prismaService.address.findMany()
   }
 }

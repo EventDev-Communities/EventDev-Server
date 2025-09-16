@@ -20,8 +20,10 @@ import { AuthService } from './auth.service'
       },
       appInfo: {
         appName: 'eventdev-server',
-        apiDomain: process.env.NODE_ENV === 'production' ? 'https://api.eventdev.org' : 'http://127.0.0.1:5122',
-        websiteDomain: process.env.NODE_ENV === 'production' ? 'https://eventdev.org' : 'http://127.0.0.1:5173'
+        apiDomain: process.env.NODE_ENV === 'production' ? 'https://api.eventdev.org' : 'http://localhost:5122',
+        websiteDomain: process.env.NODE_ENV === 'production' ? 'https://eventdev.org' : 'http://localhost:3000',
+        apiBasePath: '/api/v1/auth',
+        websiteBasePath: '/auth'
       },
       recipeList: [EmailPassword.init(), Session.init(), UserRoles.init()]
     })

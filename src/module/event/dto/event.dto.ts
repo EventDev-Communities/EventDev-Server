@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString } from 'class-validator'
+import { IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export enum ModalityEvent {
   ONLINE = 'ONLINE',
@@ -30,4 +30,8 @@ export class EventDto {
 
   @IsEnum(ModalityEvent)
   modality: ModalityEvent
+
+  @IsOptional()
+  @IsNumber()
+  id_address?: number
 }

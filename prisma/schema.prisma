@@ -10,7 +10,7 @@ datasource db {
 model community {
   id             Int                      @id @default(autoincrement())
   supertokens_id String                   @unique @db.VarChar(255)
-  logo_url       String                   @db.VarChar(255)
+  logo_url       String?                  @db.VarChar(255)
   link_instagram String?                  @db.VarChar(255)
   link_linkedin  String?                  @db.VarChar(255)
   link_website   String?                  @db.VarChar(255)
@@ -37,7 +37,7 @@ model address {
   number        String   @db.VarChar(10)
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
-  event         event?
+  event         event[]
 
   @@index([state, city])
 }
@@ -49,21 +49,21 @@ enum modality_event {
 }
 
 model event {
-  id              Int       @id @default(autoincrement())
+  id              Int            @id @default(autoincrement())
   id_community    Int
-  id_address      Int?      @unique()
-  title           String    @db.VarChar(255)
-  capa_url        String?    @db.VarChar(255)
-  link            String?   @db.VarChar(255)
-  description     String    @db.VarChar(255)
+  id_address      Int?
+  title           String         @db.VarChar(255)
+  capa_url        String?        @db.VarChar(255)
+  link            String?        @db.VarChar(255)
+  description     String         @db.VarChar(255)
   modality        modality_event
-  is_active       Boolean   @default(true)
-  start_date_time DateTime  @db.Timestamp(6)
-  end_date_time   DateTime  @db.Timestamp(6)
-  created_at      DateTime  @default(now())
-  updated_at      DateTime  @default(now()) @updatedAt
-  address         address?   @relation(fields: [id_address], references: [id], onDelete: Cascade)
-  community       community @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  is_active       Boolean        @default(true)
+  start_date_time DateTime       @db.Timestamp(6)
+  end_date_time   DateTime       @db.Timestamp(6)
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @default(now()) @updatedAt
+  address         address?       @relation(fields: [id_address], references: [id], onDelete: Cascade)
+  community       community      @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model post {
@@ -81,7 +81,6 @@ model user {
   supertokens_id    String                   @unique @db.VarChar(255)
   email             String                   @unique @db.VarChar(255)
   password          String                   @db.VarChar(255)
-  function          String                   @db.VarChar(255)
   usuario_root      Boolean?                 @default(false)
   is_active         Boolean                  @default(true)
   updated_at        DateTime?                @db.Timestamp(6)
@@ -90,17 +89,11 @@ model user {
   communityRequests community_user_request[]
 }
 
-enum community_user_roles {
-  LEADER
-  MEMBER
-}
-
 model community_user {
   community_id Int
   user_id      Int
-  role         community_user_roles @default(MEMBER)
-  community    community            @relation(fields: [community_id], references: [id], onDelete: Cascade)
-  user         user                 @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  community    community @relation(fields: [community_id], references: [id], onDelete: Cascade)
+  user         user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@id([community_id, user_id])
 }
@@ -114,13 +107,13 @@ enum community_user_request_status {
 model community_user_request {
   community_id Int
   user_id      Int
-  message      String?                  @db.VarChar(255)
+  message      String?                       @db.VarChar(255)
   status       community_user_request_status @default(PENDING)
-  created_at   DateTime                 @default(now()) @db.Timestamp(6)
-  updated_at   DateTime                 @default(now()) @updatedAt
+  created_at   DateTime                      @default(now()) @db.Timestamp(6)
+  updated_at   DateTime                      @default(now()) @updatedAt
 
-  community    community                @relation(fields: [community_id], references: [id], onDelete: Cascade)
-  user         user                     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  community community @relation(fields: [community_id], references: [id], onDelete: Cascade)
+  user      user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@id([community_id, user_id])
 }

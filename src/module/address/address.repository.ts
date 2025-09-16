@@ -25,4 +25,8 @@ export class AddressRepository {
       where: { id: idAddress }
     })
   }
+
+  async getAll() {
+    return await this.prismaService.address.findMany()
+  }
 }

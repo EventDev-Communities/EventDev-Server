@@ -6,11 +6,21 @@ import { PublicAccess } from 'supertokens-nestjs'
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(private readonly eventService: EventService) { }
 
   @Post(':idCommunity')
   async create(@Param('idCommunity', ParseIntPipe) idCommunity: number, @Body() data: CreateEventDto) {
-    return await this.eventService.create(idCommunity, data)
+    console.log('Event Controller - Community ID:', idCommunity)
+    console.log('Event Controller - Data received:', JSON.stringify(data, null, 2))
+
+    try {
+      const result = await this.eventService.create(idCommunity, data)
+      console.log('Event Controller - Success:', result)
+      return result
+    } catch (error) {
+      console.error('Event Controller - Error:', error)
+      throw error
+    }
   }
 
   @Get(':id')
@@ -21,7 +31,10 @@ export class EventController {
 
   @Get('')
   @PublicAccess()
-  async getAll(@Query('take', new DefaultValuePipe(5)) take: number, @Query('skip', new DefaultValuePipe(0)) skip: number) {
+  async getAll(
+    @Query('take', new DefaultValuePipe(25)) take: number,
+    @Query('skip', new DefaultValuePipe(0)) skip: number
+  ) {
     return await this.eventService.getAll(take, skip)
   }
 

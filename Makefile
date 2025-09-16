@@ -3,7 +3,7 @@
     install test test-e2e lint format \
     dev-up dev-down dev-logs dev-shell \
     db-migrate db-seed db-studio db-reset \
-    setup-dev setup-prod create-prod-network \
+    setup-dev setup-prod create-networks \
     check-env check-dns status health health-https \
     prod-up prod-down prod-logs prod-logs-all prod-shell \
 
@@ -30,7 +30,7 @@ help:
 
 # Development commands
 
-dev-up: check-env ## Start development environment
+dev-up: check-env create-networks ## Start development environment
 	@echo " ✦  Starting development environment..."
 	@docker compose -f docker-compose.dev.yml up --build -d
 	@echo " ✓  Development environment started!"
@@ -56,7 +56,7 @@ dev-shell: ## Access development container shell
 
 # Production commands
 
-prod-up: check-env ## Start production environment
+prod-up: check-env create-networks ## Start production environment
 	@echo " ✦  Starting production environment..."
 	@echo "    Step 1: Starting application services..."
 	@docker compose -f docker-compose.prod.yml up --build -d --remove-orphans
@@ -88,8 +88,20 @@ prod-shell: ## Access production container shell
 
 # Utility commands
 
-create-prod-network: ## Create production network
-	@docker network create eventdev-prod-network 2>/dev/null || true
+create-networks: ## Create required networks
+	@echo " ✦  Checking and creating networks if needed..."
+	@if ! docker network ls | grep -q eventdev-dev-network; then \
+		echo "    Creating eventdev-dev-network..."; \
+		docker network create eventdev-dev-network; \
+	else \
+		echo "    eventdev-dev-network already exists"; \
+	fi
+	@if ! docker network ls | grep -q eventdev-prod-network; then \
+		echo "    Creating eventdev-prod-network..."; \
+		docker network create eventdev-prod-network; \
+	else \
+		echo "    eventdev-prod-network already exists"; \
+	fi
 
 check-dns: ## Check if DNS is properly configured
 	@echo " ✦  Checking DNS configuration for api.eventdev.org..."

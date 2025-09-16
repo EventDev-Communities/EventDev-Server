@@ -2,8 +2,8 @@ import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseIntPipe, P
 import { CommunityService } from './community.service'
 import { UpdateCommunityDto } from './dto/updateCommunity.dto'
 import { CreateCommunityDto } from './dto/createCommunity.dto'
-import { PublicAccess } from 'supertokens-nestjs'
-// import { Prisma } from '@prisma/client'
+import { PublicAccess, VerifySession, Session } from 'supertokens-nestjs'
+import { SessionContainer } from 'supertokens-node/recipe/session'
 
 /*
  *
@@ -15,20 +15,31 @@ import { PublicAccess } from 'supertokens-nestjs'
 
 @Controller('community')
 export class CommunityController {
-  constructor(private readonly communityService: CommunityService) {}
+  constructor(private readonly communityService: CommunityService) { }
 
   @Get()
   @PublicAccess()
   async getAll(
-    @Query('take', new DefaultValuePipe(5), ParseIntPipe) take: number,
+    @Query('take', new DefaultValuePipe(20), ParseIntPipe) take: number,
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number
   ) {
     return await this.communityService.getAll(take, skip)
   }
 
+  @Get('my-community')
+  @VerifySession()
+  async getMyCommunity(@Session() session: SessionContainer) {
+    return await this.communityService.getByUserId(session.getUserId())
+  }
+
   @Post()
-  async create(@Body() data: CreateCommunityDto) {
-    return await this.communityService.create(data)
+  @VerifySession()
+  async create(@Body() data: CreateCommunityDto, @Session() session: SessionContainer) {
+    console.log('=== COMMUNITY CONTROLLER CREATE ===')
+    console.log('Session getUserId():', session.getUserId())
+    console.log('Data recebida:', data)
+    console.log('===================================')
+    return await this.communityService.create(data, session.getUserId())
   }
 
   @Get(':id')

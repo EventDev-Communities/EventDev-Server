@@ -79,8 +79,6 @@ model post {
 model user {
   id                Int                      @id @default(autoincrement())
   supertokens_id    String                   @unique @db.VarChar(255)
-  email             String                   @unique @db.VarChar(255)
-  password          String                   @db.VarChar(255)
   function          String                   @db.VarChar(255)
   usuario_root      Boolean?                 @default(false)
   is_active         Boolean                  @default(true)

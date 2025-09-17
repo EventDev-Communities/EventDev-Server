@@ -1,5 +1,31 @@
 import { PrismaClient, community_user_roles } from '@prisma/client'
 import { faker } from '@faker-js/faker'
+import { signUp } from 'supertokens-node/recipe/emailpassword'
+import { addRoleToUser } from 'supertokens-node/recipe/userroles'
+import SuperTokens from 'supertokens-node'
+import EmailPassword from 'supertokens-node/recipe/emailpassword'
+import UserRoles from 'supertokens-node/recipe/userroles'
+import Session from 'supertokens-node/recipe/session'
+
+SuperTokens.init({
+  framework: 'express',
+  supertokens: {
+    connectionURI: process.env.SUPERTOKENS_CONNECTION_URI || 'http://localhost:3567',
+    apiKey: process.env.SUPERTOKENS_API_KEY || undefined,
+  },
+  appInfo: {
+    appName: 'EventDev',
+    apiDomain: 'http://localhost:3000',
+    websiteDomain: 'http://localhost:3000',
+    apiBasePath: '/auth',
+    websiteBasePath: '/auth',
+  },
+  recipeList: [
+    EmailPassword.init(),
+    Session.init(),
+    UserRoles.init(),
+  ],
+})
 
 const prisma = new PrismaClient()
 
@@ -22,24 +48,59 @@ const communityData = [
 ]
 
 async function main() {
-  console.log('🌱 Iniciando o processo de seed...')
+  console.log('Iniciando o processo de seed...')
 
-  console.log('🗑️ Limpando dados antigos...')
+  console.log('Limpando dados antigos...')
   await prisma.community_user.deleteMany({})
   await prisma.community.deleteMany({})
   await prisma.user.deleteMany({})
 
-  console.log('👤 Criando 50 usuários...')
+  console.log('Criando 50 usuários...')
   const usersData = Array.from({ length: 50 }, () => ({
     supertokens_id: faker.string.uuid(),
-    email: faker.internet.email(),
-    password: faker.internet.password(),
     function: faker.person.jobTitle()
   }))
   await prisma.user.createMany({ data: usersData })
+
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@eventdev.org';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  let supertokensUser: Awaited<ReturnType<typeof signUp>> | undefined;
+  let adminUser: Awaited<ReturnType<typeof prisma.user.create>> | null;
+  let userId: string | undefined;
+  try {
+    supertokensUser = await signUp("public", adminEmail, adminPassword);
+    if (supertokensUser.status === "OK") {
+      userId = typeof supertokensUser.recipeUserId === 'string'
+        ? supertokensUser.recipeUserId
+        : (supertokensUser.recipeUserId.getAsString() || supertokensUser.recipeUserId.toString());
+      console.log('Usuário admin criado/logado no SuperTokens');
+      adminUser = await prisma.user.create({
+        data: {
+          supertokens_id: userId,
+          function: 'admin',
+          usuario_root: true,
+        }
+      });
+      console.log('Usuário admin criado no banco:', adminEmail);
+    } else {
+      console.log('Não foi possível criar/logar admin no SuperTokens:', supertokensUser.status);
+    }
+  } catch (e) {
+    console.log('Usuário admin já existe ou erro ao criar:', e.message);
+  }
+
+  try {
+    if (supertokensUser && supertokensUser.status === "OK" && userId) {
+      await addRoleToUser("public", userId, 'admin');
+      console.log('Papel ADMIN atribuído ao usuário admin no SuperTokens');
+    }
+  } catch (e) {
+    console.log('️Erro ao atribuir papel ADMIN:', e.message);
+  }
+
   const createdUsers = await prisma.user.findMany()
 
-  console.log('🏢 Criando 15 comunidades...')
+  console.log('Criando 15 comunidades...')
   const communitiesToCreate = communityData.map((community) => {
     const slug = community.name.toLowerCase().replace(/ /g, '-')
     return {
@@ -58,7 +119,7 @@ async function main() {
   await prisma.community.createMany({ data: communitiesToCreate })
   const createdCommunities = await prisma.community.findMany()
 
-  console.log('🔗 Vinculando usuários às comunidades...')
+  console.log('Vinculando usuários às comunidades...')
   const memberships: { community_id: number; user_id: number; role: community_user_roles }[] = []
 
   for (const community of createdCommunities) {
@@ -93,7 +154,7 @@ async function main() {
     skipDuplicates: true
   })
 
-  console.log('✅ Seed finalizado com sucesso!')
+  console.log('Seed finalizado com sucesso!')
 }
 
 main()

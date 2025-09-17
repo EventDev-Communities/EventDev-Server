@@ -30,8 +30,11 @@ export class CommunityService {
     return await this.communityRepository.update(id, data)
   }
 
-  async delete(id: number) {
-    await this.isExistCommunity(id)
-    await this.communityRepository.delete(id)
+  async deleteSelf(userId: string) {
+    await this.communityRepository.deleteSelf(userId)
+  }
+
+  async deleteById(userId: string) {
+    await this.communityRepository.deleteById(userId)
   }
 }

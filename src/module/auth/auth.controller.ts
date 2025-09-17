@@ -3,6 +3,10 @@ import { AuthService } from './auth.service'
 import { CommunitySignUpDto /*, UserSignUpDto */ } from './dto/signup.dto'
 import { PublicAccess /*, VerifySession */ } from 'supertokens-nestjs'
 import { SignInDto } from './dto/signin.dto'
+import { Session } from 'supertokens-nestjs'
+import { SessionContainer } from 'supertokens-node/recipe/session'
+import EmailPassword from 'supertokens-node/recipe/emailpassword'
+import { ResetPasswordDto } from './dto/reset-password.dto'
 
 @Controller('auth')
 export class AuthController {
@@ -27,5 +31,15 @@ export class AuthController {
   // @VerifySession({ roles: ['admin'] })
   async signUpCommunity(@Body() data: CommunitySignUpDto) {
     return this.authService.createCommunity(data)
+  }
+
+  @Post('signout')
+  async signOut(@Session() session: SessionContainer) {
+    return this.authService.signOut(session);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() data: ResetPasswordDto) {
+    return this.authService.resetPassword(data.userId, data.email);
   }
 }

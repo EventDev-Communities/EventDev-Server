@@ -63,6 +63,7 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis-cache:${REDIS_PORT}
+      - SUPERTOKENS_CONNECTION_URI=${SUPERTOKENS_CONNECTION_URI}
       - NODE_PORT=${NODE_PORT}
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true

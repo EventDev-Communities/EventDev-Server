@@ -33,7 +33,11 @@ export class CommunityRepository {
     })
   }
 
-  async delete(id: number) {
-    await this.prismaService.community.delete({ where: { id } })
+  async deleteSelf(userId: string) {
+    await this.prismaService.community.delete({ where: { supertokens_id: userId } })
+  }
+
+  async deleteById(userId: string) {
+    await this.prismaService.community.delete({ where: { supertokens_id: userId }})
   }
 }

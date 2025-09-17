@@ -4,6 +4,8 @@ import { signUp, signIn, Error as STError } from 'supertokens-node/recipe/emailp
 import UserRoles from 'supertokens-node/recipe/userroles'
 import { CommunitySignUpDto /*, UserSignUpDto */ } from './dto/signup.dto'
 import { SignInDto } from './dto/signin.dto'
+import { SessionContainer } from 'supertokens-node/recipe/session'
+import EmailPassword from 'supertokens-node/recipe/emailpassword'
 
 @Injectable()
 export class AuthService {
@@ -61,6 +63,28 @@ export class AuthService {
   /*
   async createUser(data: UserSignUpDto) {
     return { status: 'Ainda não implementado' }
-  }
+ }
   */
+
+  async signOut(session: SessionContainer) {
+    try {
+      await session.revokeSession();
+      return { status: 'OK' };
+    } catch (err) {
+      throw new InternalServerErrorException('Erro inesperado ao fazer logout.');
+    }
+  }
+
+  async resetPassword(userId: string, email: string) {
+    try {
+      const linkResponse = await EmailPassword.createResetPasswordLink("public", userId, email);
+      if (linkResponse.status === 'OK') {
+        return { status: 'OK', link: linkResponse.link };
+      } else {
+        return { status: linkResponse.status, message: 'Não foi possível gerar o link de reset.' };
+      }
+    } catch (e) {
+      return { status: 'ERROR', message: e.message };
+    }
+  }
 }

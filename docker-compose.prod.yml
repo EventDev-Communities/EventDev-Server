@@ -61,6 +61,7 @@ services:
     expose:
       - "${NODE_PORT}"
     environment:
+      - VIRTUAL_HOST=api.eventdev.org
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=redis://redis-cache:${REDIS_PORT}
       - NODE_PORT=${NODE_PORT}
@@ -120,5 +121,5 @@ volumes:
 
 networks:
   eventdev-prod-network:
+    external: true
     name: eventdev-prod-network
-    driver: external

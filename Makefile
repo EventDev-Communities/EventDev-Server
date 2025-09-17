@@ -56,7 +56,7 @@ dev-shell: ## Access development container shell
 
 # Production commands
 
-prod-up: check-env create-prod-network ## Start production environment
+prod-up: check-env ## Start production environment
 	@echo " ✦  Starting production environment..."
 	@echo "    Step 1: Starting application services..."
 	@docker compose -f docker-compose.prod.yml up --build -d --remove-orphans
@@ -119,7 +119,7 @@ clean: ## Clean all containers, images and volumes
 
 reset-dev: dev-down clean dev-up ## Reset development environment
 
-reset-prod: prod-down clean create-prod-network prod-up ## Reset production environment
+reset-prod: prod-down clean prod-up ## Reset production environment
 
 # ------------------------------------------------------------
 

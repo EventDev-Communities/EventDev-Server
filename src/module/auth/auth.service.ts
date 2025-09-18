@@ -58,13 +58,19 @@ export class AuthService {
     try {
       // Buscar o papel do usuário
       const userRoles = await UserRoles.getRolesForUser('public', userId)
+      let communityId: number | null = null
+      if (userRoles.roles.includes('community')) {
+        const community = await this.communityService.getByUserId(userId)
+        communityId = community?.id ?? null
+      }
 
       return {
         status: 'OK',
         user: {
           id: userId,
           email: session.getUserId(), // O SuperTokens não expõe email diretamente na sessão
-          roles: userRoles.roles
+          roles: userRoles.roles,
+          communityId
         }
       }
     } catch {

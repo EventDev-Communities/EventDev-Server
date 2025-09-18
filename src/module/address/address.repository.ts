@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { AddressDto } from './dto/address.dto'
-import { PartialAddressDto } from '../event/dto/updateEvent.dto'
+import { PartialAddressDto } from './dto/partialAddress.dto'
 
 @Injectable()
 export class AddressRepository {

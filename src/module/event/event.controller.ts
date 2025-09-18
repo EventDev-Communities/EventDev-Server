@@ -6,19 +6,17 @@ import { PublicAccess } from 'supertokens-nestjs'
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) { }
+  constructor(private readonly eventService: EventService) {}
 
   @Post(':idCommunity')
   async create(@Param('idCommunity', ParseIntPipe) idCommunity: number, @Body() data: CreateEventDto) {
-    console.log('Event Controller - Community ID:', idCommunity)
-    console.log('Event Controller - Data received:', JSON.stringify(data, null, 2))
-
     try {
+      console.log('📨 Event Controller - Received data:', JSON.stringify(data, null, 2))
       const result = await this.eventService.create(idCommunity, data)
-      console.log('Event Controller - Success:', result)
+      console.log('✅ Event Controller - Success:', result)
       return result
     } catch (error) {
-      console.error('Event Controller - Error:', error)
+      console.error('❌ Event Controller - Error:', error.response ?? error.message ?? error)
       throw error
     }
   }
@@ -31,10 +29,7 @@ export class EventController {
 
   @Get('')
   @PublicAccess()
-  async getAll(
-    @Query('take', new DefaultValuePipe(25)) take: number,
-    @Query('skip', new DefaultValuePipe(0)) skip: number
-  ) {
+  async getAll(@Query('take', new DefaultValuePipe(25)) take: number, @Query('skip', new DefaultValuePipe(0)) skip: number) {
     return await this.eventService.getAll(take, skip)
   }
 
@@ -44,8 +39,7 @@ export class EventController {
     @Query('idAddress', new DefaultValuePipe(null), ParseIntPipe) idAddress: number,
     @Body() data: UpdateEventDto
   ) {
-    console.log(idAddress)
-
+    console.log('Updating event with address ID:', idAddress)
     return await this.eventService.update(idEvent, data, idAddress)
   }
 

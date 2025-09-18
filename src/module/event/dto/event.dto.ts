@@ -8,26 +8,28 @@ export enum ModalityEvent {
 
 export class EventDto {
   @IsString()
-  link: string
+  name: string // mudado de title
 
   @IsString()
   description: string
 
   @IsDateString()
-  start_date_time: Date
+  data_hora_inicial: Date // mudado de start_date_time
 
   @IsDateString()
-  end_date_time: Date
-
-  @IsBoolean()
-  is_active: boolean
+  data_hora_final: Date // mudado de end_date_time
 
   @IsString()
-  title: string
+  @IsOptional()
+  link: string = '' // tornar opcional com valor padrão vazio
+
+  @IsBoolean()
+  @IsOptional()
+  is_active: boolean = true // tornar opcional com valor padrão true
 
   @IsOptional()
-  capa_url: string
+  banner_url: string = '' // mudado de capa_url
 
   @IsEnum(ModalityEvent)
-  modality: ModalityEvent
+  modalidade: ModalityEvent // mudado de modality
 }

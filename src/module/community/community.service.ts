@@ -21,6 +21,10 @@ export class CommunityService {
     return await this.communityRepository.getByID(id)
   }
 
+  async findBySuperTokensId(supertokens_id: string) {
+    return await this.communityRepository.findBySuperTokensId(supertokens_id)
+  }
+
   async isExistCommunity(id: number) {
     if (!(await this.communityRepository.getByID(id))) throw new NotFoundException('Comunidade não encontrada!')
   }

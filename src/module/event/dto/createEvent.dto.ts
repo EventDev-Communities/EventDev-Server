@@ -1,15 +1,10 @@
 import { IsNotEmpty, ValidateIf, ValidateNested } from 'class-validator'
-import { EventDto } from './event.dto'
 import { AddressDto } from '../../address/dto/address.dto'
 import { Type } from 'class-transformer'
+import { EventDto } from './event.dto'
 
-export class CreateEventDto {
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => EventDto)
-  event: EventDto
-
-  @ValidateIf((o) => o.event?.modality === 'PRESENTIAL')
+export class CreateEventDto extends EventDto {
+  @ValidateIf((o) => o.modalidade === 'PRESENTIAL')
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => AddressDto)

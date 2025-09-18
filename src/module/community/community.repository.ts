@@ -24,13 +24,21 @@ export class CommunityRepository {
     return await this.prismaService.community.findUnique({ where: { id } })
   }
 
+  async findBySuperTokensId(supertokens_id: string) {
+    return await this.prismaService.community.findUnique({ where: { supertokens_id } })
+  }
+
   async update(id: number, data: UpdateCommunityDto) {
-    return await this.prismaService.community.update({
-      where: {
-        id
-      },
-      data
-    })
+    try {
+      return await this.prismaService.community.update({
+        where: {
+          id
+        },
+        data
+      })
+    } catch (err) {
+      throw err;
+    }
   }
 
   async deleteSelf(userId: string) {

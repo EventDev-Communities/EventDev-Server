@@ -15,7 +15,7 @@ SuperTokens.init({
   },
   appInfo: {
     appName: 'EventDev',
-    apiDomain: 'http://localhost:3000',
+    apiDomain: 'http://localhost:5122',
     websiteDomain: 'http://localhost:3000',
     apiBasePath: '/auth',
     websiteBasePath: '/auth',

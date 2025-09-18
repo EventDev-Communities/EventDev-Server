@@ -29,22 +29,27 @@ export class EventService {
   async create(idCommunity: number, data: CreateEventDto) {
     await this.communityService.isExistCommunity(idCommunity)
 
-    if (data.address) {
-      const address = await this.addressService.create(data.address)
-      if (!address.id) throw new Error('Erro ao criar endereço')
+    const { address, ...eventData } = data
 
-      return await this.eventRepository.create(data.event, idCommunity, address.id as number)
+    if (address) {
+      const createdAddress = await this.addressService.create(address)
+      if (!createdAddress.id) throw new Error('Erro ao criar endereço')
+
+      return await this.eventRepository.create(eventData, idCommunity, createdAddress.id)
     }
 
-    return await this.eventRepository.create(data.event, idCommunity)
+    return await this.eventRepository.create(eventData, idCommunity)
   }
 
   async update(idEvent: number, data: UpdateEventDto, idAddress: number) {
     await this.verifyEventIsExist(idEvent)
-    if (data.address) {
-      await this.addressService.update(data.address, idAddress)
+    const { address, ...eventData } = data
+    
+    if (address) {
+      await this.addressService.update(address, idAddress)
     }
-    return await this.eventRepository.update(idEvent, data.event)
+    
+    return await this.eventRepository.update(idEvent, eventData)
   }
 
   async delete(idEvent: number) {

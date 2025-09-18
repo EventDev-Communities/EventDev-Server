@@ -7,12 +7,22 @@ export class EventRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(data: EventDto, idCommunity: number, idAddress?: number | null) {
-    await this.prismaService.event.create({
-      data: {
-        ...data,
-        id_community: idCommunity,
-        ...(idAddress && { id_address: idAddress })
-      }
+    const prismaData = {
+      title: data.name, 
+      name: data.name,
+      description: data.description,
+      start_date_time: data.data_hora_inicial,
+      end_date_time: data.data_hora_final,
+      modality: data.modalidade,
+      link: data.link,
+      banner_url: data.banner_url,
+      is_active: data.is_active ?? true,
+      id_community: idCommunity,
+      ...(idAddress && { id_address: idAddress })
+    }
+
+    return await this.prismaService.event.create({
+      data: prismaData
     })
   }
 

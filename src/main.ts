@@ -7,20 +7,28 @@ import helmet from 'helmet'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
-  app.use(helmet({ contentSecurityPolicy: process.env.NODE_ENV === 'production' }))
-
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') || [] : true,
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'st-auth-mode',
+      'anti-csrf',
+      'rid',
+      'fdi-version',
+      'supertokens-sdk-name',
+      'supertokens-sdk-version'
+    ]
   })
+  
+  app.use(helmet({ contentSecurityPolicy: process.env.NODE_ENV === 'production' }))
 
   app.useGlobalFilters(new SuperTokensExceptionFilter())
   app.useGlobalPipes(new ValidationPipe())
   app.setGlobalPrefix('api/v1', { exclude: ['/health', ''] })
 
-  // Graceful shutdown
   process.on('SIGTERM', () => {
     console.log('SIGTERM received, shutting down gracefully')
     app

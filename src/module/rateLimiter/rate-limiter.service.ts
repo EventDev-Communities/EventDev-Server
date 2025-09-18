@@ -17,7 +17,7 @@ export class RateLimiterService {
   }
 
   getGlobalPolicy(): IRateLimitPolicyData {
-    return { limit: 100, windowMs: 60000, failClosed: false, domain: 'global', banSeconds: 60 }
+    return { limit: 200, windowMs: 60000, failClosed: false, domain: 'global', banSeconds: 60 }
   }
 
   getAuthPolicy() {

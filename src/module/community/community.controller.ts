@@ -22,7 +22,7 @@ export class CommunityController {
   @Get()
   @PublicAccess()
   async getAll(
-    @Query('take', new DefaultValuePipe(5), ParseIntPipe) take: number,
+    @Query('take', new DefaultValuePipe(100), ParseIntPipe) take: number,
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number
   ) {
     return await this.communityService.getAll(take, skip);
@@ -38,6 +38,11 @@ export class CommunityController {
   @PublicAccess()
   async getByID(@Param('id', ParseIntPipe) id: number) {
     return await this.communityService.getByID(id);
+  }
+
+  @Get('supertokens/:supertokens_id')
+  async findBySuperTokensId(@Param('supertokens_id') supertokensId: string) {
+    return await this.communityService.findBySuperTokensId(supertokensId);
   }
 
   @Put(':id')

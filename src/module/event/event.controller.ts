@@ -19,7 +19,7 @@ export class EventController {
     return await this.eventService.getById(id)
   }
 
-  @Get('')
+  @Get()
   @PublicAccess()
   async getAll(@Query('take', new DefaultValuePipe(5)) take: number, @Query('skip', new DefaultValuePipe(0)) skip: number) {
     return await this.eventService.getAll(take, skip)

@@ -1,0 +1,557 @@
+{
+	"info": {
+		"_postman_id": "c1f7b8d1-789a-4b6c-8e2f-1a1a2b3c4d5e",
+		"name": "API NestJS (Gerada por IA)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "gemini-ai"
+	},
+	"item": [
+		{
+			"name": "App",
+			"item": [
+				{
+					"name": "Get API Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Retorna o status e a versão da API. Acesso público."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Verifica a saúde da aplicação. Acesso público."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints gerais da aplicação"
+		},
+		{
+			"name": "Event",
+			"item": [
+				{
+					"name": "Create Event",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nome do Evento\",\n  \"description\": \"Descrição detalhada do evento.\",\n  \"date\": \"2025-12-31T23:59:59.000Z\"\n  // Preencha com os campos do seu CreateEventDto\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/event/:idCommunity",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"event",
+								":idCommunity"
+							],
+							"variable": [
+								{
+									"key": "idCommunity",
+									"value": "1",
+									"description": "ID da comunidade onde o evento será criado."
+								}
+							]
+						},
+						"description": "Cria um novo evento associado a uma comunidade."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Event By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/event/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"event",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID do evento a ser buscado."
+								}
+							]
+						},
+						"description": "Busca um evento específico pelo seu ID. Acesso público."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Events",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/event?take=5&skip=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"event"
+							],
+							"query": [
+								{
+									"key": "take",
+									"value": "5",
+									"description": "Número de registros a serem retornados (padrão: 5)."
+								},
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Número de registros a serem pulados (padrão: 0)."
+								}
+							]
+						},
+						"description": "Retorna uma lista de eventos com paginação. Acesso público."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Event",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Novo Nome do Evento\",\n  \"description\": \"Nova descrição do evento.\"\n  // Preencha com os campos do seu UpdateEventDto\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/event/:idEvent?idAddress=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"event",
+								":idEvent"
+							],
+							"query": [
+								{
+									"key": "idAddress",
+									"value": "1",
+									"description": "(Opcional) ID do novo endereço do evento."
+								}
+							],
+							"variable": [
+								{
+									"key": "idEvent",
+									"value": "1",
+									"description": "ID do evento a ser atualizado."
+								}
+							]
+						},
+						"description": "Atualiza os dados de um evento existente."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Event",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/event/:idEvent",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"event",
+								":idEvent"
+							],
+							"variable": [
+								{
+									"key": "idEvent",
+									"value": "1",
+									"description": "ID do evento a ser deletado."
+								}
+							]
+						},
+						"description": "Deleta um evento específico."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de eventos"
+		},
+		{
+			"name": "Community",
+			"item": [
+				{
+					"name": "Get All Communities",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/community?take=5&skip=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"community"
+							],
+							"query": [
+								{
+									"key": "take",
+									"value": "5",
+									"description": "Número de registros a serem retornados (padrão: 5)."
+								},
+								{
+									"key": "skip",
+									"value": "0",
+									"description": "Número de registros a serem pulados (padrão: 0)."
+								}
+							]
+						},
+						"description": "Retorna uma lista de comunidades com paginação. Acesso público."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Community",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer SEU_TOKEN_AQUI",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nome da Comunidade\",\n  \"description\": \"Descrição da comunidade.\"\n  // Preencha com os campos do seu CreateCommunityDto\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/community",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"community"
+							]
+						},
+						"description": "Cria uma nova comunidade. Requer autenticação e perfil de 'admin'."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Community By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/community/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"community",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID da comunidade a ser buscada."
+								}
+							]
+						},
+						"description": "Busca uma comunidade específica pelo seu ID. Acesso público."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Community",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Novo Nome da Comunidade\"\n  // Preencha com os campos do seu UpdateCommunityDto\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/community/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"community",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID da comunidade a ser atualizada."
+								}
+							]
+						},
+						"description": "Atualiza os dados de uma comunidade existente."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Self (Community)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/community",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"community"
+							]
+						},
+						"description": "Deleta a própria conta de comunidade (logada). Revoga a sessão e remove o usuário do SuperTokens."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Community By Supertokens ID",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer SEU_TOKEN_DE_ADMIN_AQUI",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/community/:supertokens_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"community",
+								":supertokens_id"
+							],
+							"variable": [
+								{
+									"key": "supertokens_id",
+									"value": "",
+									"description": "ID do SuperTokens do usuário/comunidade a ser deletado."
+								}
+							]
+						},
+						"description": "Deleta uma comunidade específica pelo seu ID do SuperTokens. Requer autenticação e perfil de 'admin'."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de comunidades"
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Sign In",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"usuario@exemplo.com\",\n  \"password\": \"senha123\"\n  // Preencha com os campos do seu SignInDto\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"signin"
+							]
+						},
+						"description": "Realiza o login de um usuário ou comunidade. Acesso público."
+					},
+					"response": []
+				},
+				{
+					"name": "Sign Up (Community)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"comunidade@exemplo.com\",\n  \"password\": \"senha123\",\n  \"name\": \"Nome da Nova Comunidade\"\n  // Preencha com os campos do seu CommunitySignUpDto\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/signup/community",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"signup",
+								"community"
+							]
+						},
+						"description": "Registra uma nova comunidade. Acesso público."
+					},
+					"response": []
+				},
+				{
+					"name": "Sign Out",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/signout",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"signout"
+							]
+						},
+						"description": "Realiza o logout da sessão atual."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": \"...\",\n  \"email\": \"usuario@exemplo.com\"\n  // Preencha com os campos do seu ResetPasswordDto\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Inicia o fluxo de redefinição de senha."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para autenticação e gerenciamento de sessões"
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}

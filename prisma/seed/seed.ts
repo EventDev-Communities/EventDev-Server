@@ -132,6 +132,16 @@ const frontendCEEvent = {
   }
 }
 
+async function createSupertokensUser(email: string, password: string) {
+  const response = await EmailPassword.signUp('public', email, password)
+  if (response.status !== 'OK') {
+    throw new Error(`User ${email} already exists`)
+  }
+  await UserRoles.createNewRoleOrAddPermissions('community', [])
+  await UserRoles.addRoleToUser('public', response.user.id, 'community')
+  return response.user.id
+}
+
 async function main() {
   console.log('✦ Cleaning old data...')
   await prisma.event.deleteMany({})
@@ -149,14 +159,13 @@ async function main() {
     if (adminUser.status === 'OK') {
       await UserRoles.createNewRoleOrAddPermissions('admin', [])
       await UserRoles.createNewRoleOrAddPermissions('user', [])
-      await UserRoles.createNewRoleOrAddPermissions('community', [])
       await UserRoles.addRoleToUser('public', adminUser.user.id, 'admin')
 
       await prisma.user.create({
         data: {
           supertokens_id: adminUser.user.id,
           email: 'admin@eventdev.com',
-          password: 'hashed_password',
+          password: 'Admin123!',
           usuario_root: true
         }
       })
@@ -167,11 +176,13 @@ async function main() {
   }
 
   // --- Users and Communities ---
-  console.log('✦ Creating users and communities...')
+  console.log('✦ Creating community users...')
   for (const data of communitiesData) {
+    const suUserId = await createSupertokensUser(data.email, 'Senha123!')
+
     const user = await prisma.user.create({
       data: {
-        supertokens_id: data.email,
+        supertokens_id: suUserId,
         email: data.email,
         password: 'Senha123!'
       }
@@ -179,7 +190,7 @@ async function main() {
 
     const community = await prisma.community.create({
       data: {
-        supertokens_id: user.supertokens_id,
+        supertokens_id: suUserId,
         name: data.name,
         description: data.description,
         logo_url: data.logo_url,

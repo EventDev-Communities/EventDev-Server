@@ -6,7 +6,6 @@ import Session from 'supertokens-node/recipe/session'
 
 const prisma = new PrismaClient()
 
-// Inicializar SuperTokens
 supertokens.init({
   framework: 'express',
   supertokens: {

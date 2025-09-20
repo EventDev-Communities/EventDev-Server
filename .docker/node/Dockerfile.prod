@@ -71,6 +71,8 @@ CMD ["sh", "-c", "\
   pnpm exec prisma generate && \
   echo 'Running database migration...' && \
   pnpm exec prisma migrate deploy && \
+  echo 'Running database seed...' && \
+  pnpm exec prisma db seed && \
   echo 'Migration completed. Starting application...' && \
   exec node dist/src/main.js \
   "]

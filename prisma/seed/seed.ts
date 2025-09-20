@@ -170,8 +170,8 @@ async function main() {
       })
       console.log('✓ Admin created')
     }
-  } catch (err) {
-    console.log('⚠ Admin may already exist:', err.message)
+  } catch {
+    console.log('⚠ Admin may already exist:')
   }
 
   // --- Users and Communities ---

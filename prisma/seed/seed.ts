@@ -155,8 +155,8 @@ const pythonNordesteEvent = {
   cover_url: '/images/event-covers/event-python.png',
   link: 'https://2025.pythonnordeste.org/',
   modality: 'PRESENTIAL',
-  start_date: new Date('2025-22-14T06:00:00.000Z'),
-  end_date: new Date('2025-22-16T15:00:00.000Z'),
+  start_date: new Date('2025-11-14T12:00:00.000Z'),
+  end_date: new Date('2025-11-16T21:00:00.000Z'),
   address: {
     cep: '50070000',
     state: 'PE',
@@ -206,8 +206,8 @@ async function main() {
       })
       console.log('✓ Admin created')
     }
-  } catch (err) {
-    console.log('⚠ Admin may already exist:', err.message)
+  } catch {
+    console.log('⚠ Admin may already exist:')
   }
 
   // --- Users and Communities ---

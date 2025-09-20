@@ -131,6 +131,42 @@ const frontendCEEvent = {
   }
 }
 
+const phpComRapaduraEvent = {
+  title: 'PHP com Rapadura Mentoria Dev PHP JR',
+  description: 'A ideia das nossas mentorias é ser uma bate-papo bem descontraído, o lugar de você errar quantas vezes for preciso e o lugar onde não existe pergunta errada ou idiota, sua dúvida será nossa satisfação em orientar.',
+  cover_url: '/images/event-covers/php_com_rapadura_mentoria_dev.png',
+  link: 'https://phpcomrapadura.org/',
+  modality: 'PRESENTIAL',
+  start_date: new Date('2025-10-25T16:00:00.000Z'),
+  end_date: new Date('2025-10-25T19:00:00.000Z'),
+  address: {
+    cep: '60020180',
+    state: 'CE',
+    city: 'Fortaleza',
+    neighborhood: 'Centro',
+    streetAddress: 'R. Major Facundo',
+    number: '500'
+  }
+}
+
+const pythonNordesteEvent = {
+  title: 'Python Nordeste 2025',
+  description: 'A conferência regional de Python do Nordeste, unindo desenvolvedores, estudantes e empresas de toda a região.',
+  cover_url: '/images/event-covers/event-python.png',
+  link: 'https://2025.pythonnordeste.org/',
+  modality: 'PRESENTIAL',
+  start_date: new Date('2025-22-14T06:00:00.000Z'),
+  end_date: new Date('2025-22-16T15:00:00.000Z'),
+  address: {
+    cep: '50070000',
+    state: 'PE',
+    city: 'Recife',
+    neighborhood: 'Santo Amaro',
+    streetAddress: 'Av. Gov. Agamenon Magalhães',
+    number: 'S/N'
+  }
+}
+
 async function createSupertokensUser(email: string, password: string) {
   const response = await EmailPassword.signUp('public', email, password)
   if (response.status !== 'OK') {
@@ -170,8 +206,8 @@ async function main() {
       })
       console.log('✓ Admin created')
     }
-  } catch {
-    console.log('⚠ Admin may already exist:')
+  } catch (err) {
+    console.log('⚠ Admin may already exist:', err.message)
   }
 
   // --- Users and Communities ---
@@ -233,6 +269,52 @@ async function main() {
     })
 
     console.log('✓ Frontend CE event created')
+  }
+
+  const phpComRapadura = await prisma.community.findFirst({ where: { name: 'PHP com Rapadura' } })
+  if (phpComRapadura) {
+    const address = await prisma.address.create({
+      data: phpComRapaduraEvent.address
+    })
+
+    await prisma.event.create({
+      data: {
+        id_community: phpComRapadura.id,
+        id_address: address.id,
+        title: phpComRapaduraEvent.title,
+        description: phpComRapaduraEvent.description,
+        capa_url: phpComRapaduraEvent.cover_url,
+        link: phpComRapaduraEvent.link,
+        modality: 'PRESENTIAL',
+        start_date_time: phpComRapaduraEvent.start_date,
+        end_date_time: phpComRapaduraEvent.end_date,
+        is_active: true
+      }
+    })
+    console.log('✓ PHP com Rapadura event created')
+  }
+
+  const pythonNordeste = await prisma.community.findFirst({ where: { name: 'Python Nordeste' } })
+  if (pythonNordeste) {
+    const address = await prisma.address.create({
+      data: pythonNordesteEvent.address
+    })
+
+    await prisma.event.create({
+      data: {
+        id_community: pythonNordeste.id,
+        id_address: address.id,
+        title: pythonNordesteEvent.title,
+        description: pythonNordesteEvent.description,
+        capa_url: pythonNordesteEvent.cover_url,
+        link: pythonNordesteEvent.link,
+        modality: 'PRESENTIAL',
+        start_date_time: pythonNordesteEvent.start_date,
+        end_date_time: pythonNordesteEvent.end_date,
+        is_active: true
+      }
+    })
+    console.log('✓ Python Nordeste event created')
   }
 
   console.log('✓ Seed finished successfully!')

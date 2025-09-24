@@ -7,28 +7,31 @@ RUN apk add --no-cache curl libc6-compat git
 RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
 
+FROM base AS deps
+
 COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY prisma ./prisma/
 RUN pnpm exec prisma generate
 
-COPY . .
-
-EXPOSE 5122
-EXPOSE 9229
-
-
-FROM base AS dev
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5122/health || exit 1
 
 CMD ["sh", "-c", "\
   echo 'Running database migration...' && \
   pnpm exec prisma migrate deploy && \
   echo 'Running database seed...' && \
-  pnpm seed:prod && \
+  pnpm seed:prod \
+  "]
+
+FROM deps AS dev
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:5122/health || exit 1
+
+CMD ["sh", "-c", "\
   echo 'Starting development server with debug...' && \
   pnpm run start:debug -- --watchOptions.poll=1000 \
   "]
+
+EXPOSE 5122
+EXPOSE 9229

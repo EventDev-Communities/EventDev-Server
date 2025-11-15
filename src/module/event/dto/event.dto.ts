@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger'
 import { IsBoolean, IsDateString, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator'
 
 export enum ModalityEvent {
@@ -7,31 +8,40 @@ export enum ModalityEvent {
 }
 
 export class EventDto {
+  @ApiProperty({ example: 'https://meet.google.com/abc-defg-hij', description: 'Link do evento (online) ou informações adicionais' })
   @IsString()
   link: string
 
+  @ApiProperty({ example: 'Workshop de Node.js e TypeScript', description: 'Descrição do evento' })
   @IsString()
   description: string
 
+  @ApiProperty({ example: '2025-12-15T19:00:00Z', description: 'Data e hora de início' })
   @IsDateString()
-  start_date_time: Date
+  startDateTime: Date
 
+  @ApiProperty({ example: '2025-12-15T22:00:00Z', description: 'Data e hora de término' })
   @IsDateString()
-  end_date_time: Date
+  endDateTime: Date
 
+  @ApiProperty({ example: true, default: true })
   @IsBoolean()
-  is_active: boolean
+  isActive: boolean
 
+  @ApiProperty({ example: 'Workshop de Backend', description: 'Título do evento' })
   @IsString()
   title: string
 
+  @ApiProperty({ example: 'https://example.com/event-banner.jpg', required: false })
   @IsOptional()
-  capa_url: string
+  coverUrl: string
 
+  @ApiProperty({ example: 'ONLINE', enum: ModalityEvent, description: 'Modalidade do evento' })
   @IsEnum(ModalityEvent)
   modality: ModalityEvent
 
+  @ApiProperty({ example: 1, required: false, description: 'ID do endereço (para eventos presenciais)' })
   @IsOptional()
   @IsNumber()
-  id_address?: number
+  addressId?: number
 }

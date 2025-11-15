@@ -1,7 +1,7 @@
+import { AddressDto } from '@module/address/dto/address.dto'
+import { ModalityEvent } from '@module/event/dto/createEvent.dto'
 import { Type } from 'class-transformer'
-import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, ValidateNested, IsUrl } from 'class-validator'
-import { AddressDto } from '../../address/dto/address.dto'
-import { ModalityEvent } from './createEvent.dto'
+import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator'
 
 class EventUpdateData {
   @IsOptional()
@@ -14,11 +14,11 @@ class EventUpdateData {
 
   @IsOptional()
   @IsDateString()
-  start_date_time?: string
+  startDateTime?: string
 
   @IsOptional()
   @IsDateString()
-  end_date_time?: string
+  endDateTime?: string
 
   @IsOptional()
   @IsEnum(ModalityEvent)
@@ -30,11 +30,11 @@ class EventUpdateData {
 
   @IsOptional()
   @IsString()
-  capa_url?: string
+  coverUrl?: string
 
   @IsOptional()
   @IsBoolean()
-  is_active?: boolean
+  isActive?: boolean
 }
 
 export class UpdateEventDto {

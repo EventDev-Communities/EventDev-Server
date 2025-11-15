@@ -1,7 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { CommunityService } from './community.service'
-import { CommunityRepository } from './community.repository'
+import { LoggerService } from '@common/logger/logger.service'
+import { CommunityRepository } from '@module/community/community.repository'
+import { CommunityService } from '@module/community/community.service'
 import { NotFoundException } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
 
 describe('Community Tests', () => {
   let communityService: CommunityService
@@ -15,6 +16,14 @@ describe('Community Tests', () => {
     isExistCommunity: jest.fn()
   }
 
+  const mockLogger = {
+    setContext: jest.fn(),
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn()
+  }
+
   beforeAll(async () => {
     const moduleInit: TestingModule = await Test.createTestingModule({
       providers: [
@@ -22,6 +31,10 @@ describe('Community Tests', () => {
         {
           provide: CommunityRepository,
           useValue: mockCommunityRepository
+        },
+        {
+          provide: LoggerService,
+          useValue: mockLogger
         }
       ]
     }).compile()
@@ -76,8 +89,8 @@ describe('Community Tests', () => {
   })
 
   it('Should throw NotFoundException when trying find a non-existing community', async () => {
-    mockCommunityRepository.getByID(undefined)
+    mockCommunityRepository.getByID.mockResolvedValue(null)
 
-    expect(communityService.getByID(10)).rejects.toThrow(NotFoundException)
+    await expect(communityService.getByID(10)).rejects.toThrow(NotFoundException)
   })
 })

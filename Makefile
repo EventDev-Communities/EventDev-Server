@@ -1,11 +1,11 @@
 .PHONY: help \
-    clean reset-dev reset-prod \
-    install test test-e2e lint format \
-    dev-up dev-down dev-logs dev-shell \
-    db-migrate db-seed db-studio db-reset \
-    setup-dev setup-prod create-networks \
-    check-env check-dns status health health-https \
-    prod-up prod-down prod-logs prod-logs-all prod-shell \
+	clean reset-dev reset-prod \
+	install test test-e2e test-e2e-debug lint format docs-generate start-dev \
+	dev-up dev-down dev-logs dev-shell \
+	db-migrate db-seed db-studio db-reset \
+	setup-dev setup-prod create-networks prepare-test-db test-deps-up test-deps-down \
+	check-env check-dns status health health-https \
+	prod-up prod-down prod-logs prod-logs-all prod-shell \
 
 
 
@@ -49,6 +49,23 @@ dev-logs: ## Show development logs
 
 dev-shell: ## Access development container shell
 	@docker compose -f docker-compose.dev.yml exec api sh
+
+# ------------------------------------------------------------
+
+
+
+# Test dependencies helpers
+
+test-deps-up: create-networks ## Start Postgres, Redis and SuperTokens for local tests
+	@echo " ✦  Starting test dependencies..."
+	@docker compose -f docker-compose.dev.yml up -d postgres-db redis-cache supertokens-auth
+	@echo " ✓  Test dependencies ready."
+
+test-deps-down: ## Stop Postgres, Redis and SuperTokens used in tests
+	@echo " ✦  Stopping test dependencies..."
+	@docker compose -f docker-compose.dev.yml stop postgres-db redis-cache supertokens-auth 2>/dev/null || true
+	@docker compose -f docker-compose.dev.yml rm -f postgres-db redis-cache supertokens-auth 2>/dev/null || true
+	@echo " ✓  Test dependencies stopped."
 
 # ------------------------------------------------------------
 
@@ -171,7 +188,15 @@ test: ## Run tests
 
 test-e2e: ## Run e2e tests
 	@echo " ✦  Running e2e tests..."
-	@docker compose -f docker-compose.dev.yml exec api pnpm test:e2e
+	@docker compose -f docker-compose.dev.yml exec api pnpm test-e2e
+
+test-e2e-debug: ## Run e2e tests with detectOpenHandles
+	@echo " ✦  Running e2e tests (debug)..."
+	@docker compose -f docker-compose.dev.yml exec api pnpm test-e2e-debug
+
+prepare-test-db: ## Prepare local test database and Redis
+	@echo " ✦  Preparing local test database..."
+	@pnpm prepare-test-db
 
 lint: ## Run linter
 	@echo " ✦  Running linter..."
@@ -180,6 +205,14 @@ lint: ## Run linter
 format: ## Format code
 	@echo " ✦  Formatting code..."
 	@docker compose -f docker-compose.dev.yml exec api pnpm format
+
+docs-generate: ## Generate database schemas
+	@echo " ✦  Generating schema documentation..."
+	@pnpm docs-generate
+
+start-dev: ## Run NestJS locally with hot reload
+	@echo " ✦  Starting local NestJS server..."
+	@pnpm start-dev
 
 # ------------------------------------------------------------
 

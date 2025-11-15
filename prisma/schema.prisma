@@ -1,5 +1,14 @@
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
 generator client {
   provider = "prisma-client-js"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+  output   = "../docs"
 }
 
 datasource db {
@@ -7,113 +16,389 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model community {
-  id             Int                      @id @default(autoincrement())
-  supertokens_id String                   @unique @db.VarChar(255)
-  logo_url       String?                  @db.VarChar(255)
-  link_instagram String?                  @db.VarChar(255)
-  link_linkedin  String?                  @db.VarChar(255)
-  link_website   String?                  @db.VarChar(255)
-  link_github    String?                  @db.VarChar(255)
-  created_at     DateTime                 @default(now()) @db.Timestamp(6)
-  description    String?                  @db.VarChar(255)
-  is_active      Boolean                  @default(true)
-  name           String                   @db.VarChar(255)
-  phone_number   String?                  @db.VarChar(255)
-  updated_at     DateTime?                @default(now()) @updatedAt
-  event          event[]
-  post           post[]
-  users          community_user[]
-  users_requests community_user_request[]
+// ============================================================================
+// LOOKUP TABLES
+// ============================================================================
+
+/// Lookup table for community user request statuses
+model CommunityUserRequestStatus {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  requests CommunityUserRequest[]
+
+  @@map("community_user_request_status")
 }
 
-model address {
+/// Lookup table for event modalities
+model EventModality {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  events Event[]
+
+  @@map("event_modality")
+}
+
+/// Lookup table for link types
+model LinkType {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  links CommunityLink[]
+
+  @@map("link_type")
+}
+
+/// Lookup table for user roles within communities
+model UserRole {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  level       Int // Lower number = higher permission
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  communityUsers CommunityUser[]
+
+  @@map("user_role")
+}
+
+/// Lookup table for ticket statuses
+model TicketStatus {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  tickets Ticket[]
+
+  @@map("ticket_status")
+}
+
+// ============================================================================
+// USER MODULE
+// ============================================================================
+
+/// Core user model integrated with SuperTokens authentication
+model User {
+  id            Int      @id @default(autoincrement())
+  supertokensId String   @unique @map("supertokens_id") @db.VarChar(255)
+  email         String   @unique @db.VarChar(255)
+  password      String   @db.VarChar(255)
+  isRoot        Boolean  @default(false) @map("usuario_root")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  communities       CommunityUser[]
+  communityRequests CommunityUserRequest[]
+  tickets           Ticket[]
+  orders            Order[]
+
+  @@map("user")
+}
+
+// ============================================================================
+// COMMUNITY MODULE
+// ============================================================================
+
+/// Community model representing organizations/groups
+model Community {
+  id            Int      @id @default(autoincrement())
+  supertokensId String   @unique @map("id_supertokens") @db.VarChar(255)
+  name          String   @db.VarChar(255)
+  description   String?  @db.VarChar(500)
+  logoUrl       String?  @map("logo_url") @db.VarChar(255)
+  phoneNumber   String?  @map("phone_number") @db.VarChar(20)
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  events       Event[]
+  posts        Post[]
+  links        CommunityLink[]
+  users        CommunityUser[]
+  userRequests CommunityUserRequest[]
+  products     Product[]
+
+  @@index([name])
+  @@index([isActive])
+  @@map("community")
+}
+
+/// Social and web links for communities
+model CommunityLink {
+  id          Int      @id @default(autoincrement())
+  communityId Int      @map("community_id")
+  linkTypeId  Int      @map("link_type_id")
+  name        String   @db.VarChar(100)
+  url         String   @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  linkType  LinkType  @relation(fields: [linkTypeId], references: [id], onDelete: Restrict)
+
+  @@index([communityId, linkTypeId])
+  @@map("community_link")
+}
+
+/// Join table for community members
+model CommunityUser {
+  communityId Int      @map("community_id")
+  userId      Int      @map("user_id")
+  roleId      Int      @map("role_id")
+  joinedAt    DateTime @default(now()) @map("joined_at") @db.Timestamp(6)
+
+  // Relations
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      UserRole  @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([communityId, userId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("community_user")
+}
+
+/// Requests to join a community
+model CommunityUserRequest {
+  communityId Int      @map("community_id")
+  userId      Int      @map("user_id")
+  statusId    Int      @map("status_id")
+  message     String?  @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  community Community                  @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status    CommunityUserRequestStatus @relation(fields: [statusId], references: [id], onDelete: Restrict)
+
+  @@id([communityId, userId])
+  @@index([statusId])
+  @@map("community_user_request")
+}
+
+/// Community posts/announcements
+model Post {
+  id          Int      @id @default(autoincrement())
+  communityId Int      @map("id_community")
+  text        String   @db.VarChar(1000)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([communityId, isActive])
+  @@map("post")
+}
+
+// ============================================================================
+// EVENT MODULE
+// ============================================================================
+
+/// Events organized by communities
+model Event {
+  id            Int      @id @default(autoincrement())
+  communityId   Int      @map("id_community")
+  addressId     Int?     @map("id_address")
+  modalityId    Int      @map("modality_id")
+  title         String   @db.VarChar(255)
+  description   String   @db.VarChar(1000)
+  coverUrl      String?  @map("capa_url") @db.VarChar(255)
+  link          String?  @db.VarChar(500)
+  isActive      Boolean  @default(true) @map("is_active")
+  startDateTime DateTime @map("start_date_time") @db.Timestamp(6)
+  endDateTime   DateTime @map("end_date_time") @db.Timestamp(6)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  community Community     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  address   Address?      @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  modality  EventModality @relation(fields: [modalityId], references: [id], onDelete: Restrict)
+  tickets   Ticket[]
+
+  @@index([communityId, isActive])
+  @@index([startDateTime, endDateTime])
+  @@index([modalityId])
+  @@map("event")
+}
+
+/// Physical addresses for events
+model Address {
   id            Int      @id @default(autoincrement())
   cep           String   @db.VarChar(8)
-  state         String   @db.VarChar(25)
-  city          String   @db.VarChar(50)
-  neighborhood  String   @db.VarChar(50)
-  streetAddress String   @db.VarChar(50)
+  state         String   @db.VarChar(2)
+  city          String   @db.VarChar(100)
+  neighborhood  String   @db.VarChar(100)
+  streetAddress String   @map("street_address") @db.VarChar(255)
   number        String   @db.VarChar(10)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
-  event         event[]
+  complement    String?  @db.VarChar(255)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  events Event[]
 
   @@index([state, city])
+  @@index([cep])
+  @@map("address")
 }
 
-enum modality_event {
-  ONLINE
-  PRESENTIAL
-  HYBRID
+// ============================================================================
+// ORDER MODULE
+// ============================================================================
+
+/// Order status lookup table
+model OrderStatus {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  orders Order[]
+
+  @@map("order_status")
 }
 
-model event {
-  id              Int            @id @default(autoincrement())
-  id_community    Int
-  id_address      Int?
-  title           String         @db.VarChar(255)
-  capa_url        String?        @db.VarChar(255)
-  link            String?        @db.VarChar(255)
-  description     String         @db.VarChar(255)
-  modality        modality_event
-  is_active       Boolean        @default(true)
-  start_date_time DateTime       @db.Timestamp(6)
-  end_date_time   DateTime       @db.Timestamp(6)
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @default(now()) @updatedAt
-  address         address?       @relation(fields: [id_address], references: [id], onDelete: Cascade)
-  community       community      @relation(fields: [id_community], references: [id], onDelete: NoAction, onUpdate: NoAction)
+/// Order item type lookup table (for polymorphic relationships)
+model OrderItemType {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  // Relations
+  orderItems OrderItem[]
+
+  @@map("order_item_type")
 }
 
-model post {
-  id           Int       @id @default(autoincrement())
-  created_at   DateTime  @default(now()) @db.Timestamp(6)
-  id_community Int
-  is_active    Boolean   @default(true)
-  text         String    @db.VarChar(255)
-  updated_at   DateTime? @db.Timestamp(6)
-  community    community @relation(fields: [id_community], references: [id], onDelete: Cascade, onUpdate: Cascade)
+/// Orders made by users (for tickets and products)
+model Order {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  orderStatusId Int      @map("order_status_id")
+  totalAmount   Decimal  @db.Decimal(10, 2)
+  paymentMethod String?  @map("payment_method") @db.VarChar(50)
+  transactionId String?  @map("transaction_id") @db.VarChar(255)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderStatus OrderStatus @relation(fields: [orderStatusId], references: [id], onDelete: Restrict)
+  items       OrderItem[]
+
+  @@index([userId])
+  @@index([orderStatusId])
+  @@index([createdAt])
+  @@map("order")
 }
 
-model user {
-  id                Int                      @id @default(autoincrement())
-  supertokens_id    String                   @unique @db.VarChar(255)
-  email             String                   @unique @db.VarChar(255)
-  password          String                   @db.VarChar(255)
-  usuario_root      Boolean?                 @default(false)
-  is_active         Boolean                  @default(true)
-  updated_at        DateTime?                @db.Timestamp(6)
-  created_at        DateTime                 @default(now()) @db.Timestamp(6)
-  communities       community_user[]
-  communityRequests community_user_request[]
+/// Order items (polymorphic - can be tickets, products, or any future item type)
+model OrderItem {
+  id           Int     @id @default(autoincrement())
+  orderId      Int     @map("order_id")
+  itemTypeId   Int     @map("item_type_id")
+  itemId       Int     @map("item_id") // Generic ID that references the actual item
+  quantity     Int     @default(1)
+  unitPrice    Decimal @map("unit_price") @db.Decimal(10, 2)
+  totalPrice   Decimal @map("total_price") @db.Decimal(10, 2)
+  itemMetadata Json?   @map("item_metadata") // Optional JSON field for additional item data
+
+  // Relations
+  order    Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemType OrderItemType @relation(fields: [itemTypeId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([itemTypeId])
+  @@index([itemId])
+  @@index([itemTypeId, itemId]) // Composite index for polymorphic lookups
+  @@map("order_item")
 }
 
-model community_user {
-  community_id Int
-  user_id      Int
-  community    community @relation(fields: [community_id], references: [id], onDelete: Cascade)
-  user         user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+// ============================================================================
+// PRODUCT MODULE
+// ============================================================================
 
-  @@id([community_id, user_id])
+/// Products that can be sold (merchandise, etc)
+model Product {
+  id          Int      @id @default(autoincrement())
+  communityId Int?     @map("community_id")
+  name        String   @db.VarChar(255)
+  description String?  @db.VarChar(1000)
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  imageUrl    String?  @map("image_url") @db.VarChar(255)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  community Community? @relation(fields: [communityId], references: [id], onDelete: SetNull)
+  // Note: OrderItems reference products via polymorphic relationship (item_type_id + item_id)
+
+  @@index([communityId])
+  @@index([isActive])
+  @@map("product")
 }
 
-enum community_user_request_status {
-  PENDING
-  APPROVED
-  REJECTED
-}
+// ============================================================================
+// TICKET MODULE
+// ============================================================================
 
-model community_user_request {
-  community_id Int
-  user_id      Int
-  message      String?                       @db.VarChar(255)
-  status       community_user_request_status @default(PENDING)
-  created_at   DateTime                      @default(now()) @db.Timestamp(6)
-  updated_at   DateTime                      @default(now()) @updatedAt
+/// Event tickets purchased by users
+model Ticket {
+  id             Int      @id @default(autoincrement())
+  eventId        Int      @map("id_event")
+  userId         Int      @map("id_user")
+  ticketStatusId Int      @map("id_ticket_status")
+  value          Decimal  @db.Decimal(10, 2)
+  purchasedAt    DateTime @map("purchased_at") @db.Timestamp(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  community community @relation(fields: [community_id], references: [id], onDelete: Cascade)
-  user      user      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  // Relations
+  event  Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status TicketStatus @relation(fields: [ticketStatusId], references: [id], onDelete: Restrict)
+  // Note: OrderItems reference tickets via polymorphic relationship (item_type_id + item_id)
 
-  @@id([community_id, user_id])
+  @@index([eventId, userId])
+  @@index([userId])
+  @@index([ticketStatusId])
+  @@map("ticket")
 }

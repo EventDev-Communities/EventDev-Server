@@ -1,36 +1,46 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common'
-import { CommunityService } from '../community/community.service'
-import { PrismaService } from '../../prisma/prisma.service'
-import { signUp, signIn, Error as STError } from 'supertokens-node/recipe/emailpassword'
-import UserRoles from 'supertokens-node/recipe/userroles'
-import { CommunitySignUpDto, UserSignUpDto } from './dto/signup.dto'
-import { SignInDto } from './dto/signin.dto'
-import { SessionContainer } from 'supertokens-node/recipe/session'
+import { UserRole } from '@common/enums/roles.enum'
+import { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
+import { SignInDto } from '@module/auth/dto/signin.dto'
+import { CommunitySignUpDto, UserSignUpDto } from '@module/auth/dto/signup.dto'
+import { CommunityService } from '@module/community/community.service'
+import { ConflictException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common'
+import { PrismaService } from '@prisma/prisma.service'
+import { Request, Response } from 'express'
+import { convertToRecipeUserId } from 'supertokens-node'
+import { signIn as superTokensSignIn, signUp as superTokensSignUp } from 'supertokens-node/recipe/emailpassword'
+import SessionRecipe, { SessionContainer } from 'supertokens-node/recipe/session'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly communityService: CommunityService,
-    private readonly prismaService: PrismaService
+    private readonly prismaService: PrismaService,
+    @Inject('IAuthAdapter') private readonly authAdapter: IAuthAdapter
   ) {}
 
-  async signIn(signInDto: SignInDto) {
+  async signInWithSession(signInDto: SignInDto, req: Request) {
     try {
-      const response = await signIn('public', signInDto.email, signInDto.password)
+      const res = (req as Request & { res: Response }).res
 
-      if (response.status === 'OK') {
-        // Buscar o papel do usuário
-        const userRoles = await UserRoles.getRolesForUser('public', response.user.id)
+      const result = await superTokensSignIn('public', signInDto.email, signInDto.password, undefined, {
+        req,
+        res
+      })
+
+      if (result.status === 'OK') {
+        const userId = result.user.id
+        const roles = await this.authAdapter.getUserRoles(userId)
 
         return {
           status: 'OK',
           user: {
-            id: response.user.id,
-            email: response.user.emails[0],
-            roles: userRoles.roles
+            id: userId,
+            email: result.user.emails[0],
+            roles
           }
         }
-      } else if (response.status === 'WRONG_CREDENTIALS_ERROR') {
+      }
+      if (result.status === 'WRONG_CREDENTIALS_ERROR') {
         throw new ConflictException('Email ou senha incorretos.')
       } else {
         throw new ConflictException('Erro no login.')
@@ -39,27 +49,33 @@ export class AuthService {
       if (err instanceof ConflictException) {
         throw err
       }
-      if (err instanceof STError) {
-        throw new ConflictException('Credenciais inválidas.')
-      }
       throw new InternalServerErrorException('Erro inesperado no login.')
     }
   }
 
-  async signOut() {
-    return { status: 'OK', message: 'Logout realizado com sucesso.' }
+  async signOut(session: SessionContainer) {
+    try {
+      await session.revokeSession()
+      return { status: 'OK', message: 'Logout realizado com sucesso.' }
+    } catch {
+      throw new InternalServerErrorException('Erro ao encerrar a sessão.')
+    }
   }
 
   async getCurrentUser(session: SessionContainer) {
-    // Este método é chamado apenas em rotas protegidas
-    // O SuperTokens já validou a sessão
-    const userId = session.getUserId()
-
     try {
-      // Buscar o papel do usuário
-      const userRoles = await UserRoles.getRolesForUser('public', userId)
+      const userId = session.getUserId()
+
+      const authUser = await this.authAdapter.getUserById(userId)
+
+      if (!authUser) {
+        throw new InternalServerErrorException('Usuário não encontrado.')
+      }
+
+      const roles = authUser.roles
       let communityId: number | null = null
-      if (userRoles.roles.includes('community')) {
+
+      if (roles.includes(UserRole.COMMUNITY)) {
         const community = await this.communityService.getByUserId(userId)
         communityId = community?.id ?? null
       }
@@ -68,45 +84,124 @@ export class AuthService {
         status: 'OK',
         user: {
           id: userId,
-          email: session.getUserId(), // O SuperTokens não expõe email diretamente na sessão
-          roles: userRoles.roles,
+          email: authUser.email,
+          roles,
           communityId
         }
       }
-    } catch {
-      throw new InternalServerErrorException('Erro ao buscar dados do usuário.')
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao buscar dados do usuário.', { cause: error })
     }
   }
 
-  async createCommunity(data: CommunitySignUpDto) {
+  async createCommunity(data: CommunitySignUpDto, req: Request, res: Response) {
     try {
-      const superTokenUser = await signUp('public', data.email, data.password)
+      const result = await this.authAdapter.signUp(data.email, data.password)
 
-      if (superTokenUser.status !== 'OK') {
+      if (result.status !== 'OK' || !result.user) {
         throw new ConflictException('Este email já está em uso.')
       }
 
-      const userId = superTokenUser.user.id
-      await UserRoles.addRoleToUser('public', userId, 'community')
+      const userId = result.user.id
+      await this.authAdapter.addRoleToUser(userId, UserRole.COMMUNITY)
 
       const communityData = {
         name: data.name,
-        logo_url: data.logo_url,
+        logoUrl: data.logoUrl,
         description: data.description,
-        is_active: data.is_active,
-        link_github: data.link_github,
-        link_instagram: data.link_instagram,
-        link_linkedin: data.link_linkedin,
-        link_website: data.link_website,
-        phone_number: data.phone_number
+        isActive: data.isActive,
+        githubLink: data.githubLink,
+        instagramLink: data.instagramLink,
+        linkedinLink: data.linkedinLink,
+        websiteLink: data.websiteLink,
+        phoneNumber: data.phoneNumber
+      }
+
+      const communityProfile = await this.communityService.create(communityData, userId)
+
+      // Criar sessão SuperTokens após signup bem-sucedido
+      const recipeUserId = convertToRecipeUserId(userId)
+      await SessionRecipe.createNewSession(req, res, 'public', recipeUserId)
+
+      return { status: 'OK', user_info: communityProfile }
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        throw err
+      }
+      throw new InternalServerErrorException('Erro inesperado ao criar comunidade.')
+    }
+  }
+
+  async createCommunityWithSession(data: CommunitySignUpDto, req: Request) {
+    try {
+      // Get the response object from the request (Express style)
+      const res = (req as Request & { res: Response }).res
+
+      // Use SuperTokens native signUp that automatically creates session and sets cookies
+      const result = await superTokensSignUp('public', data.email, data.password, undefined, {
+        req,
+        res
+      })
+
+      if (result.status !== 'OK') {
+        throw new ConflictException('Este email já está em uso.')
+      }
+
+      const userId = result.user.id
+      await this.authAdapter.addRoleToUser(userId, UserRole.COMMUNITY)
+
+      const communityData = {
+        name: data.name,
+        logoUrl: data.logoUrl,
+        description: data.description,
+        isActive: data.isActive,
+        githubLink: data.githubLink,
+        instagramLink: data.instagramLink,
+        linkedinLink: data.linkedinLink,
+        websiteLink: data.websiteLink,
+        phoneNumber: data.phoneNumber
       }
 
       const communityProfile = await this.communityService.create(communityData, userId)
 
       return { status: 'OK', user_info: communityProfile }
     } catch (err) {
-      if (err instanceof STError && err.message.includes('email already exists')) {
+      if (err instanceof ConflictException) {
+        throw err
+      }
+      throw new InternalServerErrorException('Erro inesperado ao criar comunidade.')
+    }
+  }
+
+  async createCommunityWithoutSession(data: CommunitySignUpDto) {
+    try {
+      const result = await this.authAdapter.signUp(data.email, data.password)
+
+      if (result.status !== 'OK' || !result.user) {
         throw new ConflictException('Este email já está em uso.')
+      }
+
+      const userId = result.user.id
+      await this.authAdapter.addRoleToUser(userId, UserRole.COMMUNITY)
+
+      const communityData = {
+        name: data.name,
+        logoUrl: data.logoUrl,
+        description: data.description,
+        isActive: data.isActive,
+        githubLink: data.githubLink,
+        instagramLink: data.instagramLink,
+        linkedinLink: data.linkedinLink,
+        websiteLink: data.websiteLink,
+        phoneNumber: data.phoneNumber
+      }
+
+      const communityProfile = await this.communityService.create(communityData, userId)
+
+      return { status: 'OK', user_info: communityProfile }
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        throw err
       }
       throw new InternalServerErrorException('Erro inesperado ao criar comunidade.')
     }
@@ -115,27 +210,24 @@ export class AuthService {
   async createUser(data: UserSignUpDto, session?: SessionContainer) {
     // Verificar se o usuário logado tem permissão de admin (apenas quando há sessão)
     if (session) {
-      const userRoles = await UserRoles.getRolesForUser('public', session.getUserId())
-      if (!userRoles.roles.includes('admin')) {
+      const roles = await this.authAdapter.getUserRoles(session.getUserId())
+      if (!roles.includes(UserRole.ADMIN)) {
         throw new ConflictException('Acesso negado. Apenas administradores podem criar usuários.')
       }
     }
 
     try {
-      const superTokenUser = await signUp('public', data.email, data.password)
+      const result = await this.authAdapter.signUp(data.email, data.password)
 
-      if (superTokenUser.status !== 'OK') {
+      if (result.status !== 'OK' || !result.user) {
         throw new ConflictException('Este email já está em uso.')
       }
 
-      const userId = superTokenUser.user.id
-      await UserRoles.addRoleToUser('public', userId, data.role)
+      const userId = result.user.id
+      await this.authAdapter.addRoleToUser(userId, data.role as UserRole)
 
       return { status: 'OK', user_info: { id: userId, email: data.email, role: data.role } }
     } catch (err) {
-      if (err instanceof STError && err.message.includes('email already exists')) {
-        throw new ConflictException('Este email já está em uso.')
-      }
       if (err instanceof ConflictException) {
         throw err
       }
@@ -146,25 +238,22 @@ export class AuthService {
   async bootstrapAdmin(data: UserSignUpDto) {
     try {
       // Verificar se já existe algum admin
-      const allUsersResponse = await UserRoles.getUsersThatHaveRole('public', 'admin')
-      if (allUsersResponse.status === 'OK' && allUsersResponse.users.length > 0) {
+      const allAdmins = await this.authAdapter.getUsersByRole(UserRole.ADMIN)
+      if (allAdmins.length > 0) {
         throw new ConflictException('Já existe um administrador no sistema.')
       }
 
-      const superTokenUser = await signUp('public', data.email, data.password)
+      const result = await this.authAdapter.signUp(data.email, data.password)
 
-      if (superTokenUser.status !== 'OK') {
+      if (result.status !== 'OK' || !result.user) {
         throw new ConflictException('Este email já está em uso.')
       }
 
-      const userId = superTokenUser.user.id
-      await UserRoles.addRoleToUser('public', userId, 'admin')
+      const userId = result.user.id
+      await this.authAdapter.addRoleToUser(userId, UserRole.ADMIN)
 
       return { status: 'OK', user_info: { id: userId, email: data.email, role: 'admin' } }
     } catch (err) {
-      if (err instanceof STError && err.message.includes('email already exists')) {
-        throw new ConflictException('Este email já está em uso.')
-      }
       if (err instanceof ConflictException) {
         throw err
       }

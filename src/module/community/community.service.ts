@@ -1,35 +1,50 @@
+import { buildPaginatedResponse } from '@common/dto/pagination.dto'
+import { LoggerService } from '@common/logger/logger.service'
+import { CommunityRepository } from '@module/community/community.repository'
+import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
+import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { CommunityRepository } from './community.repository'
-import { UpdateCommunityDto } from './dto/updateCommunity.dto'
-import { CreateCommunityDto } from './dto/createCommunity.dto'
 
 @Injectable()
 export class CommunityService {
-  constructor(private readonly communityRepository: CommunityRepository) {}
+  constructor(
+    private readonly communityRepository: CommunityRepository,
+    private readonly logger: LoggerService
+  ) {}
 
-  async getAll(take: number, skip: number) {
-    return await this.communityRepository.getAll(take, skip)
+  async getAll(take: number, skip: number, options?: { isActive?: boolean, search?: string, baseUrl?: string }) {
+    const { data, total } = await this.communityRepository.getAll(take, skip, {
+      isActive: options?.isActive,
+      search: options?.search
+    })
+
+    return buildPaginatedResponse(data, total, {
+      take,
+      skip,
+      baseUrl: options?.baseUrl || '/communities',
+      queryParams: {
+        isActive: options?.isActive,
+        search: options?.search
+      }
+    })
   }
 
   async create(data: CreateCommunityDto, userId: string) {
-    console.log('=== COMMUNITY SERVICE CREATE ===')
-    console.log('Data recebida:', data)
-    console.log('UserId recebido:', userId)
+    this.logger.debug('Criando nova comunidade', { userId, communityName: data.name })
 
     if (!userId) {
+      this.logger.error('Tentativa de criar comunidade sem userId')
       throw new Error('UserId é obrigatório para criar comunidade')
     }
 
     const communityData = {
       ...data,
-      supertokens_id: userId,
-      is_active: data.is_active ?? true // Define como true se não fornecido
+      supertokensId: userId,
+      isActive: data.isActive ?? true
     }
 
-    console.log('CommunityData final:', communityData)
-    console.log('================================')
-
     const user = await this.communityRepository.create(communityData)
+    this.logger.log('Comunidade criada com sucesso', { communityId: user.id, userId })
     return user
   }
 
@@ -43,7 +58,10 @@ export class CommunityService {
   }
 
   async isExistCommunity(id: number) {
-    if (!(await this.communityRepository.getByID(id))) throw new NotFoundException('Comunidade não encontrada!')
+    const community = await this.communityRepository.getByID(id)
+    if (!community) {
+      throw new NotFoundException('Comunidade não encontrada!')
+    }
   }
 
   async update(id: number, data: UpdateCommunityDto) {

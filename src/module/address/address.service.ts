@@ -1,7 +1,7 @@
+import { AddressRepository } from '@module/address/address.repository'
+import { AddressDto } from '@module/address/dto/address.dto'
+import { PartialAddressDto } from '@module/address/dto/partialAddress.dto'
 import { Injectable } from '@nestjs/common'
-import { AddressDto } from './dto/address.dto'
-import { AddressRepository } from './address.repository'
-import { PartialAddressDto } from './dto/partialAddress.dto'
 
 @Injectable()
 export class AddressService {

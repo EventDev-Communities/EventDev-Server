@@ -1,7 +1,7 @@
+import { AddressController } from '@module/address/address.controller'
+import { AddressRepository } from '@module/address/address.repository'
+import { AddressService } from '@module/address/address.service'
 import { Module } from '@nestjs/common'
-import { AddressRepository } from './address.repository'
-import { AddressService } from './address.service'
-import { AddressController } from './address.controller'
 
 @Module({
   controllers: [AddressController],

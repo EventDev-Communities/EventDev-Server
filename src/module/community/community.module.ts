@@ -1,9 +1,11 @@
+import { LoggerModule } from '@common/logger/logger.module'
+import { CommunityController } from '@module/community/community.controller'
+import { CommunityRepository } from '@module/community/community.repository'
+import { CommunityService } from '@module/community/community.service'
 import { Module } from '@nestjs/common'
-import { CommunityRepository } from './community.repository'
-import { CommunityService } from './community.service'
-import { CommunityController } from './community.controller'
 
 @Module({
+  imports: [LoggerModule],
   providers: [CommunityRepository, CommunityService],
   controllers: [CommunityController],
   exports: [CommunityService]

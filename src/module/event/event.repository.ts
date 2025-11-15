@@ -1,24 +1,33 @@
+import { EventDto } from '@module/event/dto/event.dto'
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from 'src/prisma/prisma.service'
-import { EventDto } from './dto/event.dto'
+import { Prisma } from '@prisma/client'
+import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class EventRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(data: EventDto, idCommunity: number) {
+    const modality = await this.prismaService.eventModality.findUnique({
+      where: { code: data.modality }
+    })
+
+    if (!modality) {
+      throw new Error(`Event modality ${data.modality} not found`)
+    }
+
     return await this.prismaService.event.create({
       data: {
         title: data.title,
         description: data.description,
-        start_date_time: data.start_date_time,
-        end_date_time: data.end_date_time,
-        modality: data.modality,
-        is_active: data.is_active,
+        startDateTime: data.startDateTime,
+        endDateTime: data.endDateTime,
+        modalityId: modality.id,
+        isActive: data.isActive,
         link: data.link,
-        capa_url: data.capa_url,
-        id_community: idCommunity,
-        id_address: data.id_address || undefined
+        coverUrl: data.coverUrl,
+        communityId: idCommunity,
+        addressId: data.addressId || undefined
       }
     })
   }
@@ -27,21 +36,46 @@ export class EventRepository {
     return await this.prismaService.event.findUnique({ where: { id } })
   }
 
-  async getAll(take: number, skip: number) {
-    return await this.prismaService.event.findMany({
-      take,
-      skip,
-      include: {
-        address: true,
-        community: true
-      },
-      orderBy: {
-        created_at: 'desc'
-      },
-      where: {
-        is_active: true
+  async getAll(take: number, skip: number, filters?: { communityId?: number, modality?: string, isActive?: boolean }) {
+    const where: Prisma.EventWhereInput = {}
+
+    if (filters?.communityId) {
+      where.communityId = filters.communityId
+    }
+
+    if (filters?.modality) {
+      const modality = await this.prismaService.eventModality.findUnique({
+        where: { code: filters.modality }
+      })
+      if (modality) {
+        where.modalityId = modality.id
       }
-    })
+    }
+
+    if (filters?.isActive === undefined) {
+      where.isActive = true // Default: apenas eventos ativos
+    } else {
+      where.isActive = filters.isActive
+    }
+
+    const [data, total] = await Promise.all([
+      this.prismaService.event.findMany({
+        take,
+        skip,
+        include: {
+          address: true,
+          community: true,
+          modality: true
+        },
+        orderBy: {
+          startDateTime: 'asc'
+        },
+        where
+      }),
+      this.prismaService.event.count({ where })
+    ])
+
+    return { data, total }
   }
 
   async update(idEvent: number, data: EventDto) {
@@ -49,7 +83,7 @@ export class EventRepository {
       where: {
         id: idEvent
       },
-      data: data
+      data
     })
   }
 

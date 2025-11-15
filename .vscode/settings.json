@@ -2,6 +2,14 @@
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.expand": false,
   "explorer.fileNesting.patterns": {
-    "package.json": ".editor*, .git*, vite*, eslint*, jsconfig*, .eslint*, .prettier*, postcss*, tailwind*, package*, .docker*, .env*, docker*, pnpm*, tsconfig*, nest*, Make*, setup*, prisma*",
+    "package.json": ".editor*, .git*, vite*, eslint*, jsconfig*, .eslint*, .prettier*, postcss*, tailwind*, package*, .docker*, .env*, docker*, pnpm*, tsconfig*, nest*, Make*, setup*, prisma*, .prisma*, .swc*, .watch*",
+  },
+  "files.exclude": {
+    "dist": false,
+    "node_modules": false,
+    ".devcontainer": false,
+    ".vscode": false,
+    ".docker": false,
+    ".github": false
   },
 }

@@ -1,23 +1,41 @@
+import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
+import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../prisma/prisma.service'
-import { UpdateCommunityDto } from './dto/updateCommunity.dto'
-import { CreateCommunityDto } from './dto/createCommunity.dto'
+import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class CommunityRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getAll(take: number, skip: number) {
-    return await this.prismaService.community.findMany({
-      take: take,
-      skip: skip,
-      orderBy: {
-        name: 'asc'
-      }
-    })
+  async getAll(take: number, skip: number, filters?: { isActive?: boolean, search?: string }) {
+    const where: { isActive?: boolean, OR?: Array<{ name?: { contains: string, mode: 'insensitive' }, description?: { contains: string, mode: 'insensitive' } }> } = {}
+
+    if (filters?.isActive === undefined) {
+      where.isActive = true // Default: apenas comunidades ativas
+    } else {
+      where.isActive = filters.isActive
+    }
+
+    if (typeof filters?.search === 'string' && filters.search.length > 0) {
+      where.OR = [{ name: { contains: filters.search, mode: 'insensitive' } }, { description: { contains: filters.search, mode: 'insensitive' } }]
+    }
+
+    const [data, total] = await Promise.all([
+      this.prismaService.community.findMany({
+        take,
+        skip,
+        where,
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }),
+      this.prismaService.community.count({ where })
+    ])
+
+    return { data, total }
   }
 
-  async create(data: CreateCommunityDto & { supertokens_id: string }) {
+  async create(data: CreateCommunityDto & { supertokensId: string }) {
     return await this.prismaService.community.create({
       data
     })
@@ -29,7 +47,7 @@ export class CommunityRepository {
 
   async getByUserId(userId: string) {
     return await this.prismaService.community.findUnique({
-      where: { supertokens_id: userId }
+      where: { supertokensId: userId }
     })
   }
 

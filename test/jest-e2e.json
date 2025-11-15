@@ -1,9 +1,23 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "..",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
+  "setupFiles": ["<rootDir>/test/setup-e2e.ts"],
+  "testTimeout": 15000,
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
-  }
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@common/(.*)$": "<rootDir>/src/common/$1",
+    "^@module/(.*)$": "<rootDir>/src/module/$1",
+    "^@configs/(.*)$": "<rootDir>/src/configs/$1",
+    "^@decorators/(.*)$": "<rootDir>/src/decorators/$1",
+    "^@helper/(.*)$": "<rootDir>/src/helper/$1",
+    "^@infrastructure/(.*)$": "<rootDir>/src/infrastructure/$1",
+    "^@interface/(.*)$": "<rootDir>/src/interface/$1",
+    "^@prisma/(?!client)(.*)$": "<rootDir>/src/prisma/$1"
+  },
+  "maxWorkers": 3
 }

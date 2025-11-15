@@ -1,41 +1,27 @@
+import { LoggerModule } from '@common/logger/logger.module'
+import { SuperTokensAdapter } from '@infrastructure/auth/supertokens.adapter'
+import { AuthController } from '@module/auth/auth.controller'
+import { AuthService } from '@module/auth/auth.service'
+import { RoleSetupService } from '@module/auth/role.setup.service'
+import { CommunityModule } from '@module/community/community.module'
 import { Module } from '@nestjs/common'
-import { SuperTokensModule } from 'supertokens-nestjs'
-import { APP_GUARD } from '@nestjs/core'
-import { SuperTokensAuthGuard } from 'supertokens-nestjs'
-import EmailPassword from 'supertokens-node/recipe/emailpassword'
-import Session from 'supertokens-node/recipe/session'
-import UserRoles from 'supertokens-node/recipe/userroles' // 1. Importe a receita
-import { RoleSetupService } from './role.setup.service'
-import { CommunityModule } from '../community/community.module'
-import { AuthController } from './auth.controller'
-import { AuthService } from './auth.service'
+import { PrismaModule } from '@prisma/prisma.module'
 
 @Module({
   imports: [
+    LoggerModule,
     CommunityModule,
-    SuperTokensModule.forRoot({
-      framework: 'express',
-      supertokens: {
-        connectionURI: 'http://supertokens-auth:3567'
-      },
-      appInfo: {
-        appName: 'eventdev-server',
-        apiDomain: process.env.NODE_ENV === 'production' ? 'https://api.eventdev.org' : 'http://localhost:5122',
-        websiteDomain: process.env.NODE_ENV === 'production' ? 'https://eventdev.org' : 'http://localhost:3000',
-        apiBasePath: '/api/v1/auth',
-        websiteBasePath: '/auth'
-      },
-      recipeList: [EmailPassword.init(), Session.init(), UserRoles.init()]
-    })
+    PrismaModule
   ],
   providers: [
     {
-      provide: APP_GUARD,
-      useClass: SuperTokensAuthGuard
+      provide: 'IAuthAdapter',
+      useClass: SuperTokensAdapter
     },
-    RoleSetupService,
-    AuthService
+    AuthService,
+    RoleSetupService
   ],
-  controllers: [AuthController]
+  controllers: [AuthController],
+  exports: ['IAuthAdapter', AuthService, RoleSetupService]
 })
 export class AuthModule {}

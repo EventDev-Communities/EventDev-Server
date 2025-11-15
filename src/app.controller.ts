@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
-import { AppService } from './app.service'
 import { PublicAccess } from 'supertokens-nestjs'
+import { AppService } from '@/app.service'
 
 @Controller()
 export class AppController {
@@ -8,13 +8,13 @@ export class AppController {
 
   @Get()
   @PublicAccess()
-  getApiStats(): { status: string; api: string; version: string } {
+  getApiStats(): { status: string, api: string, version: string } {
     return this.appService.getApiStats()
   }
 
   @Get('health')
   @PublicAccess()
-  getHealth() {
-    return this.appService.getHealth()
+  async getHealth() {
+    return await this.appService.getHealth()
   }
 }

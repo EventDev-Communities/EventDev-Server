@@ -1,6 +1,13 @@
 # EventDev Server API
 
-API backend para a plataforma EventDev construída com NestJS, Prisma, PostgreSQL, Redis e SuperTokens.
+API RESTful backend para a plataforma EventDev construída com NestJS, Prisma, PostgreSQL, Redis e SuperTokens.
+
+## Documentação da API
+
+A documentação interativa completa está disponível via Swagger:
+
+- **Desenvolvimento**: <http://localhost:5122/api/docs>
+- **Produção**: <https://api.eventdev.org/api/docs>
 
 ## Setup Rápido
 
@@ -11,6 +18,79 @@ make setup-dev    # Criar .env
 make dev-up       # Iniciar containers
 make dev-logs     # Ver logs
 ```
+
+### Endpoints Principais
+
+#### Autenticação (`/auth`)
+
+- `POST /auth/signin` - Login de usuário
+- `POST /auth/signout` - Logout
+- `GET /auth/me` - Dados do usuário logado
+- `POST /auth/signup/community` - Cadastro público de comunidade
+- `POST /auth/bootstrap/admin` - Criar primeiro admin (uso único)
+- `POST /auth/admin/users` - \[ADMIN\] Criar usuário
+- `POST /auth/admin/communities` - \[ADMIN\] Criar comunidade
+
+#### Comunidades (`/communities`)
+
+- `GET /communities` - Listar comunidades (público)
+- `GET /communities/:id` - Buscar por ID (público)
+- `GET /communities/me` - Minha comunidade (requer autenticação)
+- `POST /communities` - Criar comunidade
+- `PUT /communities/:id` - Atualizar (apenas dono)
+- `DELETE /communities/:id` - Deletar (apenas dono)
+
+#### Eventos (`/events`)
+
+- `GET /events` - Listar eventos (público)
+- `GET /events/:id` - Buscar por ID (público)
+- `POST /events` - Criar evento (requer papel COMMUNITY)
+- `PATCH /events/:id` - Atualizar (apenas dono da comunidade)
+- `DELETE /events/:id` - Deletar (apenas dono da comunidade)
+
+#### Tickets (`/tickets`)
+
+- `GET /tickets` - Listar tickets (público)
+- `GET /tickets/:id` - Buscar por ID (público)
+- `POST /tickets` - Criar ticket (requer papel COMMUNITY)
+- `PATCH /tickets/:id` - Atualizar (apenas dono)
+- `DELETE /tickets/:id` - Deletar (apenas dono)
+
+## Sistema de Autorização
+
+### Papéis (Roles)
+
+- `PLATFORM_ADMIN` - Acesso total ao sistema
+- `ADMIN` - Gerenciamento geral
+- `COMMUNITY` - Gerenciar comunidade e eventos
+- `USER` - Usuário final
+
+### Permissões Granulares
+
+35 permissões específicas incluindo:
+
+- `COMMUNITY_CREATE`, `COMMUNITY_UPDATE`, `COMMUNITY_DELETE`
+- `EVENT_CREATE`, `EVENT_MANAGE_OWN`, `EVENT_MANAGE_ALL`
+- `TICKET_CREATE`, `TICKET_MANAGE_OWN`
+- `ADMIN_ALL` - Wildcard para administradores
+
+### Validações de Propriedade
+
+Guards automáticos validam:
+
+- Comunidades só podem ser editadas por seus donos
+- Eventos pertencem à comunidade que os criou
+- Tickets são gerenciados pela comunidade do evento
+
+## Arquitetura
+
+### Padrões Implementados
+
+- **Adapter Pattern** - SuperTokens desacoplado via `IAuthAdapter`
+- **Guards Chain** - `AuthGuard → RolesGuard → PermissionsGuard → OwnershipGuard`
+- **Repository Pattern** - Camada de abstração do Prisma
+- **DTO Validation** - class-validator em todas as entradas
+- **RESTful Design** - Recursos nomeados no plural, verbos HTTP corretos
 
 ****
 
@@ -70,6 +150,13 @@ make prod-up      # 3. Deploy completo
 | `make db-studio`  | Interface visual       |
 | `make db-reset`   | Reset completo (dev)   |
 
+### Documentação
+
+| Comando               | Descrição                                      |
+|-----------------------|------------------------------------------------|
+| `make docs-generate`  | Gerar schemas DBML e SQL (docs/schema.*)       |
+| `make start-dev`      | Inicia servidor local e gera openapi.json      |
+
 ### Logs
 
 | Comando                | Descrição            |
@@ -78,7 +165,7 @@ make prod-up      # 3. Deploy completo
 | `make prod-logs`       | Logs produção        |
 | `make logs-all`        | Todos os logs        |
 
-## Arquitetura
+## Ambientes
 
 ### Ambiente Dev
 

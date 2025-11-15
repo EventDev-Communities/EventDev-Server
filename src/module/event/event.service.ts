@@ -1,27 +1,30 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
-import { EventRepository } from './event.repository'
-import { CreateEventDto } from './dto/createEvent.dto'
-import { CommunityService } from '../community/community.service'
-import { AddressService } from '../address/address.service'
-import { UpdateEventDto } from './dto/updateEvent.dto'
-import { ModalityEvent } from './dto/event.dto'
+import { buildPaginatedResponse } from '@common/dto/pagination.dto'
+import { LoggerService } from '@common/logger/logger.service'
+import { AddressService } from '@module/address/address.service'
+import { CommunityService } from '@module/community/community.service'
+import { CreateEventDto } from '@module/event/dto/createEvent.dto'
+import { ModalityEvent } from '@module/event/dto/event.dto'
+import { UpdateEventDto } from '@module/event/dto/updateEvent.dto'
+import { EventRepository } from '@module/event/event.repository'
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
 
 @Injectable()
 export class EventService {
   constructor(
     private readonly eventRepository: EventRepository,
     private readonly communityService: CommunityService,
-    private readonly addressService: AddressService
+    private readonly addressService: AddressService,
+    private readonly logger: LoggerService
   ) {}
 
   async create(idCommunity: number, data: CreateEventDto) {
     try {
-      console.log('EventService.create - Received data:', JSON.stringify(data, null, 2))
+      this.logger.debug('Creating event', { idCommunity, title: data.title })
 
       await this.communityService.isExistCommunity(idCommunity)
 
-      const startDate = new Date(data.start_date_time)
-      const endDate = new Date(data.end_date_time)
+      const startDate = new Date(data.startDateTime)
+      const endDate = new Date(data.endDateTime)
 
       if (startDate >= endDate) {
         throw new BadRequestException('Data de início deve ser anterior à data de fim')
@@ -31,47 +34,41 @@ export class EventService {
         throw new BadRequestException('Data de início não pode ser no passado')
       }
 
-      let addressId: number | undefined = undefined
+      let addressId: number | undefined
 
       if (data.modality !== 'ONLINE' && data.address) {
-        console.log('Creating address:', data.address)
+        this.logger.debug('Creating address for event')
         const createdAddress = await this.addressService.create(data.address)
         addressId = createdAddress.id
-        console.log('Address created with ID:', addressId)
+        this.logger.debug('Address created', { addressId })
       }
 
-      // Validar se evento não-online tem endereço
       if (data.modality !== 'ONLINE' && !addressId) {
         throw new BadRequestException('Eventos presenciais e híbridos devem ter endereço')
       }
 
-      // Criar o evento com os dados corretos
       const eventData = {
         title: data.title,
         description: data.description,
-        start_date_time: startDate,
-        end_date_time: endDate,
+        startDateTime: startDate,
+        endDateTime: endDate,
         modality: data.modality,
         link: data.link ?? '',
-        capa_url: data.capa_url ?? '',
-        is_active: data.is_active ?? true,
-        id_address: addressId
+        coverUrl: data.coverUrl ?? '',
+        isActive: data.isActive ?? true,
+        addressId
       }
 
-      console.log('Creating event with data:', eventData)
       const createdEvent = await this.eventRepository.create(eventData, idCommunity)
-      console.log('Event created successfully:', createdEvent)
+      this.logger.log('Event created successfully', { eventId: createdEvent.id, idCommunity })
 
       return createdEvent
     } catch (error) {
-      console.error('Error creating event:', error)
-
-      // Se é um erro conhecido
-      if (error.name === 'NotFoundException' || error.name === 'BadRequestException') {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error
       }
 
-      // Erro genérico
+      this.logger.error('Erro ao criar evento:', error instanceof Error ? error.stack : String(error))
       throw new BadRequestException('Erro interno ao criar evento')
     }
   }
@@ -82,11 +79,29 @@ export class EventService {
   }
 
   private async verifyEventIsExist(id: number) {
-    if (!(await this.eventRepository.getByID(id))) throw new NotFoundException('Evento não encontrado!')
+    const event = await this.eventRepository.getByID(id)
+    if (!event) {
+      throw new NotFoundException('Evento não encontrado!')
+    }
   }
 
-  async getAll(take: number, skip: number) {
-    return await this.eventRepository.getAll(take, skip)
+  async getAll(take: number, skip: number, options?: { communityId?: number, modality?: string, isActive?: boolean, baseUrl?: string }) {
+    const { data, total } = await this.eventRepository.getAll(take, skip, {
+      communityId: options?.communityId,
+      modality: options?.modality,
+      isActive: options?.isActive
+    })
+
+    return buildPaginatedResponse(data, total, {
+      take,
+      skip,
+      baseUrl: options?.baseUrl || '/events',
+      queryParams: {
+        communityId: options?.communityId,
+        modality: options?.modality,
+        isActive: options?.isActive
+      }
+    })
   }
 
   async update(idEvent: number, data: UpdateEventDto, idAddress: number) {
@@ -100,13 +115,13 @@ export class EventService {
     const eventToUpdate = {
       ...data.event,
       link: data.event.link ?? '',
-      capa_url: data.event.capa_url ?? '',
+      coverUrl: data.event.coverUrl ?? '',
       title: data.event.title ?? '',
       description: data.event.description ?? '',
-      start_date_time: data.event.start_date_time ? new Date(data.event.start_date_time) : new Date(),
-      end_date_time: data.event.end_date_time ? new Date(data.event.end_date_time) : new Date(),
+      startDateTime: data.event.startDateTime ? new Date(data.event.startDateTime) : new Date(),
+      endDateTime: data.event.endDateTime ? new Date(data.event.endDateTime) : new Date(),
       modality: data.event.modality ?? ModalityEvent.ONLINE,
-      is_active: data.event.is_active ?? true
+      isActive: data.event.isActive ?? true
     }
     return await this.eventRepository.update(idEvent, eventToUpdate)
   }

@@ -1,0 +1,325 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table community_user_request_status {
+  id Int [pk, increment]
+  code String [unique, not null]
+  name String [not null]
+  description String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  requests community_user_request [not null]
+
+  Note: 'Lookup table for community user request statuses'
+}
+
+Table event_modality {
+  id Int [pk, increment]
+  code String [unique, not null]
+  name String [not null]
+  description String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  events event [not null]
+
+  Note: 'Lookup table for event modalities'
+}
+
+Table link_type {
+  id Int [pk, increment]
+  code String [unique, not null]
+  name String [not null]
+  description String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  links community_link [not null]
+
+  Note: 'Lookup table for link types'
+}
+
+Table user_role {
+  id Int [pk, increment]
+  code String [unique, not null]
+  name String [not null]
+  description String
+  level Int [not null]
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  communityUsers community_user [not null]
+
+  Note: 'Lookup table for user roles within communities'
+}
+
+Table ticket_status {
+  id Int [pk, increment]
+  code String [unique, not null]
+  name String [not null]
+  description String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  tickets ticket [not null]
+
+  Note: 'Lookup table for ticket statuses'
+}
+
+Table user {
+  id Int [pk, increment]
+  supertokensId String [unique, not null]
+  email String [unique, not null]
+  password String [not null]
+  isRoot Boolean [not null, default: false]
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  communities community_user [not null]
+  communityRequests community_user_request [not null]
+  tickets ticket [not null]
+  orders order [not null]
+
+  Note: 'Core user model integrated with SuperTokens authentication'
+}
+
+Table community {
+  id Int [pk, increment]
+  supertokensId String [unique, not null]
+  name String [not null]
+  description String
+  logoUrl String
+  phoneNumber String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  events event [not null]
+  posts post [not null]
+  links community_link [not null]
+  users community_user [not null]
+  userRequests community_user_request [not null]
+  products product [not null]
+
+  Note: 'Community model representing organizations/groups'
+}
+
+Table community_link {
+  id Int [pk, increment]
+  communityId Int [not null]
+  linkTypeId Int [not null]
+  name String [not null]
+  url String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  community community [not null]
+  linkType link_type [not null]
+
+  Note: 'Social and web links for communities'
+}
+
+Table community_user {
+  communityId Int [not null]
+  userId Int [not null]
+  roleId Int [not null]
+  joinedAt DateTime [default: `now()`, not null]
+  community community [not null]
+  user user [not null]
+  role user_role [not null]
+
+  indexes {
+    (communityId, userId) [pk]
+  }
+
+  Note: 'Join table for community members'
+}
+
+Table community_user_request {
+  communityId Int [not null]
+  userId Int [not null]
+  statusId Int [not null]
+  message String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  community community [not null]
+  user user [not null]
+  status community_user_request_status [not null]
+
+  indexes {
+    (communityId, userId) [pk]
+  }
+
+  Note: 'Requests to join a community'
+}
+
+Table post {
+  id Int [pk, increment]
+  communityId Int [not null]
+  text String [not null]
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  community community [not null]
+
+  Note: 'Community posts/announcements'
+}
+
+Table event {
+  id Int [pk, increment]
+  communityId Int [not null]
+  addressId Int
+  modalityId Int [not null]
+  title String [not null]
+  description String [not null]
+  coverUrl String
+  link String
+  isActive Boolean [not null, default: true]
+  startDateTime DateTime [not null]
+  endDateTime DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  community community [not null]
+  address address
+  modality event_modality [not null]
+  tickets ticket [not null]
+
+  Note: 'Events organized by communities'
+}
+
+Table address {
+  id Int [pk, increment]
+  cep String [not null]
+  state String [not null]
+  city String [not null]
+  neighborhood String [not null]
+  streetAddress String [not null]
+  number String [not null]
+  complement String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  events event [not null]
+
+  Note: 'Physical addresses for events'
+}
+
+Table order_status {
+  id Int [pk, increment]
+  code String [unique, not null]
+  name String [not null]
+  description String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  orders order [not null]
+
+  Note: 'Order status lookup table'
+}
+
+Table order_item_type {
+  id Int [pk, increment]
+  code String [unique, not null]
+  name String [not null]
+  description String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  orderItems order_item [not null]
+
+  Note: 'Order item type lookup table (for polymorphic relationships)'
+}
+
+Table order {
+  id Int [pk, increment]
+  userId Int [not null]
+  orderStatusId Int [not null]
+  totalAmount Decimal [not null]
+  paymentMethod String
+  transactionId String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user user [not null]
+  orderStatus order_status [not null]
+  items order_item [not null]
+
+  Note: 'Orders made by users (for tickets and products)'
+}
+
+Table order_item {
+  id Int [pk, increment]
+  orderId Int [not null]
+  itemTypeId Int [not null]
+  itemId Int [not null]
+  quantity Int [not null, default: 1]
+  unitPrice Decimal [not null]
+  totalPrice Decimal [not null]
+  itemMetadata Json
+  order order [not null]
+  itemType order_item_type [not null]
+
+  Note: 'Order items (polymorphic - can be tickets, products, or any future item type)'
+}
+
+Table product {
+  id Int [pk, increment]
+  communityId Int
+  name String [not null]
+  description String
+  price Decimal [not null]
+  stock Int [not null, default: 0]
+  imageUrl String
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  community community
+
+  Note: 'Products that can be sold (merchandise, etc)'
+}
+
+Table ticket {
+  id Int [pk, increment]
+  eventId Int [not null]
+  userId Int [not null]
+  ticketStatusId Int [not null]
+  value Decimal [not null]
+  purchasedAt DateTime [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  event event [not null]
+  user user [not null]
+  status ticket_status [not null]
+
+  Note: 'Event tickets purchased by users'
+}
+
+Ref: community_link.communityId > community.id [delete: Cascade]
+
+Ref: community_link.linkTypeId > link_type.id [delete: Restrict]
+
+Ref: community_user.communityId > community.id [delete: Cascade]
+
+Ref: community_user.userId > user.id [delete: Cascade]
+
+Ref: community_user.roleId > user_role.id [delete: Restrict]
+
+Ref: community_user_request.communityId > community.id [delete: Cascade]
+
+Ref: community_user_request.userId > user.id [delete: Cascade]
+
+Ref: community_user_request.statusId > community_user_request_status.id [delete: Restrict]
+
+Ref: post.communityId > community.id [delete: Cascade]
+
+Ref: event.communityId > community.id [delete: Cascade]
+
+Ref: event.addressId > address.id [delete: Set Null]
+
+Ref: event.modalityId > event_modality.id [delete: Restrict]
+
+Ref: order.userId > user.id [delete: Cascade]
+
+Ref: order.orderStatusId > order_status.id [delete: Restrict]
+
+Ref: order_item.orderId > order.id [delete: Cascade]
+
+Ref: order_item.itemTypeId > order_item_type.id [delete: Restrict]
+
+Ref: product.communityId > community.id [delete: Set Null]
+
+Ref: ticket.eventId > event.id [delete: Cascade]
+
+Ref: ticket.userId > user.id [delete: Cascade]
+
+Ref: ticket.ticketStatusId > ticket_status.id [delete: Restrict]

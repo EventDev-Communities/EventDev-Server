@@ -1,0 +1,770 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getApiStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "AppController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/api/v1/communities": {
+      "get": {
+        "description": "Lista comunidades ativas com paginação HATEOAS e filtros",
+        "operationId": "CommunityController_getAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Buscar por nome ou descrição",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por status ativo/inativo",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade de registros para pular",
+            "schema": {
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade de registros",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de comunidades retornada com sucesso com links de navegação"
+          }
+        },
+        "summary": "Listar todas as comunidades",
+        "tags": [
+          "communities"
+        ]
+      },
+      "post": {
+        "description": "Cria uma nova comunidade para o usuário autenticado",
+        "operationId": "CommunityController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Comunidade criada com sucesso"
+          },
+          "403": {
+            "description": "Usuário não tem permissão para criar comunidade"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Criar nova comunidade",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/communities/me": {
+      "get": {
+        "description": "Retorna os dados da comunidade do usuário autenticado",
+        "operationId": "CommunityController_getMyCommunity",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Dados da comunidade retornados com sucesso"
+          },
+          "403": {
+            "description": "Usuário não tem perfil de comunidade"
+          },
+          "404": {
+            "description": "Comunidade não encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obter minha comunidade",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/communities/{id}": {
+      "get": {
+        "operationId": "CommunityController_getByID",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Dados da comunidade"
+          },
+          "404": {
+            "description": "Comunidade não encontrada"
+          }
+        },
+        "summary": "Buscar comunidade por ID",
+        "tags": [
+          "communities"
+        ]
+      },
+      "patch": {
+        "description": "Atualiza os dados da comunidade. Apenas o dono pode atualizar",
+        "operationId": "CommunityController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Comunidade atualizada com sucesso"
+          },
+          "403": {
+            "description": "Sem permissão para atualizar esta comunidade"
+          },
+          "404": {
+            "description": "Comunidade não encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atualizar comunidade",
+        "tags": [
+          "communities"
+        ]
+      },
+      "delete": {
+        "description": "Remove uma comunidade. Apenas o dono pode deletar",
+        "operationId": "CommunityController_delete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Comunidade deletada com sucesso"
+          },
+          "403": {
+            "description": "Sem permissão para deletar esta comunidade"
+          },
+          "404": {
+            "description": "Comunidade não encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deletar comunidade",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/auth/signin": {
+      "post": {
+        "description": "Realiza login com email e senha. Retorna dados do usuário e seus papéis",
+        "operationId": "AuthController_signIn",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso"
+          },
+          "401": {
+            "description": "Credenciais inválidas"
+          }
+        },
+        "summary": "Autenticar usuário",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/signout": {
+      "post": {
+        "description": "Realiza logout do usuário autenticado",
+        "operationId": "AuthController_signOut",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logout realizado com sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Encerrar sessão",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "Retorna dados completos do usuário autenticado incluindo papéis e permissões",
+        "operationId": "AuthController_getCurrentUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Dados do usuário retornados com sucesso"
+          },
+          "401": {
+            "description": "Não autenticado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obter perfil do usuário logado",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/admin/users": {
+      "post": {
+        "description": "Permite que administradores criem novos usuários com papéis específicos",
+        "operationId": "AuthController_createUser",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Usuário criado com sucesso"
+          },
+          "403": {
+            "description": "Acesso negado - apenas administradores"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "[ADMIN] Criar novo usuário",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/admin/communities": {
+      "post": {
+        "description": "Permite que administradores criem comunidades",
+        "operationId": "AuthController_createCommunity",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Comunidade criada com sucesso"
+          },
+          "403": {
+            "description": "Acesso negado - apenas administradores"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "[ADMIN] Criar nova comunidade",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/bootstrap/admin": {
+      "post": {
+        "description": "Rota de inicialização para criar o primeiro admin. Bloqueada após primeiro uso",
+        "operationId": "AuthController_bootstrapAdmin",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Administrador criado com sucesso"
+          },
+          "409": {
+            "description": "Já existe um administrador no sistema"
+          }
+        },
+        "summary": "Criar primeiro administrador do sistema",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/signup/community": {
+      "post": {
+        "description": "Permite que comunidades se registrem diretamente na plataforma",
+        "operationId": "AuthController_signUpCommunity",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Comunidade cadastrada com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "409": {
+            "description": "Email já cadastrado"
+          }
+        },
+        "summary": "Cadastro público de comunidade",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/events": {
+      "post": {
+        "description": "Cria um novo evento para a comunidade do usuário autenticado",
+        "operationId": "EventController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Evento criado com sucesso"
+          },
+          "403": {
+            "description": "Usuário não tem permissão de comunidade"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Criar novo evento",
+        "tags": [
+          "events"
+        ]
+      },
+      "get": {
+        "description": "Lista eventos com paginação HATEOAS. Pode filtrar por comunidade, modalidade e status",
+        "operationId": "EventController_getAll",
+        "parameters": [
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por status ativo/inativo",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "modality",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por modalidade",
+            "schema": {
+              "enum": [
+                "ONLINE",
+                "PRESENCIAL",
+                "HIBRIDO"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "communityId",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por ID da comunidade",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade de registros para pular",
+            "schema": {
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade de registros",
+            "schema": {
+              "example": 25,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de eventos retornada com sucesso com links de navegação"
+          }
+        },
+        "summary": "Listar todos os eventos",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/api/v1/events/{id}": {
+      "get": {
+        "operationId": "EventController_getByID",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Dados do evento"
+          },
+          "404": {
+            "description": "Evento não encontrado"
+          }
+        },
+        "summary": "Buscar evento por ID",
+        "tags": [
+          "events"
+        ]
+      },
+      "patch": {
+        "description": "Atualiza um evento existente. Apenas o dono da comunidade pode atualizar seus eventos",
+        "operationId": "EventController_update",
+        "parameters": [
+          {
+            "name": "idAddress",
+            "required": false,
+            "in": "query",
+            "description": "ID do endereço (se estiver atualizando)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evento atualizado com sucesso"
+          },
+          "403": {
+            "description": "Sem permissão para atualizar este evento"
+          },
+          "404": {
+            "description": "Evento não encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atualizar evento",
+        "tags": [
+          "events"
+        ]
+      },
+      "delete": {
+        "description": "Remove um evento. Apenas o dono da comunidade pode deletar seus eventos",
+        "operationId": "EventController_delete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Evento deletado com sucesso"
+          },
+          "403": {
+            "description": "Sem permissão para deletar este evento"
+          },
+          "404": {
+            "description": "Evento não encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deletar evento",
+        "tags": [
+          "events"
+        ]
+      }
+    },
+    "/api/v1/address": {
+      "get": {
+        "operationId": "AddressController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de endereços"
+          }
+        },
+        "summary": "Listar todos os endereços",
+        "tags": [
+          "address"
+        ]
+      },
+      "post": {
+        "operationId": "AddressController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Endereço criado com sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Criar novo endereço",
+        "tags": [
+          "address"
+        ]
+      }
+    },
+    "/api/v1/tickets": {
+      "post": {
+        "description": "Cria um novo tipo de ticket para eventos da comunidade",
+        "operationId": "TicketController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Ticket criado com sucesso"
+          },
+          "403": {
+            "description": "Usuário não tem permissão de comunidade"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Criar novo ticket",
+        "tags": [
+          "tickets"
+        ]
+      },
+      "get": {
+        "description": "Lista tipos de tickets disponíveis com paginação HATEOAS e filtros",
+        "operationId": "TicketController_getAll",
+        "parameters": [
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por status ativo/inativo",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por ID do evento",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade de registros para pular",
+            "schema": {
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade de registros",
+            "schema": {
+              "example": 25,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tickets retornada com sucesso com links de navegação"
+          }
+        },
+        "summary": "Listar todos os tickets",
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/api/v1/tickets/{id}": {
+      "get": {
+        "operationId": "TicketController_getByID",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Dados do ticket"
+          },
+          "404": {
+            "description": "Ticket não encontrado"
+          }
+        },
+        "summary": "Buscar ticket por ID",
+        "tags": [
+          "tickets"
+        ]
+      },
+      "patch": {
+        "description": "Atualiza um tipo de ticket. Apenas o dono da comunidade pode atualizar",
+        "operationId": "TicketController_update",
+        "parameters": [
+          {
+            "name": "idAddress",
+            "required": false,
+            "in": "query",
+            "description": "ID do endereço (se aplicável)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ticket atualizado com sucesso"
+          },
+          "403": {
+            "description": "Sem permissão para atualizar este ticket"
+          },
+          "404": {
+            "description": "Ticket não encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atualizar ticket",
+        "tags": [
+          "tickets"
+        ]
+      },
+      "delete": {
+        "description": "Remove um tipo de ticket. Apenas o dono da comunidade pode deletar",
+        "operationId": "TicketController_delete",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Ticket deletado com sucesso"
+          },
+          "403": {
+            "description": "Sem permissão para deletar este ticket"
+          },
+          "404": {
+            "description": "Ticket não encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deletar ticket",
+        "tags": [
+          "tickets"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "EventDev API",
+    "description": "API RESTful para gerenciamento de eventos e comunidades com autorização baseada em papéis e permissões",
+    "version": "1.0",
+    "contact": {
+      "name": "EventDev Team",
+      "url": "https://eventdev.org",
+      "email": "contact@eventdev.org"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "tags": [
+    {
+      "name": "authentication",
+      "description": "Autenticação e autorização de usuários"
+    },
+    {
+      "name": "communities",
+      "description": "Gerenciamento de comunidades organizadoras"
+    },
+    {
+      "name": "events",
+      "description": "Gerenciamento de eventos"
+    },
+    {
+      "name": "tickets",
+      "description": "Gerenciamento de ingressos e tickets"
+    },
+    {
+      "name": "addresses",
+      "description": "Gerenciamento de endereços"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:5122",
+      "description": "API Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "Authorization",
+        "description": "Token de autenticação JWT do SuperTokens",
+        "in": "header"
+      }
+    },
+    "schemas": {}
+  }
+}

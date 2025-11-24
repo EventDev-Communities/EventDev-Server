@@ -13,7 +13,9 @@ import SessionRecipe, { SessionContainer } from 'supertokens-node/recipe/session
 @Injectable()
 export class AuthService {
   constructor(
+    @Inject(CommunityService)
     private readonly communityService: CommunityService,
+    @Inject(PrismaService)
     private readonly prismaService: PrismaService,
     @Inject('IAuthAdapter') private readonly authAdapter: IAuthAdapter
   ) {}

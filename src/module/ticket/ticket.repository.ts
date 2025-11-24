@@ -1,11 +1,14 @@
 import { TicketDto } from '@module/ticket/dto/ticket.dto'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class TicketRepository {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prismaService: PrismaService) {
+    // eslint-disable-next-line no-console
+    console.log('[TicketRepository] constructed')
+  }
 
   async create(data: TicketDto, idCommunity: number) {
     const modality = await this.prismaService.eventModality.findUnique({

@@ -7,7 +7,7 @@ import { LoggerService } from '@common/logger/logger.service'
 import { CreateEventDto } from '@module/event/dto/createEvent.dto'
 import { UpdateEventDto } from '@module/event/dto/updateEvent.dto'
 import { EventService } from '@module/event/event.service'
-import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
+import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Inject, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Request } from 'express'
 import { PublicAccess, VerifySession } from 'supertokens-nestjs'
@@ -16,7 +16,9 @@ import { PublicAccess, VerifySession } from 'supertokens-nestjs'
 @Controller('events')
 export class EventController {
   constructor(
+    @Inject(EventService)
     private readonly eventService: EventService,
+    @Inject(LoggerService)
     private readonly logger: LoggerService
   ) {}
 

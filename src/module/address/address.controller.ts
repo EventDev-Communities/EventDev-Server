@@ -1,7 +1,7 @@
 import { LoggerService } from '@common/logger/logger.service'
 import { AddressService } from '@module/address/address.service'
 import { AddressDto } from '@module/address/dto/address.dto'
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Body, Controller, Get, Inject, Post } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
 import { SessionContainer } from 'supertokens-node/recipe/session'
@@ -10,7 +10,9 @@ import { SessionContainer } from 'supertokens-node/recipe/session'
 @Controller('address')
 export class AddressController {
   constructor(
+    @Inject(AddressService)
     private readonly addressService: AddressService,
+    @Inject(LoggerService)
     private readonly logger: LoggerService
   ) {}
 

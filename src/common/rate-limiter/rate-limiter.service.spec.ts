@@ -5,6 +5,7 @@ import Redis from 'ioredis'
 describe('RateLimiterService', () => {
   let service: RateLimiterService
   let redisMock: jest.Mocked<Redis>
+  let moduleRef: TestingModule
 
   beforeEach(async () => {
     redisMock = {
@@ -20,10 +21,13 @@ describe('RateLimiterService', () => {
       sismember: jest.fn(),
       srem: jest.fn(),
       exists: jest.fn(),
-      ttl: jest.fn()
+      ttl: jest.fn(),
+      quit: jest.fn().mockResolvedValue(undefined),
+      disconnect: jest.fn(),
+      status: 'ready'
     } as any
 
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         RateLimiterService,
         {
@@ -33,11 +37,12 @@ describe('RateLimiterService', () => {
       ]
     }).compile()
 
-    service = module.get<RateLimiterService>(RateLimiterService)
+    service = moduleRef.get<RateLimiterService>(RateLimiterService)
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllMocks()
+    await moduleRef.close()
   })
 
   describe('resolveIdentity', () => {

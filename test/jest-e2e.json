@@ -17,7 +17,8 @@
     "^@helper/(.*)$": "<rootDir>/src/helper/$1",
     "^@infrastructure/(.*)$": "<rootDir>/src/infrastructure/$1",
     "^@interface/(.*)$": "<rootDir>/src/interface/$1",
-    "^@prisma/(?!client)(.*)$": "<rootDir>/src/prisma/$1"
+    "^@prisma/(?!client)(.*)$": "<rootDir>/src/prisma/$1",
+    "^@seed-data/(.*)$": "<rootDir>/prisma/seed/data/$1"
   },
   "maxWorkers": 3
 }

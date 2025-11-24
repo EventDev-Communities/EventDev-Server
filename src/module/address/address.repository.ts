@@ -1,11 +1,11 @@
 import { AddressDto } from '@module/address/dto/address.dto'
 import { PartialAddressDto } from '@module/address/dto/partialAddress.dto'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class AddressRepository {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prismaService: PrismaService) {}
 
   async create(data: AddressDto) {
     return await this.prismaService.address.create({ data })

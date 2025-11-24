@@ -20,7 +20,8 @@
       "@decorators/*": ["src/decorators/*"],
       "@helper/*": ["src/helper/*"],
       "@prisma/*": ["src/prisma/*"],
-      "@interface/*": ["src/interface/*"]
+      "@interface/*": ["src/interface/*"],
+      "@seed-data/*": ["prisma/seed/data/*"]
     },
     "incremental": true,
     "skipLibCheck": true,

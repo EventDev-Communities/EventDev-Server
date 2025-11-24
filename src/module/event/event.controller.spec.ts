@@ -9,6 +9,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 describe('EventController', () => {
   let controller: EventController
   let _eventService: EventService
+  let moduleRef: TestingModule
 
   const mockEventService = {
     create: jest.fn(),
@@ -27,7 +28,7 @@ describe('EventController', () => {
   }
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       controllers: [EventController],
       providers: [
         {
@@ -41,10 +42,14 @@ describe('EventController', () => {
       ]
     }).compile()
 
-    controller = module.get<EventController>(EventController)
-    _eventService = module.get<EventService>(EventService)
+    controller = moduleRef.get<EventController>(EventController)
+    _eventService = moduleRef.get<EventService>(EventService)
 
     jest.clearAllMocks()
+  })
+
+  afterEach(async () => {
+    await moduleRef.close()
   })
 
   it('should be defined', () => {

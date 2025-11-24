@@ -1,11 +1,11 @@
 import { AddressRepository } from '@module/address/address.repository'
 import { AddressDto } from '@module/address/dto/address.dto'
 import { PartialAddressDto } from '@module/address/dto/partialAddress.dto'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 
 @Injectable()
 export class AddressService {
-  constructor(private readonly addressRepository: AddressRepository) {}
+  constructor(@Inject(AddressRepository) private readonly addressRepository: AddressRepository) {}
 
   async create(address: AddressDto) {
     return await this.addressRepository.create(address)

@@ -6,7 +6,7 @@ import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { CommunityService } from '@module/community/community.service'
 import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
 import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
-import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
+import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Inject, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { Request } from 'express'
 import { PublicAccess, VerifySession } from 'supertokens-nestjs'
@@ -14,7 +14,7 @@ import { PublicAccess, VerifySession } from 'supertokens-nestjs'
 @ApiTags('communities')
 @Controller('communities')
 export class CommunityController {
-  constructor(private readonly communityService: CommunityService) {}
+  constructor(@Inject(CommunityService) private readonly communityService: CommunityService) {}
 
   @Get()
   @PublicAccess()

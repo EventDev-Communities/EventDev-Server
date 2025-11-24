@@ -9,15 +9,15 @@
   "scripts": {
     "build": "nest build && tsc-alias",
     "start": "node --import tsx/esm dist/src/main.js",
-    "start-dev": "tsx watch src/main.ts",
-    "start-debug": "node --inspect=0.0.0.0:9229 --import tsx/esm --watch src/main.ts",
+    "start-dev": "cross-env TSX_TSC=1 tsx watch src/main.ts",
+    "start-debug": "cross-env TSX_TSC=1 node --inspect=0.0.0.0:9229 --import tsx/esm --watch src/main.ts",
     "start-prod": "node --import tsx/esm dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --max-warnings=0",
     "format": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "docs-generate": "npx prisma generate >/dev/null 2>&1 && npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script 2>&1 | grep -E '^(--|CREATE|ALTER|DROP)' > docs/schema.sql && echo '✅ Schemas gerados! Para gerar openapi.json execute: pnpm start-dev'",
-    "test": "jest",
-    "test-watch": "jest --watch",
-    "test-cov": "jest --coverage",
+    "docs-generate": "npx prisma generate >/dev/null 2>&1 && npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script 2>&1 | grep -E '^(--|CREATE|ALTER|DROP)' > docs/schema.sql && echo 'Schemas gerados! Para gerar openapi.json execute: pnpm start-dev'",
+    "test": "jest --runInBand --detectOpenHandles",
+    "test-watch": "jest --runInBand --watch",
+    "test-cov": "jest --runInBand --coverage",
     "test-debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "pretest-e2e": "node tools/testing/prepare-test-db.mjs",
     "test-e2e": "jest --config ./test/jest-e2e.json --testTimeout=20000",
@@ -46,7 +46,8 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "supertokens-nestjs": "^0.0.5",
-    "supertokens-node": "^22.1.1"
+    "supertokens-node": "^22.1.1",
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.2.0",
@@ -81,7 +82,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4"
   },
-    "imports": {
+  "imports": {
     "#/*": "./dist/src/*",
     "#common/*": "./dist/src/common/*",
     "#module/*": "./dist/src/module/*",
@@ -117,7 +118,8 @@
       "^@helper/(.*)$": "<rootDir>/helper/$1",
       "^@infrastructure/(.*)$": "<rootDir>/infrastructure/$1",
       "^@interface/(.*)$": "<rootDir>/interface/$1",
-      "^@prisma/(?!client)(.*)$": "<rootDir>/prisma/$1"
+      "^@prisma/(?!client)(.*)$": "<rootDir>/prisma/$1",
+      "^@seed-data/(.*)$": "<rootDir>/../prisma/seed/data/$1"
     }
   }
 }

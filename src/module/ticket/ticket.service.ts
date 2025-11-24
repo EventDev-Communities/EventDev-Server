@@ -6,16 +6,23 @@ import { CreateEventDto } from '@module/ticket/dto/createEvent.dto'
 import { ModalityEvent } from '@module/ticket/dto/ticket.dto'
 import { UpdateEventDto } from '@module/ticket/dto/updateEvent.dto'
 import { TicketRepository } from '@module/ticket/ticket.repository'
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 
 @Injectable()
 export class TicketService {
   constructor(
+    @Inject(TicketRepository)
     private readonly ticketRepository: TicketRepository,
+    @Inject(CommunityService)
     private readonly communityService: CommunityService,
+    @Inject(AddressService)
     private readonly addressService: AddressService,
+    @Inject(LoggerService)
     private readonly logger: LoggerService
-  ) {}
+  ) {
+    // eslint-disable-next-line no-console
+    console.log('[TicketService] constructed')
+  }
 
   async create(idCommunity: number, data: CreateEventDto) {
     try {

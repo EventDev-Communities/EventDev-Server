@@ -5,6 +5,12 @@ import { logger } from '../logger'
 export async function seedOrderItemType(prisma: PrismaClient) {
   logger.info(' Seeding OrderItemType...')
 
+  interface OrderItemTypeSeed {
+    code: string
+    name: string
+    description: string
+  }
+
   const types = [
     {
       code: 'TICKET',
@@ -36,7 +42,7 @@ export async function seedOrderItemType(prisma: PrismaClient) {
       name: 'Service',
       description: 'Service or consultation'
     }
-  ]
+  ] satisfies ReadonlyArray<OrderItemTypeSeed>
 
   await Promise.all(
     types.map((type) =>

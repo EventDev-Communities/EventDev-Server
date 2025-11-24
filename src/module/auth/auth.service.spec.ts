@@ -24,6 +24,7 @@ describe('AuthService', () => {
   let service: AuthService
   let authAdapter: any
   let communityService: any
+  let moduleRef: TestingModule
 
   const mockAuthAdapter = {
     signIn: jest.fn(),
@@ -42,7 +43,7 @@ describe('AuthService', () => {
   const mockPrismaService = {}
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: 'IAuthAdapter', useValue: mockAuthAdapter },
@@ -51,11 +52,15 @@ describe('AuthService', () => {
       ]
     }).compile()
 
-    service = module.get<AuthService>(AuthService)
+    service = moduleRef.get<AuthService>(AuthService)
     authAdapter = mockAuthAdapter
     communityService = mockCommunityService
 
     jest.clearAllMocks()
+  })
+
+  afterEach(async () => {
+    await moduleRef.close()
   })
 
   it('should be defined', () => {

@@ -18,9 +18,10 @@ function createMockExecutionContext(user?: IAuthUser): ExecutionContext {
 describe('PermissionsGuard', () => {
   let guard: PermissionsGuard
   let reflector: Reflector
+  let moduleRef: TestingModule
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         PermissionsGuard,
         {
@@ -32,8 +33,12 @@ describe('PermissionsGuard', () => {
       ]
     }).compile()
 
-    guard = module.get<PermissionsGuard>(PermissionsGuard)
-    reflector = module.get<Reflector>(Reflector)
+    guard = moduleRef.get<PermissionsGuard>(PermissionsGuard)
+    reflector = moduleRef.get<Reflector>(Reflector)
+  })
+
+  afterEach(async () => {
+    await moduleRef.close()
   })
 
   it('should be defined', () => {

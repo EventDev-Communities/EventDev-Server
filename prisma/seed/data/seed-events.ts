@@ -1,55 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 
+import { eventSeedData } from './seed-datasets'
 import { logger } from '../logger'
-
-const eventsData = [
-  {
-    community: 'Frontend CE',
-    title: 'Frontend Day 2025',
-    description:
-      'Evento anual da comunidade Frontend CE com palestras, workshops e networking sobre as últimas tendências em desenvolvimento frontend.',
-    modality: 'PRESENTIAL',
-    address: {
-      cep: '60060390',
-      streetAddress: 'Rua Dragão do Mar',
-      number: '81'
-    },
-    coverUrl: '/images/events/frontend-day-2025.jpg',
-    link: 'https://frontendce.com/frontend-day-2025',
-    startDateTime: new Date('2025-05-15T08:00:00-03:00'),
-    endDateTime: new Date('2025-05-15T18:00:00-03:00')
-  },
-  {
-    community: 'PHP com Rapadura',
-    title: 'PHP com Rapadura Mentoria',
-    description: 'Programa de mentoria para desenvolvedores PHP iniciantes e intermediários. Aprenda com os melhores profissionais da comunidade.',
-    modality: 'ONLINE',
-    coverUrl: '/images/events/php-mentoria-2025.jpg',
-    link: 'https://phpcomrapadura.org/mentoria',
-    startDateTime: new Date('2025-03-01T19:00:00-03:00'),
-    endDateTime: new Date('2025-03-01T21:00:00-03:00')
-  },
-  {
-    community: 'Python Nordeste',
-    title: 'Python Nordeste 2025',
-    description: 'A maior conferência de Python do Nordeste! Três dias de imersão com palestras, tutoriais, sprints e muito networking.',
-    modality: 'HYBRID',
-    address: {
-      cep: '60811905',
-      streetAddress: 'Av. Washington Soares',
-      number: '1321'
-    },
-    coverUrl: '/images/events/python-nordeste-2025.jpg',
-    link: 'https://2025.pythonnordeste.org',
-    startDateTime: new Date('2025-06-19T08:00:00-03:00'),
-    endDateTime: new Date('2025-06-21T18:00:00-03:00')
-  }
-]
 
 export async function seedEvents(prisma: PrismaClient) {
   logger.info('Seeding Events...')
 
-  for (const data of eventsData) {
+  for (const data of eventSeedData) {
     logger.debug(`   - Creating event: ${data.title}`)
 
     // Find community

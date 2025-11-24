@@ -5,6 +5,12 @@ import { logger } from '../logger'
 export async function seedLinkType(prisma: PrismaClient) {
   logger.info(' Seeding LinkType...')
 
+  interface LinkTypeSeed {
+    code: string
+    name: string
+    description: string
+  }
+
   const linkTypes = [
     {
       code: 'WEBSITE',
@@ -61,7 +67,7 @@ export async function seedLinkType(prisma: PrismaClient) {
       name: 'Outro',
       description: 'Outro tipo de link ou rede social'
     }
-  ]
+  ] satisfies ReadonlyArray<LinkTypeSeed>
 
   await Promise.all(
     linkTypes.map((linkType) =>

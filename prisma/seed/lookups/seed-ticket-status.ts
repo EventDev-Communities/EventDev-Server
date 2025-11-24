@@ -5,6 +5,12 @@ import { logger } from '../logger'
 export async function seedTicketStatus(prisma: PrismaClient) {
   logger.info(' Seeding TicketStatus...')
 
+  interface TicketStatusSeed {
+    code: string
+    name: string
+    description: string
+  }
+
   const statuses = [
     {
       code: 'PENDING',
@@ -31,7 +37,7 @@ export async function seedTicketStatus(prisma: PrismaClient) {
       name: 'Utilizado',
       description: 'Ingresso já utilizado no check-in'
     }
-  ]
+  ] satisfies ReadonlyArray<TicketStatusSeed>
 
   await Promise.all(
     statuses.map((status) =>

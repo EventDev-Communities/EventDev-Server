@@ -1,12 +1,16 @@
 /**
  * CONFIGURAÇÃO DO CLIENTE REDIS PARA RATE LIMITING
  *
+ * Overview:
+ *
  * Redis é um banco de dados em memória (cache) usado para armazenar:
  * - Contadores de requisições
  * - Bloqueios temporários (bans)
  * - Listas de bloqueio permanente
  *
- * Por que usar Redis para rate limiting?
+ * Decisão Técnica:
+ *
+ * Por que escolhemos usar Redis para rate limiting?
  * - MUITO rápido (operações em microssegundos)
  * - Estruturas de dados otimizadas (Sorted Sets, TTL automático)
  * - Suporta scripts Lua para operações atômicas
@@ -29,15 +33,16 @@ import Redis from 'ioredis'
  * - REDIS_PORT: Porta do Redis
  * - REDIS_RATE_LIMIT_DB: Database específico para rate limiting (padrão: 1)
  */
+const shouldLogRedisEvents = process.env.NODE_ENV !== 'test'
+
 export const RedisRateLimitProvider: Provider = {
   provide: 'REDIS_RATE_LIMIT',
-  useFactory: () =>
-    new Redis({
+  useFactory: () => {
+    const client = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: Number(process.env.REDIS_PORT) || 6379,
       db: Number(process.env.REDIS_RATE_LIMIT_DB) || 1,
 
-      // Configurações de conexão
       retryStrategy: (times: number) => {
         // Reconecta com backoff exponencial (máximo 3 segundos)
         const delay = Math.min(times * 50, 3000)
@@ -59,4 +64,37 @@ export const RedisRateLimitProvider: Provider = {
         return false
       }
     })
+
+    if (shouldLogRedisEvents) {
+      console.warn('[RedisRateLimit] creating Redis client', {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+        db: Number(process.env.REDIS_RATE_LIMIT_DB) || 1
+      })
+    }
+
+    client.on('connect', () => {
+      if (shouldLogRedisEvents) {
+        console.warn('[RedisRateLimit] connect event fired')
+      }
+    })
+
+    client.on('ready', () => {
+      if (shouldLogRedisEvents) {
+        console.warn('[RedisRateLimit] ready event fired')
+      }
+    })
+
+    client.on('error', (error) => {
+      console.error('[RedisRateLimit] error event', error?.message)
+    })
+
+    client.on('end', () => {
+      if (shouldLogRedisEvents) {
+        console.warn('[RedisRateLimit] connection ended')
+      }
+    })
+
+    return client
+  }
 }

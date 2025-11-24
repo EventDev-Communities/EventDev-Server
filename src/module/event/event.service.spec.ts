@@ -12,6 +12,7 @@ describe('EventService', () => {
   let _eventRepository: EventRepository
   let _communityService: CommunityService
   let _addressService: AddressService
+  let moduleRef: TestingModule
 
   const mockEventRepository = {
     create: jest.fn(),
@@ -39,7 +40,7 @@ describe('EventService', () => {
   }
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         EventService,
         { provide: EventRepository, useValue: mockEventRepository },
@@ -49,12 +50,16 @@ describe('EventService', () => {
       ]
     }).compile()
 
-    service = module.get<EventService>(EventService)
-    _eventRepository = module.get<EventRepository>(EventRepository)
-    _communityService = module.get<CommunityService>(CommunityService)
-    _addressService = module.get<AddressService>(AddressService)
+    service = moduleRef.get<EventService>(EventService)
+    _eventRepository = moduleRef.get<EventRepository>(EventRepository)
+    _communityService = moduleRef.get<CommunityService>(CommunityService)
+    _addressService = moduleRef.get<AddressService>(AddressService)
 
     jest.clearAllMocks()
+  })
+
+  afterEach(async () => {
+    await moduleRef.close()
   })
 
   it('should be defined', () => {

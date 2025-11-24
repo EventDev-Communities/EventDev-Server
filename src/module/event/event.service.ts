@@ -6,14 +6,18 @@ import { CreateEventDto } from '@module/event/dto/createEvent.dto'
 import { ModalityEvent } from '@module/event/dto/event.dto'
 import { UpdateEventDto } from '@module/event/dto/updateEvent.dto'
 import { EventRepository } from '@module/event/event.repository'
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 
 @Injectable()
 export class EventService {
   constructor(
+    @Inject(EventRepository)
     private readonly eventRepository: EventRepository,
+    @Inject(CommunityService)
     private readonly communityService: CommunityService,
+    @Inject(AddressService)
     private readonly addressService: AddressService,
+    @Inject(LoggerService)
     private readonly logger: LoggerService
   ) {}
 

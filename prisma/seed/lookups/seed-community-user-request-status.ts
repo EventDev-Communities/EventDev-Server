@@ -5,6 +5,12 @@ import { logger } from '../logger'
 export async function seedCommunityUserRequestStatus(prisma: PrismaClient) {
   logger.info(' Seeding CommunityUserRequestStatus...')
 
+  interface CommunityUserRequestStatusSeed {
+    code: string
+    name: string
+    description: string
+  }
+
   const statuses = [
     {
       code: 'PENDING',
@@ -21,7 +27,7 @@ export async function seedCommunityUserRequestStatus(prisma: PrismaClient) {
       name: 'Rejeitado',
       description: 'Solicitação rejeitada'
     }
-  ]
+  ] satisfies ReadonlyArray<CommunityUserRequestStatusSeed>
 
   await Promise.all(
     statuses.map(async (status) =>

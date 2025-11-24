@@ -8,6 +8,7 @@ describe('RateLimitGuard', () => {
   let guard: RateLimitGuard
   let reflector: Reflector
   let rateLimiterService: jest.Mocked<RateLimiterService>
+  let moduleRef: TestingModule
 
   beforeEach(async () => {
     const mockRateLimiterService = {
@@ -15,7 +16,7 @@ describe('RateLimitGuard', () => {
       enforcePolicyCheckSlidingWindow: jest.fn()
     }
 
-    const module: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         RateLimitGuard,
         {
@@ -31,13 +32,14 @@ describe('RateLimitGuard', () => {
       ]
     }).compile()
 
-    guard = module.get<RateLimitGuard>(RateLimitGuard)
-    reflector = module.get<Reflector>(Reflector)
-    rateLimiterService = module.get<RateLimiterService>(RateLimiterService) as jest.Mocked<RateLimiterService>
+    guard = moduleRef.get<RateLimitGuard>(RateLimitGuard)
+    reflector = moduleRef.get<Reflector>(Reflector)
+    rateLimiterService = moduleRef.get<RateLimiterService>(RateLimiterService) as jest.Mocked<RateLimiterService>
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.clearAllMocks()
+    await moduleRef.close()
   })
 
   describe('canActivate', () => {

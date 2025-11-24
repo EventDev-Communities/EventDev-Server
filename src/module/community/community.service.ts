@@ -3,12 +3,14 @@ import { LoggerService } from '@common/logger/logger.service'
 import { CommunityRepository } from '@module/community/community.repository'
 import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
 import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 
 @Injectable()
 export class CommunityService {
   constructor(
+    @Inject(CommunityRepository)
     private readonly communityRepository: CommunityRepository,
+    @Inject(LoggerService)
     private readonly logger: LoggerService
   ) {}
 

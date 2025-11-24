@@ -8,6 +8,7 @@ import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common'
 export class RoleSetupService implements OnApplicationBootstrap {
   constructor(
     @Inject('IAuthAdapter') private readonly authAdapter: IAuthAdapter,
+    @Inject(LoggerService)
     private readonly logger: LoggerService
   ) {}
 

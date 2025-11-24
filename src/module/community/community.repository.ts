@@ -1,11 +1,11 @@
 import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
 import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class CommunityRepository {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prismaService: PrismaService) {}
 
   async getAll(take: number, skip: number, filters?: { isActive?: boolean, search?: string }) {
     const where: { isActive?: boolean, OR?: Array<{ name?: { contains: string, mode: 'insensitive' }, description?: { contains: string, mode: 'insensitive' } }> } = {}

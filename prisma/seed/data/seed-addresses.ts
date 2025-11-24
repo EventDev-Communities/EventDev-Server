@@ -1,41 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 
+import { addressSeedData } from './seed-datasets'
 import { logger } from '../logger'
-
-const addressesData = [
-  {
-    cep: '60060390',
-    streetAddress: 'Rua Dragão do Mar',
-    number: '81',
-    complement: 'Centro Dragão do Mar de Arte e Cultura',
-    neighborhood: 'Praia de Iracema',
-    city: 'Fortaleza',
-    state: 'CE'
-  },
-  {
-    cep: '60811905',
-    streetAddress: 'Av. Washington Soares',
-    number: '1321',
-    complement: 'Universidade de Fortaleza - UNIFOR',
-    neighborhood: 'Edson Queiroz',
-    city: 'Fortaleza',
-    state: 'CE'
-  },
-  {
-    cep: '60175055',
-    streetAddress: 'Rua Desembargador Lauro Nogueira',
-    number: '1500',
-    complement: 'Teatro RioMar Fortaleza',
-    neighborhood: 'Papicu',
-    city: 'Fortaleza',
-    state: 'CE'
-  }
-]
 
 export async function seedAddresses(prisma: PrismaClient) {
   logger.info('Seeding Addresses...')
 
-  for (const data of addressesData) {
+  for (const data of addressSeedData) {
     // Check if address already exists
     const existing = await prisma.address.findFirst({
       where: {

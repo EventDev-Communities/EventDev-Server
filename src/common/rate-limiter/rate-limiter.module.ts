@@ -14,6 +14,7 @@
  * 3. Use middlewares ou guards para aplicar rate limits
  */
 
+import { RateLimitMiddleware } from '@common/middleware/rate-limit.middleware'
 import { RateLimiterService } from '@common/rate-limiter/rate-limiter.service'
 import { RedisRateLimitProvider } from '@configs/redis.config'
 import { Global, Module } from '@nestjs/common'
@@ -22,11 +23,13 @@ import { Global, Module } from '@nestjs/common'
 @Module({
   providers: [
     RedisRateLimitProvider, // Cliente Redis
-    RateLimiterService // Serviço de rate limiting
+    RateLimiterService, // Serviço de rate limiting
+    RateLimitMiddleware // Middleware global com DI resolvido
   ],
   exports: [
     'REDIS_RATE_LIMIT', // Exporta cliente Redis para uso direto se necessário
-    RateLimiterService // Exporta serviço para injeção em outros módulos
+    RateLimiterService,
+    RateLimitMiddleware // Permite aplicar middleware em outros módulos
   ]
 })
 export class RateLimiterModule {}

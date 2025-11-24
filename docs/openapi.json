@@ -756,7 +756,7 @@
   ],
   "components": {
     "securitySchemes": {
-      "JWT-auth": {
+      "bearer": {
         "scheme": "bearer",
         "bearerFormat": "JWT",
         "type": "http",

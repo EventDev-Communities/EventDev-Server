@@ -10,19 +10,22 @@
  *
  * Como funciona:
  * 1. Intercepta toda requisição HTTP
- * 2. Identifica o usuário (geralmente por IP)
+ * 2. Identifica o usuário (nesse caso, por IP)
  * 3. Verifica se excedeu o limite de requisições
  * 4. Se OK: permite passagem
  * 5. Se excedeu: retorna 429 Too Many Requests
  */
 
 import { RateLimiterService } from '@common/rate-limiter/rate-limiter.service'
-import { HttpStatus, Injectable, NestMiddleware } from '@nestjs/common'
+import { HttpStatus, Inject, Injectable, NestMiddleware } from '@nestjs/common'
 import { Request, Response } from 'express'
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
-  constructor(private readonly rateLimiterService: RateLimiterService) {}
+  constructor(
+    @Inject(RateLimiterService)
+    private readonly rateLimiterService: RateLimiterService
+  ) {}
 
   /**
    * Intercepta requisições e aplica rate limiting

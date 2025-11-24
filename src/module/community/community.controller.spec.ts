@@ -6,6 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 
 describe('Community Tests', () => {
   let communityService: CommunityService
+  let moduleRef: TestingModule
 
   const mockCommunityRepository = {
     getAll: jest.fn(),
@@ -25,7 +26,7 @@ describe('Community Tests', () => {
   }
 
   beforeAll(async () => {
-    const moduleInit: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       providers: [
         CommunityService,
         {
@@ -39,7 +40,11 @@ describe('Community Tests', () => {
       ]
     }).compile()
 
-    communityService = moduleInit.get<CommunityService>(CommunityService)
+    communityService = moduleRef.get<CommunityService>(CommunityService)
+  })
+
+  afterAll(async () => {
+    await moduleRef.close()
   })
 
   it('Should be defined', () => {

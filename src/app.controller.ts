@@ -1,11 +1,10 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, Inject } from '@nestjs/common'
 import { PublicAccess } from 'supertokens-nestjs'
 import { AppService } from '@/app.service'
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
+  constructor(@Inject(AppService) private readonly appService: AppService) {}
   @Get()
   @PublicAccess()
   getApiStats(): { status: string, api: string, version: string } {

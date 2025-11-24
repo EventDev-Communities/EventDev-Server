@@ -5,6 +5,12 @@ import { logger } from '../logger'
 export async function seedEventModality(prisma: PrismaClient) {
   logger.info(' Seeding EventModality...')
 
+  interface EventModalitySeed {
+    code: string
+    name: string
+    description: string
+  }
+
   const modalities = [
     {
       code: 'PRESENTIAL',
@@ -21,7 +27,7 @@ export async function seedEventModality(prisma: PrismaClient) {
       name: 'Híbrido',
       description: 'Evento com opção presencial e online'
     }
-  ]
+  ] satisfies ReadonlyArray<EventModalitySeed>
 
   await Promise.all(
     modalities.map((modality) =>

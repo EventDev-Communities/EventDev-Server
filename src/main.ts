@@ -2,18 +2,24 @@ import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { LoggerService } from '@common/logger/logger.service'
 import { ensureSuperTokensInitialized } from '@configs/supertokens.config'
-import { ValidationPipe } from '@nestjs/common'
+import { Logger, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import helmet from 'helmet'
 import { AppModule } from '@/app.module'
 
 async function bootstrap() {
+  const bootstrapLogger = new Logger('Bootstrap')
   ensureSuperTokensInitialized()
+  bootstrapLogger.log('Creating Nest application')
   const app = await NestFactory.create(AppModule)
+  bootstrapLogger.log('Nest application created')
+  // eslint-disable-next-line no-console
+  console.log('[bootstrap] Nest application created (console)')
 
   const logger = app.get(LoggerService)
 
+  logger.log('Configuring security middlewares')
   app.use(helmet({ contentSecurityPolicy: process.env.NODE_ENV === 'production' }))
 
   app.enableCors({
@@ -22,6 +28,7 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'fdi-version', 'rid', 'st-auth-mode']
   })
+  logger.log('CORS configured')
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -53,11 +60,13 @@ async function bootstrap() {
         description: 'Token de autenticação JWT do SuperTokens',
         in: 'header'
       },
-      'JWT-auth'
+      'bearer'
     )
     .build()
 
+  logger.log('Generating OpenAPI schema')
   const document = SwaggerModule.createDocument(app, config)
+  logger.log('OpenAPI schema generated, mounting Swagger UI')
   SwaggerModule.setup('api/docs', app, document, {
     customSiteTitle: 'EventDev API Documentation',
     customfavIcon: 'https://eventdev.org/favicon.ico',
@@ -92,7 +101,10 @@ async function bootstrap() {
       })
   })
 
-  await app.listen(process.env.NODE_PORT ?? 5122)
+  const port = Number(process.env.NODE_PORT ?? 5122)
+  logger.log(`Starting HTTP server on port ${port}`)
+  await app.listen(port)
+  logger.log(`HTTP server is listening on port ${port}`)
 }
 
 void bootstrap()

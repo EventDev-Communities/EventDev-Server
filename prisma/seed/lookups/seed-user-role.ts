@@ -5,6 +5,13 @@ import { logger } from '../logger'
 export async function seedUserRole(prisma: PrismaClient) {
   logger.info(' Seeding UserRole...')
 
+  interface UserRoleSeed {
+    code: string
+    name: string
+    description: string
+    level: number
+  }
+
   const roles = [
     {
       code: 'OWNER',
@@ -30,7 +37,7 @@ export async function seedUserRole(prisma: PrismaClient) {
       description: 'Membro regular da comunidade',
       level: 4
     }
-  ]
+  ] satisfies ReadonlyArray<UserRoleSeed>
 
   await Promise.all(
     roles.map((role) =>

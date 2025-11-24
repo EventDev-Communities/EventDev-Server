@@ -5,6 +5,12 @@ import { logger } from '../logger'
 export async function seedOrderStatus(prisma: PrismaClient) {
   logger.info(' Seeding OrderStatus...')
 
+  interface OrderStatusSeed {
+    code: string
+    name: string
+    description: string
+  }
+
   const statuses = [
     {
       code: 'PENDING',
@@ -36,7 +42,7 @@ export async function seedOrderStatus(prisma: PrismaClient) {
       name: 'Refunded',
       description: 'Order has been refunded'
     }
-  ]
+  ] satisfies ReadonlyArray<OrderStatusSeed>
 
   await Promise.all(
     statuses.map((status) =>

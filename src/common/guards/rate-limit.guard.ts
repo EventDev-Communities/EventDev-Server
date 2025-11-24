@@ -1,7 +1,7 @@
 import { RATE_LIMIT_KEY, RateLimitDecoratorConfig } from '@common/decorators/rate-limit.decorator'
 import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { RateLimiterService } from '@common/rate-limiter/rate-limiter.service'
-import { CanActivate, ExecutionContext, HttpStatus, Injectable } from '@nestjs/common'
+import { CanActivate, ExecutionContext, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request, Response } from 'express'
 
@@ -20,6 +20,7 @@ import { Request, Response } from 'express'
 export class RateLimitGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
+    @Inject(RateLimiterService)
     private readonly rateLimiterService: RateLimiterService
   ) {}
 

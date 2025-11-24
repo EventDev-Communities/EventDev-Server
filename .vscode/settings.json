@@ -9,7 +9,7 @@
     "node_modules": false,
     ".devcontainer": false,
     ".vscode": false,
-    ".docker": false,
-    ".github": false
+    ".github": false,
+    ".docker": false
   },
 }

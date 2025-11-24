@@ -1,6 +1,7 @@
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import { PrismaService } from '@prisma/prisma.service'
+import { addressSeedData, communitySeedData, eventSeedData } from '@seed-data/seed-datasets'
 import request from 'supertest'
 import {
   cleanupTestCommunities,
@@ -48,11 +49,14 @@ describe('EventDev API (e2e) - Refactored', () => {
   })
 
   async function cleanDatabase() {
-    await prismaService.ticket.deleteMany()
     await prismaService.orderItem.deleteMany()
     await prismaService.order.deleteMany()
+    await prismaService.ticket.deleteMany()
     await prismaService.event.deleteMany()
+    await prismaService.communityLink.deleteMany()
+    await prismaService.communityUser.deleteMany()
     await prismaService.community.deleteMany()
+    await prismaService.address.deleteMany()
   }
 
   describe('Authentication Flow', () => {
@@ -326,4 +330,215 @@ describe('EventDev API (e2e) - Refactored', () => {
       expect(response.body.meta.total).toBeGreaterThanOrEqual(0)
     })
   })
+
+  describe('Seeded Modules', () => {
+    beforeAll(async () => {
+      await cleanDatabase()
+      const addressMap = await seedAddressesDataset(prismaService)
+      await ensureEventModalities(prismaService)
+      const communityMap = await seedCommunitiesDataset(prismaService)
+      await seedEventsDataset(prismaService, communityMap, addressMap)
+    })
+
+    it('GET /address - should expose the seeded addresses', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/address')
+        .expect(HttpStatus.OK)
+
+      expect(Array.isArray(response.body)).toBe(true)
+      expect(response.body.length).toBe(addressSeedData.length)
+
+      for (const address of addressSeedData) {
+        expect(response.body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              cep: address.cep,
+              streetAddress: address.streetAddress,
+              number: address.number,
+              neighborhood: address.neighborhood,
+              city: address.city,
+              state: address.state
+            })
+          ])
+        )
+      }
+    })
+
+    it('GET /communities - should include every seeded community with correct metadata', async () => {
+      const take = communitySeedData.length
+      const response = await request(app.getHttpServer())
+        .get(`/communities?take=${take}&skip=0`)
+        .expect(HttpStatus.OK)
+
+      expect(response.body.meta.total).toBe(communitySeedData.length)
+      expect(response.body.data.length).toBe(communitySeedData.length)
+      expect(response.body.links.self).toContain(`take=${take}`)
+      expect(response.body.links.self).toContain('skip=0')
+
+      for (const community of communitySeedData) {
+        expect(response.body.data).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              name: community.name,
+              description: community.description,
+              logoUrl: community.logoUrl,
+              phoneNumber: community.phone
+            })
+          ])
+        )
+      }
+    })
+
+    it('GET /events - should return the seeded lineup with community and modality data', async () => {
+      const take = eventSeedData.length
+      const response = await request(app.getHttpServer())
+        .get(`/events?take=${take}&skip=0`)
+        .expect(HttpStatus.OK)
+
+      expect(response.body.meta.total).toBe(eventSeedData.length)
+      expect(response.body.data.length).toBe(eventSeedData.length)
+      expect(response.body.links.first).toContain(`take=${take}`)
+
+      for (const event of eventSeedData) {
+        expect(response.body.data).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              title: event.title,
+              description: event.description,
+              community: expect.objectContaining({ name: event.community }),
+              modality: expect.objectContaining({ code: event.modality })
+            })
+          ])
+        )
+      }
+    })
+
+    it('GET /events?modality=ONLINE - should filter using seeded modality codes', async () => {
+      const expectedOnline = eventSeedData.filter((event) => event.modality === 'ONLINE')
+      const response = await request(app.getHttpServer())
+        .get('/events?modality=ONLINE&take=10&skip=0')
+        .expect(HttpStatus.OK)
+
+      expect(response.body.meta.total).toBe(expectedOnline.length)
+      expect(response.body.data.length).toBe(expectedOnline.length)
+      for (const event of expectedOnline) {
+        expect(response.body.data).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              title: event.title,
+              modality: expect.objectContaining({ code: 'ONLINE' })
+            })
+          ])
+        )
+      }
+    })
+  })
 })
+
+type AddressSeed = (typeof addressSeedData)[number]
+
+function buildAddressKey(address: Pick<AddressSeed, 'cep' | 'streetAddress' | 'number'>) {
+  return `${address.cep}-${address.streetAddress}-${address.number}`
+}
+
+async function seedAddressesDataset(prisma: PrismaService) {
+  const entries = await Promise.all(
+    addressSeedData.map(async (address) => {
+      const created = await prisma.address.create({ data: { ...address } })
+      return [buildAddressKey(address), created.id] as const
+    })
+  )
+
+  return new Map(entries)
+}
+
+async function seedCommunitiesDataset(prisma: PrismaService) {
+  const entries = await Promise.all(
+    communitySeedData.map(async (community) => {
+      const created = await prisma.community.create({
+        data: {
+          supertokensId: `seed-${community.email}`,
+          name: community.name,
+          description: community.description,
+          logoUrl: community.logoUrl,
+          phoneNumber: community.phone,
+          isActive: true
+        }
+      })
+
+      return [community.name, created.id] as const
+    })
+  )
+
+  return new Map(entries)
+}
+
+async function ensureEventModalities(prisma: PrismaService) {
+  const modalityMetadata: Record<string, { name: string, description: string }> = {
+    PRESENTIAL: { name: 'Presencial', description: 'Evento presencial com participação física' },
+    ONLINE: { name: 'Online', description: 'Evento virtual realizado remotamente' },
+    HYBRID: { name: 'Híbrido', description: 'Evento com opção presencial e online' }
+  }
+
+  await Promise.all(
+    Object.entries(modalityMetadata).map(async ([code, meta]) => {
+      return await prisma.eventModality.upsert({
+        where: { code },
+        update: {
+          name: meta.name,
+          description: meta.description,
+          isActive: true
+        },
+        create: {
+          code,
+          name: meta.name,
+          description: meta.description,
+          isActive: true
+        }
+      })
+    })
+  )
+}
+
+async function seedEventsDataset(
+  prisma: PrismaService,
+  communityMap: Map<string, number>,
+  addressMap: Map<string, number>
+) {
+  await Promise.all(
+    eventSeedData.map(async (event) => {
+      const communityId = communityMap.get(event.community)
+
+      if (!communityId) {
+        throw new Error(`Seeded community ${event.community} not found during event seeding`)
+      }
+
+      const modality = await prisma.eventModality.findUnique({ where: { code: event.modality } })
+
+      if (!modality) {
+        throw new Error(`Event modality ${event.modality} not found during event seeding`)
+      }
+
+      let addressId: number | undefined
+      if ('address' in event && event.address) {
+        const key = buildAddressKey(event.address)
+        addressId = addressMap.get(key) ?? undefined
+      }
+
+      await prisma.event.create({
+        data: {
+          communityId,
+          modalityId: modality.id,
+          addressId: addressId ?? null,
+          title: event.title,
+          description: event.description,
+          coverUrl: event.coverUrl,
+          link: event.link,
+          startDateTime: event.startDateTime,
+          endDateTime: event.endDateTime,
+          isActive: true
+        }
+      })
+    })
+  )
+}

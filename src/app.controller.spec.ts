@@ -5,13 +5,14 @@ import { AppService } from '@/app.service'
 
 describe('AppController', () => {
   let appController: AppController
+  let moduleRef: TestingModule
 
   beforeEach(async () => {
     const mockPrismaService = {
       $connect: jest.fn().mockResolvedValue(undefined)
     }
 
-    const app: TestingModule = await Test.createTestingModule({
+    moduleRef = await Test.createTestingModule({
       controllers: [AppController],
       providers: [
         AppService,
@@ -22,7 +23,11 @@ describe('AppController', () => {
       ]
     }).compile()
 
-    appController = app.get<AppController>(AppController)
+    appController = moduleRef.get<AppController>(AppController)
+  })
+
+  afterEach(async () => {
+    await moduleRef.close()
   })
 
   describe('root', () => {

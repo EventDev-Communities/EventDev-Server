@@ -1,11 +1,11 @@
 import { EventDto } from '@module/event/dto/event.dto'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class EventRepository {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prismaService: PrismaService) {}
 
   async create(data: EventDto, idCommunity: number) {
     const modality = await this.prismaService.eventModality.findUnique({

@@ -1,7 +1,7 @@
+import { PrismaService } from '@db/prisma.service'
 import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
 import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
 import { Inject, Injectable } from '@nestjs/common'
-import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class CommunityRepository {

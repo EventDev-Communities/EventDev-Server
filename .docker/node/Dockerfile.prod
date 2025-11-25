@@ -16,6 +16,7 @@ RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
 
 COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY prisma ./prisma/
 RUN chown -R nestjs:nodejs /app
 USER nestjs
 
@@ -28,10 +29,11 @@ RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
 
 COPY package*.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY prisma ./prisma/
 RUN chown -R nestjs:nodejs /app
 USER nestjs
 
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 
 FROM base AS builder
@@ -40,9 +42,8 @@ RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
 
 COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY . .
+COPY --chown=nestjs:nodejs . .
 
-RUN chown -R nestjs:nodejs /app
 
 USER nestjs
 RUN pnpm exec prisma generate
@@ -57,7 +58,8 @@ RUN corepack prepare pnpm@latest --activate
 COPY --from=prod-deps --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nestjs:nodejs /app/.scripts ./.scripts
+COPY --from=builder --chown=nestjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=nestjs:nodejs /app/tsconfig.json ./tsconfig.json
 COPY --chown=nestjs:nodejs package*.json ./
 
 USER nestjs
@@ -68,11 +70,11 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 
 CMD ["sh", "-c", "\
   echo 'Generating Prisma client...' && \
-  pnpm exec prisma generate && \
+  pnpm exec prisma generate --generator client && \
   echo 'Running database migration...' && \
   pnpm exec prisma migrate deploy && \
   echo 'Running database seed...' && \
   pnpm seed-prod && \
   echo 'Migration completed. Starting application...' && \
-  exec node dist/src/main.js \
+  exec pnpm start \
   "]

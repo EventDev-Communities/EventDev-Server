@@ -1,3 +1,4 @@
+import { env } from '@configs/env'
 import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common'
 import pino from 'pino'
 
@@ -8,8 +9,8 @@ export class LoggerService implements NestLoggerService {
 
   constructor() {
     this.logger = pino({
-      level: process.env.LOG_LEVEL || 'info',
-      transport: process.env.NODE_ENV === 'production'
+      level: env().LOG_LEVEL,
+      transport: env().NODE_ENV === 'production'
         ? undefined
         : {
             target: 'pino-pretty',

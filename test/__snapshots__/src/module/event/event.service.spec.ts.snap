@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`EventService getAll should return paginated events 1`] = `
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Event 1",
+    },
+    {
+      "id": 2,
+      "title": "Event 2",
+    },
+  ],
+  "links": {
+    "first": "/events?take=10&skip=0",
+    "last": "/events?take=10&skip=0",
+    "next": undefined,
+    "prev": undefined,
+    "self": "/events?take=10&skip=0",
+  },
+  "meta": {
+    "currentPage": 1,
+    "hasNext": false,
+    "hasPrev": false,
+    "skip": 0,
+    "take": 10,
+    "total": 2,
+    "totalPages": 1,
+  },
+}
+`;
+
+exports[`EventService getAll should return paginated events with filters 1`] = `
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Event 1",
+    },
+  ],
+  "links": {
+    "first": "/events?take=10&skip=0&communityId=1&modality=ONLINE&isActive=true",
+    "last": "/events?take=10&skip=0&communityId=1&modality=ONLINE&isActive=true",
+    "next": undefined,
+    "prev": undefined,
+    "self": "/events?take=10&skip=0&communityId=1&modality=ONLINE&isActive=true",
+  },
+  "meta": {
+    "currentPage": 1,
+    "hasNext": false,
+    "hasPrev": false,
+    "skip": 0,
+    "take": 10,
+    "total": 1,
+    "totalPages": 1,
+  },
+}
+`;

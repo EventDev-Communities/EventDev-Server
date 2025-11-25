@@ -3,7 +3,7 @@
   "rootDir": "..",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
-  "setupFiles": ["<rootDir>/test/setup-e2e.ts"],
+  "setupFiles": ["<rootDir>/test/infrastructure/setup-e2e.ts"],
   "testTimeout": 15000,
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
@@ -17,8 +17,9 @@
     "^@helper/(.*)$": "<rootDir>/src/helper/$1",
     "^@infrastructure/(.*)$": "<rootDir>/src/infrastructure/$1",
     "^@interface/(.*)$": "<rootDir>/src/interface/$1",
-    "^@prisma/(?!client)(.*)$": "<rootDir>/src/prisma/$1",
+    "^@db/(.*)$": "<rootDir>/src/prisma/$1",
     "^@seed-data/(.*)$": "<rootDir>/prisma/seed/data/$1"
   },
+  "snapshotResolver": "<rootDir>/test/infrastructure/snapshot-resolver.ts",
   "maxWorkers": 3
 }

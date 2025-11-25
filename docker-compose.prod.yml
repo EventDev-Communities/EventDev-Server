@@ -62,11 +62,12 @@ services:
       - "${NODE_PORT}"
     environment:
       - VIRTUAL_HOST=api.eventdev.org
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=redis://redis-cache:${REDIS_PORT}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:${DATABASE_PORT}/${POSTGRES_DB}?schema=public
+      - REDIS_HOST=redis-cache
+      - REDIS_PORT=${REDIS_PORT}
       - NODE_PORT=${NODE_PORT}
       - NODE_ENV=production
-      - SUPERTOKENS_CONNECTION_URI=${SUPERTOKENS_CONNECTION_URI}
+      - SUPERTOKENS_CONNECTION_URI=http://supertokens-auth:${SUPERTOKENS_PORT}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NODE_PORT}/health"]
       interval: 15s

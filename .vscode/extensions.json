@@ -1,0 +1,18 @@
+{
+    "recommendations": [
+        "nhoizey.gremlins",
+        "wix.vscode-import-cost",
+        "prisma.prisma",
+        "medo64.render-crlf",
+        "shardulm94.trailing-spaces",
+        "davidanson.vscode-markdownlint",
+        "editorconfig.editorconfig",
+        "usernamehw.errorlens",
+        "dbaeumer.vscode-eslint",
+        "zh9528.file-size",
+        "yzhang.markdown-all-in-one",
+        "yinfei.luahelper",
+        "sumneko.lua",
+        "2guys1account.quackrack-cursor"
+    ]
+}

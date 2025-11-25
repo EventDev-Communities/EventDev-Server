@@ -61,13 +61,14 @@ services:
       - "${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}"
       - "9229:9229" # Node.js Inspector
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=redis://redis-cache:${REDIS_PORT}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:${DATABASE_PORT}/${POSTGRES_DB}?schema=public
+      - REDIS_HOST=redis-cache
+      - REDIS_PORT=${REDIS_PORT}
       - NODE_PORT=${NODE_PORT}
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
-      - SUPERTOKENS_CONNECTION_URI=${SUPERTOKENS_CONNECTION_URI}
+      - SUPERTOKENS_CONNECTION_URI=http://supertokens-auth:${SUPERTOKENS_PORT}
     volumes:
       - ./:/app/
       - /app/node_modules

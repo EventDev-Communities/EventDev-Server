@@ -1,5 +1,5 @@
+import { PrismaService } from '@db/prisma.service'
 import { INestApplication } from '@nestjs/common'
-import { PrismaService } from '@prisma/prisma.service'
 
 /**
  * Test helper for creating authenticated users without relying on session cookies

@@ -35,21 +35,13 @@
         "operationId": "CommunityController_getAll",
         "parameters": [
           {
-            "name": "search",
+            "name": "take",
             "required": false,
             "in": "query",
-            "description": "Buscar por nome ou descrição",
+            "description": "Quantidade de registros",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "isActive",
-            "required": false,
-            "in": "query",
-            "description": "Filtrar por status ativo/inativo",
-            "schema": {
-              "type": "boolean"
+              "example": 20,
+              "type": "number"
             }
           },
           {
@@ -63,13 +55,21 @@
             }
           },
           {
-            "name": "take",
+            "name": "isActive",
             "required": false,
             "in": "query",
-            "description": "Quantidade de registros",
+            "description": "Filtrar por status ativo/inativo",
             "schema": {
-              "example": 20,
-              "type": "number"
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Buscar por nome ou descrição",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -87,6 +87,16 @@
         "description": "Cria uma nova comunidade para o usuário autenticado",
         "operationId": "CommunityController_create",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommunityDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Comunidade criada com sucesso"
@@ -136,7 +146,16 @@
     "/api/v1/communities/{id}": {
       "get": {
         "operationId": "CommunityController_getByID",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Dados da comunidade"
@@ -153,7 +172,26 @@
       "patch": {
         "description": "Atualiza os dados da comunidade. Apenas o dono pode atualizar",
         "operationId": "CommunityController_update",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommunityDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Comunidade atualizada com sucesso"
@@ -178,7 +216,16 @@
       "delete": {
         "description": "Remove uma comunidade. Apenas o dono pode deletar",
         "operationId": "CommunityController_delete",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Comunidade deletada com sucesso"
@@ -206,6 +253,16 @@
         "description": "Realiza login com email e senha. Retorna dados do usuário e seus papéis",
         "operationId": "AuthController_signIn",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Login realizado com sucesso"
@@ -241,6 +298,61 @@
         ]
       }
     },
+    "/api/v1/auth/password/reset/token": {
+      "post": {
+        "description": "Envia um email com link de recuperação se o usuário existir",
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solicitação processada"
+          }
+        },
+        "summary": "Solicitar recuperação de senha",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/password/reset": {
+      "post": {
+        "description": "Altera a senha do usuário usando o token recebido por email",
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Senha alterada com sucesso"
+          },
+          "409": {
+            "description": "Token inválido ou expirado"
+          }
+        },
+        "summary": "Redefinir senha",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
     "/api/v1/auth/me": {
       "get": {
         "description": "Retorna dados completos do usuário autenticado incluindo papéis e permissões",
@@ -270,6 +382,16 @@
         "description": "Permite que administradores criem novos usuários com papéis específicos",
         "operationId": "AuthController_createUser",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSignUpDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Usuário criado com sucesso"
@@ -294,6 +416,16 @@
         "description": "Permite que administradores criem comunidades",
         "operationId": "AuthController_createCommunity",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommunitySignUpDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Comunidade criada com sucesso"
@@ -318,6 +450,16 @@
         "description": "Rota de inicialização para criar o primeiro admin. Bloqueada após primeiro uso",
         "operationId": "AuthController_bootstrapAdmin",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSignUpDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Administrador criado com sucesso"
@@ -337,6 +479,16 @@
         "description": "Permite que comunidades se registrem diretamente na plataforma",
         "operationId": "AuthController_signUpCommunity",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommunitySignUpDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Comunidade cadastrada com sucesso"
@@ -359,6 +511,16 @@
         "description": "Cria um novo evento para a comunidade do usuário autenticado",
         "operationId": "EventController_create",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Evento criado com sucesso"
@@ -382,12 +544,32 @@
         "operationId": "EventController_getAll",
         "parameters": [
           {
-            "name": "isActive",
+            "name": "take",
             "required": false,
             "in": "query",
-            "description": "Filtrar por status ativo/inativo",
+            "description": "Quantidade de registros",
             "schema": {
-              "type": "boolean"
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Quantidade de registros para pular",
+            "schema": {
+              "example": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "communityId",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por ID da comunidade",
+            "schema": {
+              "type": "number"
             }
           },
           {
@@ -405,32 +587,12 @@
             }
           },
           {
-            "name": "communityId",
+            "name": "isActive",
             "required": false,
             "in": "query",
-            "description": "Filtrar por ID da comunidade",
+            "description": "Filtrar por status ativo/inativo",
             "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "skip",
-            "required": false,
-            "in": "query",
-            "description": "Quantidade de registros para pular",
-            "schema": {
-              "example": 0,
-              "type": "number"
-            }
-          },
-          {
-            "name": "take",
-            "required": false,
-            "in": "query",
-            "description": "Quantidade de registros",
-            "schema": {
-              "example": 25,
-              "type": "number"
+              "type": "boolean"
             }
           }
         ],
@@ -448,7 +610,16 @@
     "/api/v1/events/{id}": {
       "get": {
         "operationId": "EventController_getByID",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Dados do evento"
@@ -467,6 +638,14 @@
         "operationId": "EventController_update",
         "parameters": [
           {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "idAddress",
             "required": false,
             "in": "query",
@@ -476,6 +655,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Evento atualizado com sucesso"
@@ -500,7 +689,16 @@
       "delete": {
         "description": "Remove um evento. Apenas o dono da comunidade pode deletar seus eventos",
         "operationId": "EventController_delete",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Evento deletado com sucesso"
@@ -540,6 +738,16 @@
       "post": {
         "operationId": "AddressController_create",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Endereço criado com sucesso"
@@ -561,6 +769,16 @@
         "description": "Cria um novo tipo de ticket para eventos da comunidade",
         "operationId": "TicketController_create",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Ticket criado com sucesso"
@@ -584,20 +802,12 @@
         "operationId": "TicketController_getAll",
         "parameters": [
           {
-            "name": "isActive",
+            "name": "take",
             "required": false,
             "in": "query",
-            "description": "Filtrar por status ativo/inativo",
+            "description": "Quantidade de registros",
             "schema": {
-              "type": "boolean"
-            }
-          },
-          {
-            "name": "eventId",
-            "required": false,
-            "in": "query",
-            "description": "Filtrar por ID do evento",
-            "schema": {
+              "example": 25,
               "type": "number"
             }
           },
@@ -612,13 +822,21 @@
             }
           },
           {
-            "name": "take",
+            "name": "eventId",
             "required": false,
             "in": "query",
-            "description": "Quantidade de registros",
+            "description": "Filtrar por ID do evento",
             "schema": {
-              "example": 25,
               "type": "number"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por status ativo/inativo",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -636,7 +854,16 @@
     "/api/v1/tickets/{id}": {
       "get": {
         "operationId": "TicketController_getByID",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Dados do ticket"
@@ -655,6 +882,14 @@
         "operationId": "TicketController_update",
         "parameters": [
           {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "idAddress",
             "required": false,
             "in": "query",
@@ -664,6 +899,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Ticket atualizado com sucesso"
@@ -688,7 +933,16 @@
       "delete": {
         "description": "Remove um tipo de ticket. Apenas o dono da comunidade pode deletar",
         "operationId": "TicketController_delete",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Ticket deletado com sucesso"
@@ -765,6 +1019,249 @@
         "in": "header"
       }
     },
-    "schemas": {}
+    "schemas": {
+      "CreateCommunityDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tech Community Brasil",
+            "description": "Nome da comunidade"
+          },
+          "description": {
+            "type": "string",
+            "example": "Comunidade focada em tecnologia"
+          },
+          "logoUrl": {
+            "type": "string",
+            "example": "https://example.com/logo.png"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "11987654321"
+          },
+          "instagramLink": {
+            "type": "string",
+            "example": "https://instagram.com/techcommunity"
+          },
+          "linkedinLink": {
+            "type": "string",
+            "example": "https://linkedin.com/company/techcommunity"
+          },
+          "websiteLink": {
+            "type": "string",
+            "example": "https://techcommunity.dev"
+          },
+          "githubLink": {
+            "type": "string",
+            "example": "https://github.com/techcommunity"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCommunityDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tech Community Brasil",
+            "description": "Nome da comunidade"
+          },
+          "description": {
+            "type": "string",
+            "example": "Comunidade focada em tecnologia"
+          },
+          "logoUrl": {
+            "type": "string",
+            "example": "https://example.com/logo.png"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "11987654321"
+          },
+          "instagramLink": {
+            "type": "string",
+            "example": "https://instagram.com/techcommunity"
+          },
+          "linkedinLink": {
+            "type": "string",
+            "example": "https://linkedin.com/company/techcommunity"
+          },
+          "websiteLink": {
+            "type": "string",
+            "example": "https://techcommunity.dev"
+          },
+          "githubLink": {
+            "type": "string",
+            "example": "https://github.com/techcommunity"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          }
+        }
+      },
+      "SignInDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "description": "Email do usuário"
+          },
+          "password": {
+            "type": "string",
+            "example": "Password@123",
+            "description": "Senha do usuário"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "description": "Email do usuário para recuperação de senha"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "token-xyz-123",
+            "description": "Token de redefinição de senha recebido por email"
+          },
+          "password": {
+            "type": "string",
+            "example": "NewPassword123!",
+            "description": "Nova senha do usuário"
+          }
+        },
+        "required": [
+          "token",
+          "password"
+        ]
+      },
+      "UserSignUpDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CommunitySignUpDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "community@example.com",
+            "description": "Email da comunidade"
+          },
+          "name": {
+            "type": "string",
+            "example": "Tech Community Brasil",
+            "description": "Nome da comunidade"
+          },
+          "description": {
+            "type": "string",
+            "example": "Comunidade focada em tecnologia"
+          },
+          "logoUrl": {
+            "type": "string",
+            "example": "https://example.com/logo.png"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "11987654321"
+          },
+          "instagramLink": {
+            "type": "string",
+            "example": "https://instagram.com/techcommunity"
+          },
+          "linkedinLink": {
+            "type": "string",
+            "example": "https://linkedin.com/company/techcommunity"
+          },
+          "websiteLink": {
+            "type": "string",
+            "example": "https://techcommunity.dev"
+          },
+          "githubLink": {
+            "type": "string",
+            "example": "https://github.com/techcommunity"
+          },
+          "role": {
+            "type": "string",
+            "example": "community",
+            "enum": [
+              "user",
+              "community"
+            ],
+            "description": "Tipo de conta"
+          }
+        },
+        "required": [
+          "email",
+          "name",
+          "role"
+        ]
+      },
+      "CreateEventDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateEventDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AddressDto": {
+        "type": "object",
+        "properties": {
+          "cep": {
+            "type": "string",
+            "example": "01310100",
+            "description": "CEP (8 dígitos)"
+          },
+          "state": {
+            "type": "string",
+            "example": "SP"
+          },
+          "city": {
+            "type": "string",
+            "example": "São Paulo"
+          },
+          "neighborhood": {
+            "type": "string",
+            "example": "Bela Vista"
+          },
+          "streetAddress": {
+            "type": "string",
+            "example": "Avenida Paulista"
+          },
+          "number": {
+            "type": "string",
+            "example": "1578"
+          }
+        },
+        "required": [
+          "cep"
+        ]
+      }
+    }
   }
 }

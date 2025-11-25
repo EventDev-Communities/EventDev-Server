@@ -1,13 +1,16 @@
+import { LoggerService } from '@common/logger/logger.service'
+import { PrismaService } from '@db/prisma.service'
 import { TicketDto } from '@module/ticket/dto/ticket.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
-import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class TicketRepository {
-  constructor(@Inject(PrismaService) private readonly prismaService: PrismaService) {
-    // eslint-disable-next-line no-console
-    console.log('[TicketRepository] constructed')
+  constructor(
+    private readonly prismaService: PrismaService,
+    @Inject(LoggerService) private readonly logger: LoggerService
+  ) {
+    this.logger.log('[TicketRepository] constructed')
   }
 
   async create(data: TicketDto, idCommunity: number) {

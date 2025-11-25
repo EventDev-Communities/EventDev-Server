@@ -1,9 +1,9 @@
 import { OWNERSHIP_KEY, OwnershipType } from '@common/decorators/ownership.decorator'
 import { UserRole } from '@common/enums/roles.enum'
 import { IAuthUser } from '@common/interfaces/auth-user.interface'
+import { PrismaService } from '@db/prisma.service'
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { PrismaService } from '@prisma/prisma.service'
 
 @Injectable()
 export class OwnershipGuard implements CanActivate {

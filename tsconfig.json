@@ -19,7 +19,7 @@
       "@configs/*": ["src/configs/*"],
       "@decorators/*": ["src/decorators/*"],
       "@helper/*": ["src/helper/*"],
-      "@prisma/*": ["src/prisma/*"],
+      "@db/*": ["src/prisma/*"],
       "@interface/*": ["src/interface/*"],
       "@seed-data/*": ["prisma/seed/data/*"]
     },

@@ -1,4 +1,6 @@
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
+import { Pool } from 'pg'
 import supertokens from 'supertokens-node'
 import EmailPassword from 'supertokens-node/recipe/emailpassword'
 import Session from 'supertokens-node/recipe/session'
@@ -20,7 +22,10 @@ import { seedOrderStatus } from './lookups/seed-order-status'
 import { seedTicketStatus } from './lookups/seed-ticket-status'
 import { seedUserRole } from './lookups/seed-user-role'
 
-const prisma = new PrismaClient()
+const connectionString = process.env.DATABASE_URL
+const pool = new Pool({ connectionString })
+const adapter = new PrismaPg(pool)
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   logger.info('Starting database seeding...\n')
@@ -31,7 +36,7 @@ async function main() {
     supertokens.init({
       framework: 'express',
       supertokens: {
-        connectionURI: process.env.SUPERTOKENS_CONNECTION_URI || 'http://supertokens-auth:3567'
+        connectionURI: process.env.SUPERTOKENS_CONNECTION_URI || 'http://localhost:3567'
       },
       appInfo: {
         appName: 'eventdev-server',

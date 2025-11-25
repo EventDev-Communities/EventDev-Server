@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AddressService getAll should return all addresses 1`] = `
+[
+  {
+    "id": 1,
+    "streetAddress": "Street 1",
+  },
+  {
+    "id": 2,
+    "streetAddress": "Street 2",
+  },
+]
+`;

@@ -3,6 +3,7 @@
 /node_modules
 /build
 /.pnpm-store
+/coverage
 
 # Logs
 logs
@@ -42,6 +43,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.test
 
 # Certificados SSL (gerados automaticamente)
 *.crt
@@ -64,3 +66,6 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
+
+# NestJS Swagger Metadata
+src/metadata.ts

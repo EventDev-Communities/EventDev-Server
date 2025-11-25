@@ -1,14 +1,14 @@
+import type { IAuthUser } from '@common/interfaces/auth-user.interface'
+import type { Request } from 'express'
 import { CurrentUser } from '@common/decorators/current-user.decorator'
 import { OwnershipType, RequireOwnership } from '@common/decorators/ownership.decorator'
 import { Roles } from '@common/decorators/roles.decorator'
 import { UserRole } from '@common/enums/roles.enum'
-import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { CommunityService } from '@module/community/community.service'
 import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
 import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
 import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Inject, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { Request } from 'express'
 import { PublicAccess, VerifySession } from 'supertokens-nestjs'
 
 @ApiTags('communities')

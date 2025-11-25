@@ -1,304 +1,100 @@
-# EventDev Server API
+# EventDev Server
 
-API RESTful backend para a plataforma EventDev construída com NestJS, Prisma, PostgreSQL, Redis e SuperTokens.
+## Visão Geral
 
-## Documentação da API
+O **EventDev Server** é a API backend para a plataforma EventDev, construída com **NestJS**.
 
-A documentação interativa completa está disponível via Swagger:
+## Stack Tecnológica
 
-- **Desenvolvimento**: <http://localhost:5122/api/docs>
-- **Produção**: <https://api.eventdev.org/api/docs>
+- **Framework**: NestJS
+- **Linguagem**: TypeScript
+- **Banco de Dados**: PostgreSQL (via Prisma ORM)
+- **Autenticação**: SuperTokens
+- **Compilação**: SWC (Speedy Web Compiler) para desenvolvimento rápido.
 
-## Setup Rápido
+## Scripts Principais
 
 ### Desenvolvimento
 
-```bash
-make setup-dev    # Criar .env
-make dev-up       # Iniciar containers
-make dev-logs     # Ver logs
-```
+- `pnpm start-dev`: Inicia o servidor em modo de desenvolvimento (com hot-reload e SWC).
+- `pnpm start-debug`: Inicia em modo debug.
 
-### Endpoints Principais
+### Testes
 
-#### Autenticação (`/auth`)
-
-- `POST /auth/signin` - Login de usuário
-- `POST /auth/signout` - Logout
-- `GET /auth/me` - Dados do usuário logado
-- `POST /auth/signup/community` - Cadastro público de comunidade
-- `POST /auth/bootstrap/admin` - Criar primeiro admin (uso único)
-- `POST /auth/admin/users` - \[ADMIN\] Criar usuário
-- `POST /auth/admin/communities` - \[ADMIN\] Criar comunidade
-
-#### Comunidades (`/communities`)
-
-- `GET /communities` - Listar comunidades (público)
-- `GET /communities/:id` - Buscar por ID (público)
-- `GET /communities/me` - Minha comunidade (requer autenticação)
-- `POST /communities` - Criar comunidade
-- `PUT /communities/:id` - Atualizar (apenas dono)
-- `DELETE /communities/:id` - Deletar (apenas dono)
-
-#### Eventos (`/events`)
-
-- `GET /events` - Listar eventos (público)
-- `GET /events/:id` - Buscar por ID (público)
-- `POST /events` - Criar evento (requer papel COMMUNITY)
-- `PATCH /events/:id` - Atualizar (apenas dono da comunidade)
-- `DELETE /events/:id` - Deletar (apenas dono da comunidade)
-
-#### Tickets (`/tickets`)
-
-- `GET /tickets` - Listar tickets (público)
-- `GET /tickets/:id` - Buscar por ID (público)
-- `POST /tickets` - Criar ticket (requer papel COMMUNITY)
-- `PATCH /tickets/:id` - Atualizar (apenas dono)
-- `DELETE /tickets/:id` - Deletar (apenas dono)
-
-## Sistema de Autorização
-
-### Papéis (Roles)
-
-- `PLATFORM_ADMIN` - Acesso total ao sistema
-- `ADMIN` - Gerenciamento geral
-- `COMMUNITY` - Gerenciar comunidade e eventos
-- `USER` - Usuário final
-
-### Permissões Granulares
-
-35 permissões específicas incluindo:
-
-- `COMMUNITY_CREATE`, `COMMUNITY_UPDATE`, `COMMUNITY_DELETE`
-- `EVENT_CREATE`, `EVENT_MANAGE_OWN`, `EVENT_MANAGE_ALL`
-- `TICKET_CREATE`, `TICKET_MANAGE_OWN`
-- `ADMIN_ALL` - Wildcard para administradores
-
-### Validações de Propriedade
-
-Guards automáticos validam:
-
-- Comunidades só podem ser editadas por seus donos
-- Eventos pertencem à comunidade que os criou
-- Tickets são gerenciados pela comunidade do evento
-
-## Arquitetura
-
-### Padrões Implementados
-
-- **Adapter Pattern** - SuperTokens desacoplado via `IAuthAdapter`
-- **Guards Chain** - `AuthGuard → RolesGuard → PermissionsGuard → OwnershipGuard`
-- **Repository Pattern** - Camada de abstração do Prisma
-- **DTO Validation** - class-validator em todas as entradas
-- **RESTful Design** - Recursos nomeados no plural, verbos HTTP corretos
-
-****
-
-### Testes Locais (Simula Produção)
-
-```bash
-make test-run     # Teste completo da arquitetura
-make test-up      # Ambiente de teste local
-make test-api     # Testar endpoints da API
-make test-down    # Parar ambiente de teste
-```
-
-**URLs de Teste:**
-
-- HTTP: <http://localhost:8080>
-- HTTPS: <https://localhost:8443> (certificado auto-assinado)
-- API Direta: <http://localhost:5123>
-
-### Produção
-
-#### Antes de Tudo: Configurar DNS
-
-> &nbsp;
-> Adicionar Registro (Painel de Domínios)
->
-> - Type: A
-> - Hostname: api.eventdev.org
-> - Value: IP_DO_SEU_SERVIDOR
-> &nbsp;
-
-```bash
-make check-dns    # 1. Verificar DNS
-make setup-prod   # 2. Criar .env (editar senhas!)
-make prod-up      # 3. Deploy completo
-```
-
-## Comandos
-
-| Comando                | Descrição                     |
-|------------------------|-------------------------------|
-| `make dev-up`          | Desenvolvimento               |
-| `make test-run`        | Teste completo da arquitetura |
-| `make test-up`         | Ambiente de teste local       |
-| `make prod-up`         | Produção                      |
-| `make health`          | Testar API HTTP               |
-| `make health-https`    | Testar API HTTPS              |
-| `make create-networks` | Criar redes Docker            |
-| `make status`          | Status dos containers         |
-| `make clean`           | Limpar tudo                   |
+- `pnpm test`: Executa testes unitários.
+- `pnpm test-e2e`: Executa testes de integração (E2E).
+- `pnpm test-all`: Executa **todos** os testes (unitários e E2E).
+- `pnpm verify-all`: Executa lint, todos os testes e build (verificação completa).
+- `pnpm test-cov`: Executa testes com relatório de cobertura.
 
 ### Banco de Dados
 
-| Comando           | Descrição              |
-|-------------------|------------------------|
-| `make db-migrate` | Executar migrações     |
-| `make db-seed`    | Popular dados iniciais |
-| `make db-studio`  | Interface visual       |
-| `make db-reset`   | Reset completo (dev)   |
+- `pnpm migrate-prod`: Aplica migrações em produção.
+- `pnpm seed-prod`: Popula o banco de dados com dados iniciais.
 
-### Documentação
+## Cobertura de Testes
 
-| Comando               | Descrição                                      |
-|-----------------------|------------------------------------------------|
-| `make docs-generate`  | Gerar schemas DBML e SQL (docs/schema.*)       |
-| `make start-dev`      | Inicia servidor local e gera openapi.json      |
+O projeto mantém uma política estrita de qualidade de código.
+**Meta de Cobertura**: > 90%
 
-### Logs
-
-| Comando                | Descrição            |
-|------------------------|----------------------|
-| `make dev-logs`        | Logs desenvolvimento |
-| `make prod-logs`       | Logs produção        |
-| `make logs-all`        | Todos os logs        |
-
-## Ambientes
-
-### Ambiente Dev
-
-- Dockerfile.dev simplificado (sem build steps)
-- Hot reload e debug port 9229
-- Health checks similares ao prod
-- Volume mapping para desenvolvimento
-
-### Ambiente Prod
-
-- Health checks robustos
-- Limites de recursos definidos
-
-## URLs de Acesso
-
-### Dev
-
-- API: <http://localhost:5122>
-- Health: <http://localhost:5122/health>
-- Debug: `localhost:9229`
-
-### Prod
-
-- API: <https://api.eventdev.org>
-- Health: <https://api.eventdev.org/health>
-
-## Configuração DNS
-
-Configure no provedor DNS:
-
-```text
-Tipo: A
-Nome: api.eventdev.org
-Valor: 192.168.1.100
-```
-
-Verificar: `make check-dns`
-
-## Troubleshooting
-
-### DNS não resolve
+Para verificar a cobertura atual:
 
 ```bash
-make check-dns
-nslookup api.eventdev.org
+pnpm test-cov
 ```
 
-### Containers não iniciam
+## Documentação da API (Swagger)
 
-```bash
-make status
-make prod-logs
-make clean        # Reset completo
-```
+A documentação interativa (Swagger UI) é gerada automaticamente.
 
-## Configuração
+- **URL (Dev)**: `http://localhost:5122/api/docs` (ou a porta configurada).
+- A documentação é gerada utilizando o plugin CLI do NestJS, garantindo que DTOs e tipos sejam refletidos corretamente sem necessidade de arquivos de metadados manuais.
 
-### Dev (.env)
+## Casos de Uso e Comandos
 
-```bash
-NODE_ENV=development
-NODE_PORT=5122
-DATABASE_URL="postgresql://user:pass@localhost:5432/eventdev"
-REDIS_URL="redis://localhost:6379"
-```
+Abaixo estão os comandos essenciais organizados por ferramenta e caso de uso.
 
-### Prod (.env)
+### Makefile (Gerenciamento de Ambiente)
 
-```bash
-NODE_ENV=production
-NODE_PORT=5122
-DATABASE_URL="postgresql://user:STRONG_PASS@postgres-db:5432/eventdev"
-REDIS_URL="redis://redis-cache:6379"
-ALLOWED_ORIGINS="https://eventdev.org,https://api.eventdev.org"
-```
+O `Makefile` é a interface principal para gerenciar a infraestrutura Docker.
 
-## Estrutura
+| Comando | Caso de Uso | Descrição |
+| :--- | :--- | :--- |
+| `make dev-up` | **Início do Dia** | Sobe todo o ambiente de desenvolvimento (API + Banco + Redis + Auth). |
+| `make dev-down` | **Fim do Dia** | Para e remove todos os containers e volumes de desenvolvimento. |
+| `make dev-logs` | **Monitoramento** | Exibe os logs da API em tempo real. |
+| `make dev-shell` | **Debug Avançado** | Abre um terminal `sh` dentro do container da API. |
+| `make test-deps-up` | **Testes Locais** | Sobe apenas as dependências (DB/Redis) para rodar testes locais (`pnpm test`). |
+| `make verify-all` | **CI/CD** | Executa a verificação completa (lint, testes, build) dentro do container. |
+| `make db-studio` | **Gestão de Dados** | Abre o Prisma Studio para visualizar/editar dados do banco. |
 
-```sh
-EventDev-Server/
-├── docker-compose.dev.yml    # Desenvolvimento
-├── docker-compose.prod.yml   # Produção
-├── Makefile                  # Comandos
-├── .docker/
-│   └── node/
-│       ├── Dockerfile.dev    # Build desenvolvimento
-│       └── Dockerfile.prod   # Build produção
-├── src/                      # Código fonte
-└── prisma/                   # Schema e migrações
-```
+### PNPM (Ciclo de Desenvolvimento)
 
-## Tecnologias
+Comandos para o dia a dia de codificação.
 
-- **NestJS**: Framework Node.js
-- **Prisma**: ORM TypeScript
-- **PostgreSQL**: Banco relacional
-- **Redis**: Cache e sessões
-- **SuperTokens**: Autenticação
-- **Docker**: Containerização
+| Comando | Caso de Uso | Descrição |
+| :--- | :--- | :--- |
+| `pnpm start-dev` | **Codificação** | Roda a API localmente com hot-reload (SWC). |
+| `pnpm lint` | **Qualidade** | Verifica e corrige problemas de estilo de código. |
+| `pnpm test-all` | **Validação** | Roda testes unitários e E2E em sequência. |
+| `pnpm verify-all` | **CI/CD** | Roda lint, testes e build para garantir integridade total. |
+| `pnpm build` | **Deploy** | Compila o projeto para a pasta `dist` (produção). |
 
-## Deploy
+### Docker (Infraestrutura)
 
-```bash
-git pull
-make prod-down
-make prod-up
-make health-https
-```
+Comandos diretos do Docker Compose (geralmente abstraídos pelo Makefile).
 
-## Monitoramento
+| Comando | Caso de Uso | Descrição |
+| :--- | :--- | :--- |
+| `docker compose -f docker-compose.dev.yml build` | **Atualização** | Reconstrói as imagens de desenvolvimento (útil após mudar `package.json`). |
+| `docker compose -f docker-compose.prod.yml build` | **Simulação Prod** | Constrói a imagem otimizada de produção. |
 
-### Health Checks
+### Nest CLI (Scaffolding)
 
-- API, Database, Cache, Auth
-- Checks a cada 30s
-- Restart automático
+Comandos para gerar código boilerplate.
 
-### Log Files
-
-```bash
-make dev-logs | grep ERROR
-make prod-logs | grep -i health
-```
-
-## Diferenças Dev vs Prod
-
-| Aspecto   | Dev        | Prod             |
-|-----------|------------|------------------|
-| Build     | Hot reload | Otimizado        |
-| Debug     | Port 9229  | Disabled         |
-| Logs      | Verbosos   | Estruturados     |
-| Resources | Ilimitados | Limitados        |
-
-## Integração
-
-Este backend funciona em conjunto com o [EventDev-Front](https://github.com/EventDev-Communities/EventDev-Front), utilizando redes Docker compartilhadas para comunicação entre os serviços.
+| Comando | Caso de Uso | Descrição |
+| :--- | :--- | :--- |
+| `nest g resource module/nome` | **Nova Feature** | Cria um novo módulo completo (Controller, Service, DTOs, etc). |
+| `nest g module module/nome` | **Estrutura** | Cria apenas o módulo. |
+| `nest g service module/nome` | **Lógica** | Cria apenas o service. |

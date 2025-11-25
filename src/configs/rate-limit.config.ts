@@ -10,6 +10,8 @@
  * - Domain: Área da aplicação (global, auth, etc)
  */
 
+import { env } from '@configs/env'
+
 export interface RateLimitPolicy {
   /** Máximo de requisições permitidas na janela de tempo */
   limit: number
@@ -46,31 +48,31 @@ export interface RateLimitPolicies {
  */
 export const RateLimitConfig: RateLimitPolicies = {
   global: {
-    limit: Number(process.env.RATE_LIMIT_GLOBAL) || 100,
+    limit: env().RATE_LIMIT_GLOBAL,
     windowMs: 60000, // 1 minuto
     banSeconds: 60, // 1 minuto de ban
     failClosed: false // Em caso de erro, permite acesso
   },
   public: {
-    limit: Number(process.env.RATE_LIMIT_PUBLIC) || 60,
+    limit: env().RATE_LIMIT_PUBLIC,
     windowMs: 60000,
     banSeconds: 30,
     failClosed: false
   },
   auth: {
-    limit: Number(process.env.RATE_LIMIT_AUTH) || 5,
+    limit: env().RATE_LIMIT_AUTH,
     windowMs: 60000,
     banSeconds: 300, // 5 minutos de ban (prevenir brute force)
     failClosed: true // Bloqueia se Redis falhar (segurança)
   },
   users: {
-    limit: Number(process.env.RATE_LIMIT_USERS) || 120,
+    limit: env().RATE_LIMIT_USERS,
     windowMs: 60000,
     banSeconds: 60,
     failClosed: false
   },
   admin: {
-    limit: Number(process.env.RATE_LIMIT_ADMIN) || 200,
+    limit: env().RATE_LIMIT_ADMIN,
     windowMs: 60000,
     banSeconds: 120,
     failClosed: true

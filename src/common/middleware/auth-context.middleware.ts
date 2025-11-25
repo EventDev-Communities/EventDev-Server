@@ -1,6 +1,6 @@
+import type { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
 import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { LoggerService } from '@common/logger/logger.service'
-import { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
 import { Inject, Injectable, NestMiddleware } from '@nestjs/common'
 import { NextFunction, Request, Response } from 'express'
 

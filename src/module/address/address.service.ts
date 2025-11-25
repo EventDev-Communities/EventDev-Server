@@ -1,3 +1,4 @@
+import { LoggerService } from '@common/logger/logger.service'
 import { AddressRepository } from '@module/address/address.repository'
 import { AddressDto } from '@module/address/dto/address.dto'
 import { PartialAddressDto } from '@module/address/dto/partialAddress.dto'
@@ -5,7 +6,11 @@ import { Inject, Injectable } from '@nestjs/common'
 
 @Injectable()
 export class AddressService {
-  constructor(@Inject(AddressRepository) private readonly addressRepository: AddressRepository) {}
+  constructor(
+    @Inject(AddressRepository) private readonly addressRepository: AddressRepository,
+    @Inject(LoggerService) private readonly logger: LoggerService) {
+    this.logger.log('[AddressService] constructed')
+  }
 
   async create(address: AddressDto) {
     return await this.addressRepository.create(address)

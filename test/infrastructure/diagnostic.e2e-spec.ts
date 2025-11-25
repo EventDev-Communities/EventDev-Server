@@ -1,6 +1,6 @@
+import { AppModule } from '@module/app/app.module'
 import { INestApplication } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { AppModule } from '@/app.module'
 
 describe('Diagnostic E2E Test', () => {
   let app: INestApplication

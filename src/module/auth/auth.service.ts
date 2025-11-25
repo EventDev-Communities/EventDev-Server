@@ -1,30 +1,35 @@
+import type { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
 import { UserRole } from '@common/enums/roles.enum'
-import { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
+import { LoggerService } from '@common/logger/logger.service'
+import { env } from '@configs/env'
+import { PrismaService } from '@db/prisma.service'
+import { EmailService } from '@infrastructure/email/email.service'
+import { ForgotPasswordDto } from '@module/auth/dto/forgot-password.dto'
+import { ResetPasswordDto } from '@module/auth/dto/reset-password.dto'
 import { SignInDto } from '@module/auth/dto/signin.dto'
 import { CommunitySignUpDto, UserSignUpDto } from '@module/auth/dto/signup.dto'
 import { CommunityService } from '@module/community/community.service'
 import { ConflictException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common'
-import { PrismaService } from '@prisma/prisma.service'
 import { Request, Response } from 'express'
-import { convertToRecipeUserId } from 'supertokens-node'
-import { signIn as superTokensSignIn, signUp as superTokensSignUp } from 'supertokens-node/recipe/emailpassword'
+import { convertToRecipeUserId, listUsersByAccountInfo } from 'supertokens-node'
+import EmailPassword from 'supertokens-node/recipe/emailpassword'
 import SessionRecipe, { SessionContainer } from 'supertokens-node/recipe/session'
 
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(CommunityService)
-    private readonly communityService: CommunityService,
-    @Inject(PrismaService)
-    private readonly prismaService: PrismaService,
-    @Inject('IAuthAdapter') private readonly authAdapter: IAuthAdapter
+    @Inject(CommunityService) private readonly communityService: CommunityService,
+    @Inject(PrismaService) private readonly prismaService: PrismaService,
+    @Inject('IAuthAdapter') private readonly authAdapter: IAuthAdapter,
+    @Inject(EmailService) private readonly emailService: EmailService,
+    @Inject(LoggerService) private readonly logger: LoggerService
   ) {}
 
   async signInWithSession(signInDto: SignInDto, req: Request) {
     try {
       const res = (req as Request & { res: Response }).res
 
-      const result = await superTokensSignIn('public', signInDto.email, signInDto.password, undefined, {
+      const result = await EmailPassword.signIn('public', signInDto.email, signInDto.password, undefined, {
         req,
         res
       })
@@ -61,6 +66,63 @@ export class AuthService {
       return { status: 'OK', message: 'Logout realizado com sucesso.' }
     } catch {
       throw new InternalServerErrorException('Erro ao encerrar a sessão.')
+    }
+  }
+
+  async sendPasswordResetToken(data: ForgotPasswordDto) {
+    try {
+      const users = await listUsersByAccountInfo('public', { email: data.email })
+
+      if (users.length === 0) {
+        // Por segurança, não informamos se o email existe ou não
+        return { status: 'OK', message: 'Se o email existir, um link de recuperação será enviado.' }
+      }
+
+      const user = users[0]
+      const tokenResult = await EmailPassword.createResetPasswordToken('public', user.id, data.email)
+
+      if (tokenResult.status === 'OK') {
+        const websiteDomain = env().WEBSITE_DOMAIN
+
+        const resetLink = `${websiteDomain}/auth/reset-password?token=${encodeURIComponent(tokenResult.token)}`
+
+        // Enviar email real
+        await this.emailService.sendPasswordResetEmail(data.email, resetLink)
+
+        // Log apenas em desenvolvimento
+        if (env().NODE_ENV === 'development') {
+          this.logger.log(`[Password Reset] Link gerado para [REDACTED]`)
+        }
+
+        return { status: 'OK', message: 'Se o email existir, um link de recuperação será enviado.' }
+      }
+
+      throw new InternalServerErrorException('Erro ao gerar token de recuperação.')
+    } catch (error) {
+      this.logger.error('Erro no fluxo de recuperação de senha', error instanceof Error ? error.stack : String(error))
+      throw new InternalServerErrorException('Erro ao processar solicitação.')
+    }
+  }
+
+  async resetPassword(data: ResetPasswordDto) {
+    try {
+      const result = await EmailPassword.resetPasswordUsingToken('public', data.token, data.password)
+
+      if (result.status === 'OK') {
+        return { status: 'OK', message: 'Senha alterada com sucesso.' }
+      }
+
+      if (result.status === 'RESET_PASSWORD_INVALID_TOKEN_ERROR') {
+        throw new ConflictException('Token inválido ou expirado.')
+      }
+
+      throw new InternalServerErrorException('Erro ao alterar senha.')
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error
+      }
+      this.logger.error('Erro ao resetar senha', error instanceof Error ? error.stack : String(error))
+      throw new InternalServerErrorException('Erro ao processar alteração de senha.')
     }
   }
 
@@ -140,7 +202,7 @@ export class AuthService {
       const res = (req as Request & { res: Response }).res
 
       // Use SuperTokens native signUp that automatically creates session and sets cookies
-      const result = await superTokensSignUp('public', data.email, data.password, undefined, {
+      const result = await EmailPassword.signUp('public', data.email, data.password, undefined, {
         req,
         res
       })

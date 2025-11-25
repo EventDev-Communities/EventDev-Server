@@ -10,7 +10,7 @@
  * - Executa validações usando scripts Lua otimizados
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { AvailableDomainsType } from '@common/rate-limiter/interfaces/rate-limit-key.interface'
 import { IRateLimitPolicyData } from '@common/rate-limiter/interfaces/rate-limiter-policy.interface'
@@ -38,7 +38,14 @@ export class RateLimiterService implements OnApplicationShutdown {
   private luaScriptSha: string | null = null
 
   constructor(@Inject('REDIS_RATE_LIMIT') private readonly redisClient: Redis) {
-    this.luaScriptPath = join(process.cwd(), 'src', 'common', 'rate-limiter', 'scripts', 'sliding-window.lua')
+    const projectRoot = process.cwd()
+    const scriptRelPath = join('common', 'rate-limiter', 'scripts', 'sliding-window.lua')
+
+    // Tenta localizar o script em src (dev/test) ou dist (prod)
+    const srcPath = join(projectRoot, 'src', scriptRelPath)
+    const distPath = join(projectRoot, 'dist', scriptRelPath)
+
+    this.luaScriptPath = existsSync(srcPath) ? srcPath : distPath
   }
 
   /**

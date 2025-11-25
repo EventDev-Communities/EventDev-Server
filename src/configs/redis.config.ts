@@ -17,6 +17,7 @@
  * - Escalável horizontalmente
  */
 
+import { env } from '@configs/env'
 import { Provider } from '@nestjs/common'
 import Redis from 'ioredis'
 
@@ -33,15 +34,15 @@ import Redis from 'ioredis'
  * - REDIS_PORT: Porta do Redis
  * - REDIS_RATE_LIMIT_DB: Database específico para rate limiting (padrão: 1)
  */
-const shouldLogRedisEvents = process.env.NODE_ENV !== 'test'
+const shouldLogRedisEvents = env().NODE_ENV !== 'test'
 
 export const RedisRateLimitProvider: Provider = {
   provide: 'REDIS_RATE_LIMIT',
   useFactory: () => {
     const client = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: Number(process.env.REDIS_PORT) || 6379,
-      db: Number(process.env.REDIS_RATE_LIMIT_DB) || 1,
+      host: env().REDIS_HOST,
+      port: env().REDIS_PORT,
+      db: env().REDIS_RATE_LIMIT_DB,
 
       retryStrategy: (times: number) => {
         // Reconecta com backoff exponencial (máximo 3 segundos)
@@ -58,18 +59,15 @@ export const RedisRateLimitProvider: Provider = {
       // Reconectar automaticamente
       reconnectOnError: (err) => {
         const targetError = 'READONLY'
-        if (err.message.includes(targetError)) {
-          return true // Reconecta se Redis estiver em modo read-only
-        }
-        return false
+        return err.message.includes(targetError)
       }
     })
 
     if (shouldLogRedisEvents) {
       console.warn('[RedisRateLimit] creating Redis client', {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: Number(process.env.REDIS_PORT) || 6379,
-        db: Number(process.env.REDIS_RATE_LIMIT_DB) || 1
+        host: env().REDIS_HOST,
+        port: env().REDIS_PORT,
+        db: env().REDIS_RATE_LIMIT_DB
       })
     }
 

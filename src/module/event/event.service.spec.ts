@@ -237,10 +237,7 @@ describe('EventService', () => {
 
       const result = await service.getAll(10, 0, { baseUrl: '/events' })
 
-      expect(result).toHaveProperty('data')
-      expect(result).toHaveProperty('meta')
-      expect(result).toHaveProperty('links')
-      expect(result.data).toEqual(mockEvents)
+      expect(result).toMatchSnapshot()
       expect(mockEventRepository.getAll).toHaveBeenCalledWith(10, 0, {
         communityId: undefined,
         modality: undefined,
@@ -263,7 +260,7 @@ describe('EventService', () => {
         baseUrl: '/events'
       })
 
-      expect(result.data).toEqual(mockEvents)
+      expect(result).toMatchSnapshot()
       expect(mockEventRepository.getAll).toHaveBeenCalledWith(10, 0, {
         communityId: 1,
         modality: 'ONLINE',

@@ -17,26 +17,22 @@ const currentLevel = levels[LOG_LEVEL as keyof typeof levels] ?? levels.info
 export const logger = {
   error: (message: string, data?: unknown) => {
     if (currentLevel >= levels.error) {
-      // eslint-disable-next-line no-console
-      console.error(`[ERROR] ${message}`, data ?? '')
+      process.stderr.write(`[ERROR] ${message} ${data ? JSON.stringify(data) : ''}\n`)
     }
   },
   warn: (message: string, data?: unknown) => {
     if (currentLevel >= levels.warn) {
-      // eslint-disable-next-line no-console
-      console.log(`[WARN] ${message}`, data ?? '')
+      process.stdout.write(`[WARN] ${message} ${data ? JSON.stringify(data) : ''}\n`)
     }
   },
   info: (message: string, data?: unknown) => {
     if (currentLevel >= levels.info) {
-      // eslint-disable-next-line no-console
-      console.log(`[INFO] ${message}`, data ?? '')
+      process.stdout.write(`[INFO] ${message} ${data ? JSON.stringify(data) : ''}\n`)
     }
   },
   debug: (message: string, data?: unknown) => {
     if (currentLevel >= levels.debug) {
-      // eslint-disable-next-line no-console
-      console.log(`[DEBUG] ${message}`, data ?? '')
+      process.stdout.write(`[DEBUG] ${message} ${data ? JSON.stringify(data) : ''}\n`)
     }
   }
 }

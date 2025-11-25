@@ -1,6 +1,7 @@
 import { RATE_LIMIT_KEY, RateLimitDecoratorConfig } from '@common/decorators/rate-limit.decorator'
 import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { RateLimiterService } from '@common/rate-limiter/rate-limiter.service'
+import { env } from '@configs/env'
 import { CanActivate, ExecutionContext, HttpStatus, Inject, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request, Response } from 'express'
@@ -26,7 +27,7 @@ export class RateLimitGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Skip rate limiting in test environment if disabled
-    if (process.env.RATE_LIMIT_ENABLED === 'false') {
+    if (!env().RATE_LIMIT_ENABLED) {
       return true
     }
 

@@ -198,6 +198,10 @@ install: ## Run `pnpm install` inside the dev API container
 	@echo " ✦  Installing dependencies..."
 	@docker compose -f docker-compose.dev.yml exec api pnpm install
 
+verify-all: ## Run full verification (lint, tests, build) inside the dev container
+	@echo " ✦  Running full verification..."
+	@docker compose -f docker-compose.dev.yml exec api pnpm verify-all
+
 test: ## Execute the unit test suite (pnpm test) inside the dev container
 	@echo " ✦  Running tests..."
 	@docker compose -f docker-compose.dev.yml exec api pnpm test

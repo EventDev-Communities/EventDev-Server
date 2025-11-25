@@ -1,10 +1,10 @@
+import type { SessionContainer } from 'supertokens-node/recipe/session'
 import { LoggerService } from '@common/logger/logger.service'
 import { AddressService } from '@module/address/address.service'
 import { AddressDto } from '@module/address/dto/address.dto'
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
-import { SessionContainer } from 'supertokens-node/recipe/session'
 
 @ApiTags('address')
 @Controller('address')

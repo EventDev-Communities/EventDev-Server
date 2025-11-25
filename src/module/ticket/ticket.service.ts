@@ -11,17 +11,12 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 @Injectable()
 export class TicketService {
   constructor(
-    @Inject(TicketRepository)
-    private readonly ticketRepository: TicketRepository,
-    @Inject(CommunityService)
-    private readonly communityService: CommunityService,
-    @Inject(AddressService)
-    private readonly addressService: AddressService,
-    @Inject(LoggerService)
-    private readonly logger: LoggerService
+    @Inject(TicketRepository) private readonly ticketRepository: TicketRepository,
+    @Inject(CommunityService) private readonly communityService: CommunityService,
+    @Inject(AddressService) private readonly addressService: AddressService,
+    @Inject(LoggerService) private readonly logger: LoggerService
   ) {
-    // eslint-disable-next-line no-console
-    console.log('[TicketService] constructed')
+    this.logger.log('[TicketService] constructed')
   }
 
   async create(idCommunity: number, data: CreateEventDto) {

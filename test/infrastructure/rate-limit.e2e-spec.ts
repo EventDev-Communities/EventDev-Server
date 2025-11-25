@@ -1,7 +1,7 @@
+import { AppModule } from '@module/app/app.module'
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
 import request from 'supertest'
-import { AppModule } from '@/app.module'
 
 /**
  * Rate Limiting E2E Tests
@@ -205,7 +205,6 @@ describe('Rate Limiting (e2e)', () => {
     it('should reset rate limit after time window', async () => {
       // This test would need to wait for the rate limit window to reset
       // Typically 1 minute or configured interval
-      // For now, just verify we can make a request
       await request(app.getHttpServer())
         .get('/communities')
         .expect((response) => {

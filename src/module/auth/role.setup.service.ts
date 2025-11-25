@@ -1,15 +1,14 @@
+import type { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
 import { Permission } from '@common/enums/permissions.enum'
 import { UserRole } from '@common/enums/roles.enum'
 import { LoggerService } from '@common/logger/logger.service'
-import { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
 import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common'
 
 @Injectable()
 export class RoleSetupService implements OnApplicationBootstrap {
   constructor(
     @Inject('IAuthAdapter') private readonly authAdapter: IAuthAdapter,
-    @Inject(LoggerService)
-    private readonly logger: LoggerService
+    @Inject(LoggerService) private readonly logger: LoggerService
   ) {}
 
   async onApplicationBootstrap() {

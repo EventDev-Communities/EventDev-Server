@@ -8,11 +8,11 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 @Injectable()
 export class CommunityService {
   constructor(
-    @Inject(CommunityRepository)
-    private readonly communityRepository: CommunityRepository,
-    @Inject(LoggerService)
-    private readonly logger: LoggerService
-  ) {}
+    @Inject(CommunityRepository) private readonly communityRepository: CommunityRepository,
+    @Inject(LoggerService) private readonly logger: LoggerService
+  ) {
+    this.logger.log('[CommunityService] constructed')
+  }
 
   async getAll(take: number, skip: number, options?: { isActive?: boolean, search?: string, baseUrl?: string }) {
     const { data, total } = await this.communityRepository.getAll(take, skip, {

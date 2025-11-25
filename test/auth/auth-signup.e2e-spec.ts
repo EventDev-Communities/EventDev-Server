@@ -1,8 +1,8 @@
+import { PrismaService } from '@db/prisma.service'
+import { AppModule } from '@module/app/app.module'
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '@prisma/prisma.service'
 import request from 'supertest'
-import { AppModule } from '@/app.module'
 
 describe('Auth Signup E2E Test', () => {
   let app: INestApplication

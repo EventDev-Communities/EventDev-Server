@@ -1,16 +1,20 @@
+import type { Request } from 'express'
+import type { SessionContainer } from 'supertokens-node/recipe/session'
 import { AuthService } from '@module/auth/auth.service'
+import { ForgotPasswordDto } from '@module/auth/dto/forgot-password.dto'
+import { ResetPasswordDto } from '@module/auth/dto/reset-password.dto'
 import { SignInDto } from '@module/auth/dto/signin.dto'
 import { CommunitySignUpDto, UserSignUpDto } from '@module/auth/dto/signup.dto'
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
-import { Request } from 'express'
 import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
-import { SessionContainer } from 'supertokens-node/recipe/session'
 
 @ApiTags('authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    @Inject(AuthService) private readonly authService: AuthService
+  ) {}
 
   @Post('signin')
   @HttpCode(HttpStatus.OK)
@@ -38,6 +42,31 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Logout realizado com sucesso' })
   async signOut(@Session() session: SessionContainer) {
     return await this.authService.signOut(session)
+  }
+
+  @Post('password/reset/token')
+  @HttpCode(HttpStatus.OK)
+  @PublicAccess()
+  @ApiOperation({
+    summary: 'Solicitar recuperação de senha',
+    description: 'Envia um email com link de recuperação se o usuário existir'
+  })
+  @ApiResponse({ status: 200, description: 'Solicitação processada' })
+  async forgotPassword(@Body() data: ForgotPasswordDto) {
+    return await this.authService.sendPasswordResetToken(data)
+  }
+
+  @Post('password/reset')
+  @HttpCode(HttpStatus.OK)
+  @PublicAccess()
+  @ApiOperation({
+    summary: 'Redefinir senha',
+    description: 'Altera a senha do usuário usando o token recebido por email'
+  })
+  @ApiResponse({ status: 200, description: 'Senha alterada com sucesso' })
+  @ApiResponse({ status: 409, description: 'Token inválido ou expirado' })
+  async resetPassword(@Body() data: ResetPasswordDto) {
+    return await this.authService.resetPassword(data)
   }
 
   @Get('me')

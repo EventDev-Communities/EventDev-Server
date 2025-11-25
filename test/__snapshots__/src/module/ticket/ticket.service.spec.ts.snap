@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`TicketService getAll should return paginated tickets 1`] = `
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Ticket 1",
+    },
+    {
+      "id": 2,
+      "title": "Ticket 2",
+    },
+  ],
+  "links": {
+    "first": "/tickets?take=10&skip=0",
+    "last": "/tickets?take=10&skip=0",
+    "next": undefined,
+    "prev": undefined,
+    "self": "/tickets?take=10&skip=0",
+  },
+  "meta": {
+    "currentPage": 1,
+    "hasNext": false,
+    "hasPrev": false,
+    "skip": 0,
+    "take": 10,
+    "total": 2,
+    "totalPages": 1,
+  },
+}
+`;

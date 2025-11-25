@@ -1,4 +1,5 @@
 import antfu from '@antfu/eslint-config'
+import sonarjs from 'eslint-plugin-sonarjs'
 
 export default antfu(
   {
@@ -26,7 +27,27 @@ export default antfu(
       'prisma/seed/**', // Seeds podem usar imports relativos
       '*.min.js',
       'docs/**',
+      'src/metadata.ts',
     ],
+    plugins: {
+      sonarjs,
+    },
+    rules: {
+      ...sonarjs.configs.recommended.rules,
+      'sonarjs/no-hardcoded-passwords': 'off', // False positives in tests/seeds
+      'sonarjs/pseudo-random': 'off', // Used in tests/seeds
+      'sonarjs/assertions-in-tests': 'off', // Supertest chains are assertions
+      'sonarjs/no-clear-text-protocols': 'off', // Localhost/Dev
+      'sonarjs/different-types-comparison': 'off', // TS handles this, often false positives with guards
+    },
+  },
+  {
+    files: ['test/**/*.ts', '**/*.spec.ts', '**/*.e2e-spec.ts'],
+    rules: {
+      'sonarjs/no-hardcoded-passwords': 'off',
+      'sonarjs/assertions-in-tests': 'off',
+      'sonarjs/pseudo-random': 'off',
+    },
   },
   // Import resolution settings
   {

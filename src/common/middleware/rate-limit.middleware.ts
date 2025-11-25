@@ -17,6 +17,7 @@
  */
 
 import { RateLimiterService } from '@common/rate-limiter/rate-limiter.service'
+import { env } from '@configs/env'
 import { HttpStatus, Inject, Injectable, NestMiddleware } from '@nestjs/common'
 import { Request, Response } from 'express'
 
@@ -37,7 +38,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: (error?: Error) => void): Promise<void> {
     try {
       // Skip rate limiting in test environment if disabled
-      if (process.env.RATE_LIMIT_ENABLED === 'false') {
+      if (!env().RATE_LIMIT_ENABLED) {
         return next()
       }
 

@@ -1,6 +1,7 @@
+import { PrismaService } from '@db/prisma.service'
+import { AppModule } from '@module/app/app.module'
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
-import { PrismaService } from '@prisma/prisma.service'
 import { addressSeedData, communitySeedData, eventSeedData } from '@seed-data/seed-datasets'
 import request from 'supertest'
 import {
@@ -9,13 +10,11 @@ import {
   createTestCommunityUser,
   verifyCommunityExists
 } from '@/../test/helpers/auth.helper'
-import { AppModule } from '@/app.module'
 
 describe('EventDev API (e2e) - Refactored', () => {
   let app: INestApplication
   let prismaService: PrismaService
   let communityId: number
-  let eventId: number
   let testEmail: string
   let testCommunityName: string
   const cleanupEmails: string[] = []

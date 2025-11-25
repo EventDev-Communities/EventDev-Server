@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AuthService getCurrentUser should return current user with roles 1`] = `
+{
+  "status": "OK",
+  "user": {
+    "communityId": null,
+    "email": "user@test.com",
+    "id": "user-123",
+    "roles": [
+      "user",
+    ],
+  },
+}
+`;

@@ -1,0 +1,192 @@
+@baseUrl = http://localhost:3000
+@authToken = <your_token_here>
+
+### AppController_getApiStats
+GET {{baseUrl}}/ HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### AppController_getHealth
+GET {{baseUrl}}/health HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Listar todas as comunidades
+GET {{baseUrl}}/api/v1/communities HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Criar nova comunidade
+POST {{baseUrl}}/api/v1/communities HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Obter minha comunidade
+GET {{baseUrl}}/api/v1/communities/me HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Buscar comunidade por ID
+GET {{baseUrl}}/api/v1/communities/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Atualizar comunidade
+PATCH {{baseUrl}}/api/v1/communities/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Deletar comunidade
+DELETE {{baseUrl}}/api/v1/communities/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Autenticar usuário
+POST {{baseUrl}}/api/v1/auth/signin HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Encerrar sessão
+POST {{baseUrl}}/api/v1/auth/signout HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Solicitar recuperação de senha
+POST {{baseUrl}}/api/v1/auth/password/reset/token HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Redefinir senha
+POST {{baseUrl}}/api/v1/auth/password/reset HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Obter perfil do usuário logado
+GET {{baseUrl}}/api/v1/auth/me HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### [ADMIN] Criar novo usuário
+POST {{baseUrl}}/api/v1/auth/admin/users HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### [ADMIN] Criar nova comunidade
+POST {{baseUrl}}/api/v1/auth/admin/communities HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Criar primeiro administrador do sistema
+POST {{baseUrl}}/api/v1/auth/bootstrap/admin HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Cadastro público de comunidade
+POST {{baseUrl}}/api/v1/auth/signup/community HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Criar novo evento
+POST {{baseUrl}}/api/v1/events HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Listar todos os eventos
+GET {{baseUrl}}/api/v1/events HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Buscar evento por ID
+GET {{baseUrl}}/api/v1/events/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Atualizar evento
+PATCH {{baseUrl}}/api/v1/events/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Deletar evento
+DELETE {{baseUrl}}/api/v1/events/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Listar todos os endereços
+GET {{baseUrl}}/api/v1/address HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Criar novo endereço
+POST {{baseUrl}}/api/v1/address HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Criar novo ticket
+POST {{baseUrl}}/api/v1/tickets HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Listar todos os tickets
+GET {{baseUrl}}/api/v1/tickets HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Buscar ticket por ID
+GET {{baseUrl}}/api/v1/tickets/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Atualizar ticket
+PATCH {{baseUrl}}/api/v1/tickets/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{}
+
+### Deletar ticket
+DELETE {{baseUrl}}/api/v1/tickets/{id} HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+

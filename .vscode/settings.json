@@ -10,6 +10,7 @@
     ".devcontainer": false,
     ".vscode": false,
     ".github": false,
-    ".docker": false
-  },
+    ".docker": false,
+    "coverage": false
+  }
 }

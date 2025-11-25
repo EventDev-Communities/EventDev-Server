@@ -1,6 +1,7 @@
 import type { Request } from 'express'
 import type { SessionContainer } from 'supertokens-node/recipe/session'
 import { AuthService } from '@module/auth/auth.service'
+import { AcceptInviteDto } from '@module/auth/dto/accept-invite.dto'
 import { ForgotPasswordDto } from '@module/auth/dto/forgot-password.dto'
 import { ResetPasswordDto } from '@module/auth/dto/reset-password.dto'
 import { SignInDto } from '@module/auth/dto/signin.dto'
@@ -134,5 +135,15 @@ export class AuthController {
     @Req() req: Request
   ) {
     return await this.authService.createCommunityWithSession(data, req)
+  }
+
+  @Post('invite/accept')
+  @PublicAccess()
+  @ApiOperation({
+    summary: 'Aceitar convite de comunidade',
+    description: 'Cria o usuário e a comunidade a partir de um convite válido.'
+  })
+  async acceptInvite(@Body() data: AcceptInviteDto) {
+    return await this.authService.acceptInvite(data)
   }
 }

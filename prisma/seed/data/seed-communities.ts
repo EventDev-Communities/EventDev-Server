@@ -50,7 +50,6 @@ export async function seedCommunities(prisma: PrismaClient) {
       create: {
         supertokensId,
         email: data.email,
-        password: 'Senha123!',
         isActive: true
       }
     })

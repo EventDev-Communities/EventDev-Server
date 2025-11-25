@@ -8,6 +8,7 @@
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
+  "coverageDirectory": "test/coverage",
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@common/(.*)$": "<rootDir>/src/common/$1",

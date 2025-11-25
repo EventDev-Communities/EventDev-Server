@@ -4,11 +4,13 @@ import { LoggerService } from '@common/logger/logger.service'
 import { env } from '@configs/env'
 import { PrismaService } from '@db/prisma.service'
 import { EmailService } from '@infrastructure/email/email.service'
+import { AcceptInviteDto } from '@module/auth/dto/accept-invite.dto'
 import { ForgotPasswordDto } from '@module/auth/dto/forgot-password.dto'
 import { ResetPasswordDto } from '@module/auth/dto/reset-password.dto'
 import { SignInDto } from '@module/auth/dto/signin.dto'
 import { CommunitySignUpDto, UserSignUpDto } from '@module/auth/dto/signup.dto'
 import { CommunityService } from '@module/community/community.service'
+import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
 import { ConflictException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common'
 import { Request, Response } from 'express'
 import { convertToRecipeUserId, listUsersByAccountInfo } from 'supertokens-node'
@@ -37,6 +39,10 @@ export class AuthService {
       if (result.status === 'OK') {
         const userId = result.user.id
         const roles = await this.authAdapter.getUserRoles(userId)
+
+        // Create session
+        const recipeUserId = convertToRecipeUserId(userId)
+        await SessionRecipe.createNewSession(req, res, 'public', recipeUserId)
 
         return {
           status: 'OK',
@@ -178,7 +184,8 @@ export class AuthService {
         instagramLink: data.instagramLink,
         linkedinLink: data.linkedinLink,
         websiteLink: data.websiteLink,
-        phoneNumber: data.phoneNumber
+        phoneNumber: data.phoneNumber,
+        ownerId: userId
       }
 
       const communityProfile = await this.communityService.create(communityData, userId)
@@ -186,6 +193,16 @@ export class AuthService {
       // Criar sessão SuperTokens após signup bem-sucedido
       const recipeUserId = convertToRecipeUserId(userId)
       await SessionRecipe.createNewSession(req, res, 'public', recipeUserId)
+
+      // Create user in DB
+      await this.prismaService.user.create({
+        data: {
+          supertokensId: userId,
+          email: data.email,
+          isActive: true
+        }
+      })
+      this.logger.log(`User created in DB: ${userId}`)
 
       return { status: 'OK', user_info: communityProfile }
     } catch (err) {
@@ -223,10 +240,20 @@ export class AuthService {
         instagramLink: data.instagramLink,
         linkedinLink: data.linkedinLink,
         websiteLink: data.websiteLink,
-        phoneNumber: data.phoneNumber
+        phoneNumber: data.phoneNumber,
+        ownerId: userId
       }
 
       const communityProfile = await this.communityService.create(communityData, userId)
+
+      // Create user in DB
+      await this.prismaService.user.create({
+        data: {
+          supertokensId: userId,
+          email: data.email,
+          isActive: true
+        }
+      })
 
       return { status: 'OK', user_info: communityProfile }
     } catch (err) {
@@ -257,7 +284,8 @@ export class AuthService {
         instagramLink: data.instagramLink,
         linkedinLink: data.linkedinLink,
         websiteLink: data.websiteLink,
-        phoneNumber: data.phoneNumber
+        phoneNumber: data.phoneNumber,
+        ownerId: userId
       }
 
       const communityProfile = await this.communityService.create(communityData, userId)
@@ -323,5 +351,47 @@ export class AuthService {
       }
       throw new InternalServerErrorException('Erro inesperado ao criar administrador.')
     }
+  }
+
+  async acceptInvite(data: AcceptInviteDto) {
+    // 1. Validate invitation
+    const invitation = await this.communityService.validateInvitation(data.token)
+
+    // if (!invitation) check is redundant as validateInvitation throws if not found
+
+    // 2. Create user in SuperTokens
+    const signUpResponse = await EmailPassword.signUp('public', invitation.email, data.password)
+
+    if (signUpResponse.status === 'EMAIL_ALREADY_EXISTS_ERROR') {
+      throw new ConflictException('Email já cadastrado')
+    }
+
+    const userId = signUpResponse.user.id
+
+    // 3. Create user in DB
+    await this.prismaService.user.create({
+      data: {
+        supertokensId: userId,
+        email: invitation.email,
+        isActive: true
+      }
+    })
+
+    // 4. Assign role
+    await this.authAdapter.addRoleToUser(userId, UserRole.COMMUNITY)
+
+    // 5. Create community
+    const communityData: CreateCommunityDto = {
+      name: invitation.name,
+      description: invitation.description || undefined,
+      ownerId: userId,
+      isActive: true
+    }
+    await this.communityService.create(communityData, userId)
+
+    // 6. Mark invitation as used
+    await this.communityService.markInvitationAsUsed(invitation.id)
+
+    return { message: 'Convite aceito com sucesso', userId }
   }
 }

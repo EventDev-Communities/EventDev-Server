@@ -1,7 +1,7 @@
 import { PrismaService } from '@db/prisma.service'
-import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
 import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
 import { Inject, Injectable } from '@nestjs/common'
+import { CommunityInvitation, Prisma } from '@prisma/client'
 
 @Injectable()
 export class CommunityRepository {
@@ -35,7 +35,7 @@ export class CommunityRepository {
     return { data, total }
   }
 
-  async create(data: CreateCommunityDto & { supertokensId: string }) {
+  async create(data: Prisma.CommunityCreateInput) {
     return await this.prismaService.community.create({
       data
     })
@@ -62,5 +62,24 @@ export class CommunityRepository {
 
   async delete(id: number) {
     await this.prismaService.community.delete({ where: { id } })
+  }
+
+  async createInvitation(data: Prisma.CommunityInvitationCreateInput): Promise<CommunityInvitation> {
+    return await this.prismaService.communityInvitation.create({
+      data
+    })
+  }
+
+  async getInvitationByToken(token: string): Promise<CommunityInvitation | null> {
+    return await this.prismaService.communityInvitation.findUnique({
+      where: { token }
+    })
+  }
+
+  async markInvitationAsUsed(id: number): Promise<CommunityInvitation> {
+    return await this.prismaService.communityInvitation.update({
+      where: { id },
+      data: { isUsed: true }
+    })
   }
 }

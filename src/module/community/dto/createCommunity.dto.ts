@@ -46,4 +46,9 @@ export class CreateCommunityDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean
+
+  @ApiProperty({ example: 'user_123456', description: 'ID do usuário dono da comunidade' })
+  @IsString()
+  @IsNotEmpty()
+  ownerId: string
 }

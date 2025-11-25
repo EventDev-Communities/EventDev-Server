@@ -84,7 +84,7 @@
         ]
       },
       "post": {
-        "description": "Cria uma nova comunidade para o usuário autenticado",
+        "description": "Cria uma nova comunidade. Restrito a administradores da plataforma.",
         "operationId": "CommunityController_create",
         "parameters": [],
         "requestBody": {
@@ -243,6 +243,62 @@
           }
         ],
         "summary": "Deletar comunidade",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/communities/invite": {
+      "post": {
+        "description": "Envia um convite por email para criar uma nova comunidade.",
+        "operationId": "CommunityController_invite",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteCommunityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Convidar comunidade",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/communities/invite/{token}": {
+      "get": {
+        "description": "Verifica se o token de convite é válido e retorna os dados.",
+        "operationId": "CommunityController_validateInvite",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Validar convite",
         "tags": [
           "communities"
         ]
@@ -501,6 +557,32 @@
           }
         },
         "summary": "Cadastro público de comunidade",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
+    "/api/v1/auth/invite/accept": {
+      "post": {
+        "description": "Cria o usuário e a comunidade a partir de um convite válido.",
+        "operationId": "AuthController_acceptInvite",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptInviteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Aceitar convite de comunidade",
         "tags": [
           "authentication"
         ]
@@ -1060,10 +1142,16 @@
             "type": "boolean",
             "example": true,
             "default": true
+          },
+          "ownerId": {
+            "type": "string",
+            "example": "user_123456",
+            "description": "ID do usuário dono da comunidade"
           }
         },
         "required": [
-          "name"
+          "name",
+          "ownerId"
         ]
       },
       "UpdateCommunityDto": {
@@ -1106,8 +1194,36 @@
             "type": "boolean",
             "example": true,
             "default": true
+          },
+          "ownerId": {
+            "type": "string",
+            "example": "user_123456",
+            "description": "ID do usuário dono da comunidade"
           }
         }
+      },
+      "InviteCommunityDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@techcommunity.com",
+            "description": "Email do futuro dono da comunidade"
+          },
+          "name": {
+            "type": "string",
+            "example": "Tech Community Brasil",
+            "description": "Nome da comunidade"
+          },
+          "description": {
+            "type": "string",
+            "example": "Comunidade focada em tecnologia"
+          }
+        },
+        "required": [
+          "email",
+          "name"
+        ]
       },
       "SignInDto": {
         "type": "object",
@@ -1219,6 +1335,24 @@
           "email",
           "name",
           "role"
+        ]
+      },
+      "AcceptInviteDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Token de convite recebido por email"
+          },
+          "password": {
+            "type": "string",
+            "example": "StrongP@ssw0rd!",
+            "description": "Senha para a nova conta"
+          }
+        },
+        "required": [
+          "token",
+          "password"
         ]
       },
       "CreateEventDto": {

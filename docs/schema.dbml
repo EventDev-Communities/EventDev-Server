@@ -67,7 +67,6 @@ Table user {
   id Int [pk, increment]
   supertokensId String [unique, not null]
   email String [unique, not null]
-  password String [not null]
   isRoot Boolean [not null, default: false]
   isActive Boolean [not null, default: true]
   createdAt DateTime [default: `now()`, not null]
@@ -145,6 +144,19 @@ Table community_user_request {
   }
 
   Note: 'Requests to join a community'
+}
+
+Table community_invitation {
+  id Int [pk, increment]
+  email String [not null]
+  name String [not null]
+  description String
+  token String [unique, not null]
+  expiresAt DateTime [not null]
+  isUsed Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+
+  Note: 'Invitations for new communities'
 }
 
 Table post {

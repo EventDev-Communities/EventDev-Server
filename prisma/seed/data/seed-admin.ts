@@ -24,7 +24,6 @@ export async function seedAdmin(prisma: PrismaClient) {
         create: {
           supertokensId: adminUser.user.id,
           email: 'admin@eventdev.com',
-          password: 'Admin123!',
           isRoot: true, // Platform root user
           isActive: true
         }

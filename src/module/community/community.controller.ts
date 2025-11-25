@@ -6,6 +6,7 @@ import { Roles } from '@common/decorators/roles.decorator'
 import { UserRole } from '@common/enums/roles.enum'
 import { CommunityService } from '@module/community/community.service'
 import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
+import { InviteCommunityDto } from '@module/community/dto/inviteCommunity.dto'
 import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
 import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Inject, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
@@ -55,16 +56,16 @@ export class CommunityController {
 
   @Post()
   @VerifySession()
-  @Roles(UserRole.COMMUNITY)
+  @Roles(UserRole.PLATFORM_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Criar nova comunidade',
-    description: 'Cria uma nova comunidade para o usuário autenticado'
+    description: 'Cria uma nova comunidade. Restrito a administradores da plataforma.'
   })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Comunidade criada com sucesso' })
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Usuário não tem permissão para criar comunidade' })
-  async create(@Body() data: CreateCommunityDto, @CurrentUser() user: IAuthUser) {
-    return await this.communityService.create(data, user.id)
+  async create(@Body() data: CreateCommunityDto) {
+    return await this.communityService.create(data, data.ownerId)
   }
 
   @Get(':id')
@@ -104,5 +105,27 @@ export class CommunityController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Comunidade não encontrada' })
   async delete(@Param('id', ParseIntPipe) id: number) {
     await this.communityService.delete(id)
+  }
+
+  @Post('invite')
+  @VerifySession()
+  @Roles(UserRole.PLATFORM_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Convidar comunidade',
+    description: 'Envia um convite por email para criar uma nova comunidade.'
+  })
+  async invite(@Body() data: InviteCommunityDto) {
+    return await this.communityService.invite(data)
+  }
+
+  @Get('invite/:token')
+  @PublicAccess()
+  @ApiOperation({
+    summary: 'Validar convite',
+    description: 'Verifica se o token de convite é válido e retorna os dados.'
+  })
+  async validateInvite(@Param('token') token: string) {
+    return await this.communityService.validateInvitation(token)
   }
 }

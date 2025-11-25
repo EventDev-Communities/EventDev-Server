@@ -98,3 +98,42 @@ Comandos para gerar código boilerplate.
 | `nest g resource module/nome` | **Nova Feature** | Cria um novo módulo completo (Controller, Service, DTOs, etc). |
 | `nest g module module/nome` | **Estrutura** | Cria apenas o módulo. |
 | `nest g service module/nome` | **Lógica** | Cria apenas o service. |
+
+## Roadmap e Checklist
+
+### Implementado e Funcional
+
+- [x] **Infraestrutura Base**: Docker Compose (Dev/Prod), Makefile, CI/CD local (`verify-all`).
+- [x] **Autenticação**: SuperTokens (Sessão, Email/Senha), Guards, Decorators (`@CurrentUser`, `@Roles`).
+- [x] **Comunidades**: CRUD básico, listagem pública, vínculo com usuário dono.
+- [x] **Eventos**: CRUD básico, vínculo com comunidade, modalidades (Online/Presencial).
+- [x] **Endereços**: Cadastro e vínculo com eventos presenciais.
+- [x] **Segurança**: Rate Limiting (Redis), Helmet, CORS, Cookies HttpOnly.
+- [x] **Testes**: Configuração Jest (Unit/E2E), cobertura > 90% nos módulos principais.
+- [x] **Banco de Dados**: Prisma ORM, Migrations, Seeds.
+
+### Em Progresso / Parcialmente Implementado
+
+- [ ] **Ingressos (Tickets)**:
+  - [x] Estrutura de banco de dados (`Ticket`, `TicketStatus`).
+  - [ ] Lógica de emissão (venda/gratuidade).
+  - [ ] Controle de vagas (concorrência).
+  - [ ] Geração de QR Code/Hash.
+- [ ] **Pedidos (Orders)**:
+  - [x] Estrutura de banco de dados (`Order`, `OrderItem`, `Product`).
+  - [ ] Fluxo de checkout unificado.
+- [ ] **Notificações**:
+  - [x] Serviço de Email (SMTP) configurado.
+  - [x] Envio de email de recuperação de senha.
+  - [ ] Emails de confirmação de ingresso.
+
+### Roadmap Futuro (Backlog)
+
+- [ ] **Integração de Pagamento**: Mercado Pago (Pix/Cartão) para ingressos e produtos.
+- [ ] **App Mobile (Flutter)**:
+  - [ ] Login/Auth.
+  - [ ] Leitura de QR Code para Check-in.
+- [ ] **Gestão de Equipe**:
+  - [ ] Convite de membros para staff da comunidade.
+  - [ ] Permissões granulares.
+- [ ] **Gamificação**: Badges e conquistas para participantes frequentes.

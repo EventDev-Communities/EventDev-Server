@@ -1,4 +1,5 @@
 import { LoggerService } from '@common/logger/logger.service'
+import { EmailService } from '@infrastructure/email/email.service'
 import { CommunityRepository } from '@module/community/community.repository'
 import { CommunityService } from '@module/community/community.service'
 import { NotFoundException } from '@nestjs/common'
@@ -22,12 +23,17 @@ describe('CommunityService', () => {
     error: jest.fn()
   }
 
+  const mockEmailService = {
+    sendInvitationEmail: jest.fn()
+  }
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CommunityService,
         { provide: CommunityRepository, useValue: mockRepository },
-        { provide: LoggerService, useValue: mockLogger }
+        { provide: LoggerService, useValue: mockLogger },
+        { provide: EmailService, useValue: mockEmailService }
       ]
     }).compile()
 
@@ -48,8 +54,8 @@ describe('CommunityService', () => {
 
   describe('create', () => {
     it('should create a community', async () => {
-      const dto = { name: 'Test Community', description: 'Test' }
       const userId = 'user-123'
+      const dto = { name: 'Test Community', description: 'Test', ownerId: userId }
       mockRepository.create.mockResolvedValue({ id: 1, ...dto })
 
       const result = await service.create(dto, userId)
@@ -58,7 +64,7 @@ describe('CommunityService', () => {
     })
 
     it('should throw error if userId is missing', async () => {
-      await expect(service.create({ name: 'Test' }, '')).rejects.toThrow('UserId é obrigatório')
+      await expect(service.create({ name: 'Test', ownerId: '' }, '')).rejects.toThrow('UserId é obrigatório')
     })
   })
 

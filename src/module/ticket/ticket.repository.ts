@@ -1,8 +1,9 @@
 import { LoggerService } from '@common/logger/logger.service'
 import { PrismaService } from '@db/prisma.service'
-import { TicketDto } from '@module/ticket/dto/ticket.dto'
+import { CreateTicketTypeDto } from '@module/ticket/dto/create-ticket-type.dto'
+import { UpdateTicketTypeDto } from '@module/ticket/dto/update-ticket-type.dto'
 import { Inject, Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { Prisma, TicketType } from '@prisma/client'
 
 @Injectable()
 export class TicketRepository {
@@ -13,79 +14,115 @@ export class TicketRepository {
     this.logger.log('[TicketRepository] constructed')
   }
 
-  async create(data: TicketDto, idCommunity: number) {
-    const modality = await this.prismaService.eventModality.findUnique({
-      where: { code: data.modality }
-    })
-
-    if (!modality) {
-      throw new Error(`Event modality ${data.modality} not found`)
-    }
-
-    return await this.prismaService.event.create({
+  async createTicketType(data: CreateTicketTypeDto): Promise<TicketType> {
+    return await this.prismaService.ticketType.create({
       data: {
-        title: data.title,
+        eventId: data.eventId,
+        name: data.name,
         description: data.description,
-        startDateTime: data.startDateTime,
-        endDateTime: data.endDateTime,
-        modalityId: modality.id,
-        isActive: data.isActive,
-        link: data.link,
-        coverUrl: data.coverUrl,
-        communityId: idCommunity,
-        addressId: data.addressId || undefined
+        price: data.price,
+        quantity: data.quantity,
+        isActive: data.isActive ?? true
       }
     })
   }
 
-  async getByID(id: number) {
-    return await this.prismaService.event.findUnique({ where: { id } })
+  async getTicketTypeById(id: number): Promise<TicketType | null> {
+    return await this.prismaService.ticketType.findUnique({
+      where: { id },
+      include: {
+        event: true
+      }
+    })
   }
 
-  async getAll(take: number, skip: number, filters?: { eventId?: number, isActive?: boolean }) {
+  async getTicketTypesByEvent(eventId: number) {
+    return await this.prismaService.ticketType.findMany({
+      where: { eventId },
+      orderBy: { price: 'asc' }
+    })
+  }
+
+  async updateTicketType(id: number, data: UpdateTicketTypeDto) {
+    return await this.prismaService.ticketType.update({
+      where: { id },
+      data
+    })
+  }
+
+  async deleteTicketType(id: number) {
+    return await this.prismaService.ticketType.delete({
+      where: { id }
+    })
+  }
+
+  async createTicket(data: {
+    eventId: number
+    userId: number
+    ticketTypeId: number
+    ticketStatusId: number
+    value: number
+    purchasedAt: Date
+  }, tx?: Prisma.TransactionClient) {
+    const client = tx || this.prismaService
+    return await client.ticket.create({
+      data: {
+        eventId: data.eventId,
+        userId: data.userId,
+        ticketTypeId: data.ticketTypeId,
+        ticketStatusId: data.ticketStatusId,
+        value: data.value,
+        purchasedAt: data.purchasedAt
+      }
+    })
+  }
+
+  async decrementTicketTypeQuantity(id: number, quantity: number, tx?: Prisma.TransactionClient) {
+    const client = tx || this.prismaService
+    return await client.ticketType.update({
+      where: { id },
+      data: {
+        quantity: {
+          decrement: quantity
+        }
+      }
+    })
+  }
+
+  async getTicketStatusByCode(code: string) {
+    return await this.prismaService.ticketStatus.findUnique({
+      where: { code }
+    })
+  }
+
+  // Methods for purchased tickets (if needed later)
+  async getAllTickets(take: number, skip: number, filters?: { eventId?: number, userId?: number }) {
     const where: Prisma.TicketWhereInput = {}
 
     if (filters?.eventId) {
       where.eventId = filters.eventId
+    }
+    if (filters?.userId) {
+      where.userId = filters.userId
     }
 
     const [data, total] = await Promise.all([
       this.prismaService.ticket.findMany({
         take,
         skip,
+        where,
         include: {
-          event: {
-            include: {
-              community: true
-            }
-          },
+          event: true,
+          ticketType: true,
           status: true
         },
         orderBy: {
           createdAt: 'desc'
-        },
-        where
+        }
       }),
       this.prismaService.ticket.count({ where })
     ])
 
     return { data, total }
-  }
-
-  async update(idEvent: number, data: TicketDto) {
-    return await this.prismaService.event.updateMany({
-      where: {
-        id: idEvent
-      },
-      data
-    })
-  }
-
-  async delete(idEvent: number) {
-    await this.prismaService.event.delete({
-      where: {
-        id: idEvent
-      }
-    })
   }
 }

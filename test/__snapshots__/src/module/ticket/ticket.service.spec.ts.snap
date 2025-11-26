@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`TicketService getAll should return paginated tickets 1`] = `
+exports[`TicketService getAllTickets should return paginated tickets 1`] = `
 {
   "data": [
     {

@@ -1,3 +1,6 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateTable
 CREATE TABLE "community_user_request_status" (
     "id" SERIAL NOT NULL,
@@ -251,10 +254,26 @@ CREATE TABLE "product" (
 );
 
 -- CreateTable
+CREATE TABLE "ticket_type" (
+    "id" SERIAL NOT NULL,
+    "id_event" INTEGER NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "description" VARCHAR(255),
+    "price" DECIMAL(10,2) NOT NULL,
+    "quantity" INTEGER NOT NULL DEFAULT 0,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(6) NOT NULL,
+
+    CONSTRAINT "ticket_type_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ticket" (
     "id" SERIAL NOT NULL,
     "id_event" INTEGER NOT NULL,
     "id_user" INTEGER NOT NULL,
+    "id_ticket_type" INTEGER NOT NULL,
     "id_ticket_status" INTEGER NOT NULL,
     "value" DECIMAL(10,2) NOT NULL,
     "purchased_at" TIMESTAMP(6) NOT NULL,
@@ -262,6 +281,16 @@ CREATE TABLE "ticket" (
     "updated_at" TIMESTAMP(6) NOT NULL,
 
     CONSTRAINT "ticket_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "community_ban" (
+    "community_id" INTEGER NOT NULL,
+    "user_id" INTEGER NOT NULL,
+    "reason" VARCHAR(500),
+    "banned_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "community_ban_pkey" PRIMARY KEY ("community_id","user_id")
 );
 
 -- CreateIndex
@@ -367,10 +396,16 @@ CREATE INDEX "product_community_id_idx" ON "product"("community_id");
 CREATE INDEX "product_is_active_idx" ON "product"("is_active");
 
 -- CreateIndex
+CREATE INDEX "ticket_type_id_event_idx" ON "ticket_type"("id_event");
+
+-- CreateIndex
 CREATE INDEX "ticket_id_event_id_user_idx" ON "ticket"("id_event", "id_user");
 
 -- CreateIndex
 CREATE INDEX "ticket_id_user_idx" ON "ticket"("id_user");
+
+-- CreateIndex
+CREATE INDEX "ticket_id_ticket_type_idx" ON "ticket"("id_ticket_type");
 
 -- CreateIndex
 CREATE INDEX "ticket_id_ticket_status_idx" ON "ticket"("id_ticket_status");
@@ -427,11 +462,23 @@ ALTER TABLE "order_item" ADD CONSTRAINT "order_item_item_type_id_fkey" FOREIGN K
 ALTER TABLE "product" ADD CONSTRAINT "product_community_id_fkey" FOREIGN KEY ("community_id") REFERENCES "community"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ticket_type" ADD CONSTRAINT "ticket_type_id_event_fkey" FOREIGN KEY ("id_event") REFERENCES "event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ticket" ADD CONSTRAINT "ticket_id_event_fkey" FOREIGN KEY ("id_event") REFERENCES "event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ticket" ADD CONSTRAINT "ticket_id_user_fkey" FOREIGN KEY ("id_user") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ticket" ADD CONSTRAINT "ticket_id_ticket_type_fkey" FOREIGN KEY ("id_ticket_type") REFERENCES "ticket_type"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ticket" ADD CONSTRAINT "ticket_id_ticket_status_fkey" FOREIGN KEY ("id_ticket_status") REFERENCES "ticket_status"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_ban" ADD CONSTRAINT "community_ban_community_id_fkey" FOREIGN KEY ("community_id") REFERENCES "community"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "community_ban" ADD CONSTRAINT "community_ban_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

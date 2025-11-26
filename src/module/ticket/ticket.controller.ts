@@ -1,12 +1,7 @@
-import type { IAuthUser } from '@common/interfaces/auth-user.interface'
 import type { Request } from 'express'
-import { CurrentUser } from '@common/decorators/current-user.decorator'
-import { OwnershipType, RequireOwnership } from '@common/decorators/ownership.decorator'
-import { Roles } from '@common/decorators/roles.decorator'
-import { UserRole } from '@common/enums/roles.enum'
 import { LoggerService } from '@common/logger/logger.service'
-import { CreateEventDto } from '@module/ticket/dto/createEvent.dto'
-import { UpdateEventDto } from '@module/ticket/dto/updateEvent.dto'
+import { CreateTicketTypeDto } from '@module/ticket/dto/create-ticket-type.dto'
+import { UpdateTicketTypeDto } from '@module/ticket/dto/update-ticket-type.dto'
 import { TicketService } from '@module/ticket/ticket.service'
 import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Inject, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
@@ -22,95 +17,89 @@ export class TicketController {
     private readonly logger: LoggerService
   ) {}
 
-  @Post()
+  @Post('types')
   @VerifySession()
-  @Roles(UserRole.COMMUNITY)
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Criar novo ticket',
-    description: 'Cria um novo tipo de ticket para eventos da comunidade'
+    summary: 'Criar novo tipo de ticket',
+    description: 'Cria um novo tipo de ticket (produto) para um evento'
   })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Ticket criado com sucesso' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Usuário não tem permissão de comunidade' })
-  async create(@Body() data: CreateEventDto, @CurrentUser() user: IAuthUser) {
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'Tipo de ticket criado com sucesso' })
+  async createTicketType(@Body() data: CreateTicketTypeDto) {
     try {
-      this.logger.debug('Creating ticket', { data, userId: user.id })
-      if (!user.communityId) {
-        throw new Error('Community ID is required')
-      }
-      const result = await this.ticketService.create(user.communityId, data)
-      this.logger.log('Ticket created successfully', { ticketId: result.id })
+      this.logger.debug('Creating ticket type', { eventId: data.eventId, name: data.name })
+      const result = await this.ticketService.createTicketType(data)
+      this.logger.log('Ticket type created successfully', { ticketTypeId: result.id })
       return result
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      this.logger.error('Error creating ticket', errorMessage)
+      this.logger.error('Error creating ticket type', errorMessage)
       throw error
     }
   }
 
-  @Get(':id')
+  @Get('types/:id')
   @PublicAccess()
-  @ApiOperation({ summary: 'Buscar ticket por ID' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Dados do ticket' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Ticket não encontrado' })
-  async getByID(@Param('id', ParseIntPipe) id: number) {
-    return await this.ticketService.getById(id)
+  @ApiOperation({ summary: 'Buscar tipo de ticket por ID' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Dados do tipo de ticket' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Tipo de ticket não encontrado' })
+  async getTicketTypeById(@Param('id', ParseIntPipe) id: number) {
+    return await this.ticketService.getTicketTypeById(id)
   }
 
-  @Get()
+  @Get('event/:eventId/types')
   @PublicAccess()
+  @ApiOperation({ summary: 'Listar tipos de tickets de um evento' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Lista de tipos de tickets' })
+  async getTicketTypesByEvent(@Param('eventId', ParseIntPipe) eventId: number) {
+    return await this.ticketService.getTicketTypesByEvent(eventId)
+  }
+
+  @Patch('types/:id')
+  @VerifySession()
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Listar todos os tickets',
-    description: 'Lista tipos de tickets disponíveis com paginação HATEOAS e filtros'
+    summary: 'Atualizar tipo de ticket',
+    description: 'Atualiza um tipo de ticket existente'
   })
-  @ApiQuery({ name: 'take', required: false, type: Number, example: 25, description: 'Quantidade de registros' })
-  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0, description: 'Quantidade de registros para pular' })
-  @ApiQuery({ name: 'eventId', required: false, type: Number, description: 'Filtrar por ID do evento' })
-  @ApiQuery({ name: 'isActive', required: false, type: Boolean, description: 'Filtrar por status ativo/inativo' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Lista de tickets retornada com sucesso com links de navegação' })
-  async getAll(
+  @ApiResponse({ status: HttpStatus.OK, description: 'Tipo de ticket atualizado com sucesso' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Tipo de ticket não encontrado' })
+  async updateTicketType(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() data: UpdateTicketTypeDto
+  ) {
+    return await this.ticketService.updateTicketType(id, data)
+  }
+
+  @Delete('types/:id')
+  @VerifySession()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Deletar tipo de ticket' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Tipo de ticket deletado com sucesso' })
+  async deleteTicketType(@Param('id', ParseIntPipe) id: number) {
+    await this.ticketService.deleteTicketType(id)
+  }
+
+  // Endpoints para tickets comprados (Legacy/Future)
+  @Get()
+  @VerifySession()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Listar tickets comprados',
+    description: 'Lista tickets comprados (instâncias) com paginação'
+  })
+  @ApiQuery({ name: 'take', required: false, type: Number, example: 25 })
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
+  @ApiQuery({ name: 'eventId', required: false, type: Number })
+  @ApiQuery({ name: 'userId', required: false, type: Number })
+  async getAllTickets(
     @Query('take', new DefaultValuePipe(25), ParseIntPipe) take: number,
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number,
     @Query('eventId') eventId?: number,
-    @Query('isActive') isActive?: boolean,
+    @Query('userId') userId?: number,
     @Req() req?: Request
   ) {
     const baseUrl = req ? `${req.protocol}://${req.get('host')}${req.baseUrl}` : '/tickets'
-    return await this.ticketService.getAll(take, skip, { eventId, isActive, baseUrl })
-  }
-
-  @Patch(':id')
-  @VerifySession()
-  @RequireOwnership(OwnershipType.TICKET, 'id')
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Atualizar ticket',
-    description: 'Atualiza um tipo de ticket. Apenas o dono da comunidade pode atualizar'
-  })
-  @ApiQuery({ name: 'idAddress', required: false, type: Number, description: 'ID do endereço (se aplicável)' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Ticket atualizado com sucesso' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Sem permissão para atualizar este ticket' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Ticket não encontrado' })
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Query('idAddress', new DefaultValuePipe(null), ParseIntPipe) idAddress: number,
-    @Body() data: UpdateEventDto
-  ) {
-    return await this.ticketService.update(id, data, idAddress)
-  }
-
-  @Delete(':id')
-  @VerifySession()
-  @RequireOwnership(OwnershipType.TICKET, 'id')
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Deletar ticket',
-    description: 'Remove um tipo de ticket. Apenas o dono da comunidade pode deletar'
-  })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Ticket deletado com sucesso' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Sem permissão para deletar este ticket' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Ticket não encontrado' })
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    await this.ticketService.delete(id)
+    return await this.ticketService.getAllTickets(take, skip, { eventId, userId, baseUrl })
   }
 }

@@ -1,3 +1,4 @@
+import { CustomSuperTokensAuthGuard } from '@common/guards/supertokens-auth.guard'
 import { LoggerModule } from '@common/logger/logger.module'
 import { AuthContextMiddleware } from '@common/middleware/auth-context.middleware'
 import { RateLimitMiddleware } from '@common/middleware/rate-limit.middleware'
@@ -10,11 +11,12 @@ import { AppService } from '@module/app/app.service'
 import { AuthModule } from '@module/auth/auth.module'
 import { CommunityModule } from '@module/community/community.module'
 import { EventModule } from '@module/event/event.module'
+import { OrderModule } from '@module/order/order.module'
 import { TicketModule } from '@module/ticket/ticket.module'
 import { Injectable, MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD } from '@nestjs/core'
-import { SuperTokensAuthGuard, SuperTokensExceptionFilter } from 'supertokens-nestjs'
+import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
 import { middleware } from 'supertokens-node/framework/express'
 
 @Injectable()
@@ -38,7 +40,8 @@ class BootstrapProbeService implements OnModuleInit {
     AuthModule,
     EventModule,
     TicketModule,
-    AddressModule
+    AddressModule,
+    OrderModule
   ],
   controllers: [AppController],
   providers: [
@@ -48,7 +51,7 @@ class BootstrapProbeService implements OnModuleInit {
     BootstrapProbeService,
     {
       provide: APP_GUARD,
-      useClass: SuperTokensAuthGuard
+      useClass: CustomSuperTokensAuthGuard
     },
     {
       provide: APP_FILTER,

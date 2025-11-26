@@ -73,6 +73,7 @@ Table user {
   updatedAt DateTime [not null]
   communities community_user [not null]
   communityRequests community_user_request [not null]
+  communityBans community_ban [not null]
   tickets ticket [not null]
   orders order [not null]
 
@@ -94,6 +95,7 @@ Table community {
   links community_link [not null]
   users community_user [not null]
   userRequests community_user_request [not null]
+  communityBans community_ban [not null]
   products product [not null]
 
   Note: 'Community model representing organizations/groups'
@@ -189,6 +191,7 @@ Table event {
   address address
   modality event_modality [not null]
   tickets ticket [not null]
+  ticketTypes ticket_type [not null]
 
   Note: 'Events organized by communities'
 }
@@ -280,10 +283,27 @@ Table product {
   Note: 'Products that can be sold (merchandise, etc)'
 }
 
+Table ticket_type {
+  id Int [pk, increment]
+  eventId Int [not null]
+  name String [not null]
+  description String
+  price Decimal [not null]
+  quantity Int [not null, default: 0]
+  isActive Boolean [not null, default: true]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  event event [not null]
+  tickets ticket [not null]
+
+  Note: 'Types of tickets available for an event (e.g. VIP, General)'
+}
+
 Table ticket {
   id Int [pk, increment]
   eventId Int [not null]
   userId Int [not null]
+  ticketTypeId Int [not null]
   ticketStatusId Int [not null]
   value Decimal [not null]
   purchasedAt DateTime [not null]
@@ -291,9 +311,25 @@ Table ticket {
   updatedAt DateTime [not null]
   event event [not null]
   user user [not null]
+  ticketType ticket_type [not null]
   status ticket_status [not null]
 
   Note: 'Event tickets purchased by users'
+}
+
+Table community_ban {
+  communityId Int [not null]
+  userId Int [not null]
+  reason String
+  bannedAt DateTime [default: `now()`, not null]
+  community community [not null]
+  user user [not null]
+
+  indexes {
+    (communityId, userId) [pk]
+  }
+
+  Note: 'Banned users from communities'
 }
 
 Ref: community_link.communityId > community.id [delete: Cascade]
@@ -330,8 +366,16 @@ Ref: order_item.itemTypeId > order_item_type.id [delete: Restrict]
 
 Ref: product.communityId > community.id [delete: Set Null]
 
+Ref: ticket_type.eventId > event.id [delete: Cascade]
+
 Ref: ticket.eventId > event.id [delete: Cascade]
 
 Ref: ticket.userId > user.id [delete: Cascade]
 
+Ref: ticket.ticketTypeId > ticket_type.id [delete: Restrict]
+
 Ref: ticket.ticketStatusId > ticket_status.id [delete: Restrict]
+
+Ref: community_ban.communityId > community.id [delete: Cascade]
+
+Ref: community_ban.userId > user.id [delete: Cascade]

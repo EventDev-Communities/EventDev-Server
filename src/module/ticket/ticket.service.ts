@@ -1,97 +1,81 @@
 import { buildPaginatedResponse } from '@common/dto/pagination.dto'
 import { LoggerService } from '@common/logger/logger.service'
-import { AddressService } from '@module/address/address.service'
-import { CommunityService } from '@module/community/community.service'
-import { CreateEventDto } from '@module/ticket/dto/createEvent.dto'
-import { ModalityEvent } from '@module/ticket/dto/ticket.dto'
-import { UpdateEventDto } from '@module/ticket/dto/updateEvent.dto'
+import { CreateTicketTypeDto } from '@module/ticket/dto/create-ticket-type.dto'
+import { UpdateTicketTypeDto } from '@module/ticket/dto/update-ticket-type.dto'
 import { TicketRepository } from '@module/ticket/ticket.repository'
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { Prisma, Ticket, TicketType } from '@prisma/client'
 
 @Injectable()
 export class TicketService {
   constructor(
     @Inject(TicketRepository) private readonly ticketRepository: TicketRepository,
-    @Inject(CommunityService) private readonly communityService: CommunityService,
-    @Inject(AddressService) private readonly addressService: AddressService,
     @Inject(LoggerService) private readonly logger: LoggerService
   ) {
     this.logger.log('[TicketService] constructed')
   }
 
-  async create(idCommunity: number, data: CreateEventDto) {
+  async createTicketType(data: CreateTicketTypeDto) {
     try {
-      this.logger.debug('Creating ticket', { idCommunity, title: data.title })
-
-      await this.communityService.isExistCommunity(idCommunity)
-
-      const startDate = new Date(data.startDateTime)
-      const endDate = new Date(data.endDateTime)
-
-      if (startDate >= endDate) {
-        throw new BadRequestException('Data de início deve ser anterior à data de fim')
-      }
-
-      if (startDate < new Date()) {
-        throw new BadRequestException('Data de início não pode ser no passado')
-      }
-
-      let addressId: number | undefined
-
-      if (data.modality !== 'ONLINE' && data.address) {
-        this.logger.debug('Creating address for ticket')
-        const createdAddress = await this.addressService.create(data.address)
-        addressId = createdAddress.id
-        this.logger.debug('Address created', { addressId })
-      }
-
-      if (data.modality !== 'ONLINE' && !addressId) {
-        throw new BadRequestException('Eventos presenciais e híbridos devem ter endereço')
-      }
-
-      const eventData = {
-        title: data.title,
-        description: data.description,
-        startDateTime: startDate,
-        endDateTime: endDate,
-        modality: data.modality,
-        link: data.link ?? '',
-        coverUrl: data.coverUrl ?? '',
-        isActive: data.isActive ?? true,
-        addressId
-      }
-
-      const createdEvent = await this.ticketRepository.create(eventData, idCommunity)
-
-      this.logger.log('Ticket created successfully', { ticketId: createdEvent.id, idCommunity })
-
-      return createdEvent
+      this.logger.debug('Creating ticket type', { eventId: data.eventId, name: data.name })
+      const ticketType = await this.ticketRepository.createTicketType(data)
+      this.logger.log('Ticket type created successfully', { ticketTypeId: ticketType.id })
+      return ticketType
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
-        throw error
-      }
-
-      this.logger.error('Erro ao criar evento:', error instanceof Error ? error.stack : String(error))
-      throw new BadRequestException('Erro interno ao criar evento')
+      this.logger.error('Error creating ticket type:', error instanceof Error ? error.stack : String(error))
+      throw new BadRequestException('Erro ao criar tipo de ticket')
     }
   }
 
-  async getById(id: number) {
-    await this.verifyEventIsExist(id)
-    return await this.ticketRepository.getByID(id)
-  }
-
-  private async verifyEventIsExist(id: number) {
-    const ticket = await this.ticketRepository.getByID(id)
-    if (!ticket) {
-      throw new NotFoundException('Evento não encontrado!')
+  async getTicketTypeById(id: number): Promise<TicketType> {
+    const ticketType = await this.ticketRepository.getTicketTypeById(id)
+    if (!ticketType) {
+      throw new NotFoundException('Tipo de ticket não encontrado')
     }
+    return ticketType
   }
 
-  async getAll(take: number, skip: number, options?: { eventId?: number, isActive?: boolean, baseUrl?: string }) {
-    const { data, total } = await this.ticketRepository.getAll(take, skip, {
+  async getTicketTypesByEvent(eventId: number) {
+    return await this.ticketRepository.getTicketTypesByEvent(eventId)
+  }
+
+  async updateTicketType(id: number, data: UpdateTicketTypeDto) {
+    await this.getTicketTypeById(id)
+    return await this.ticketRepository.updateTicketType(id, data)
+  }
+
+  async deleteTicketType(id: number) {
+    await this.getTicketTypeById(id)
+    await this.ticketRepository.deleteTicketType(id)
+  }
+
+  async createTicket(data: {
+    eventId: number
+    userId: number
+    ticketTypeId: number
+    value: number
+  }, tx?: Prisma.TransactionClient): Promise<Ticket> {
+    const status = await this.ticketRepository.getTicketStatusByCode('CONFIRMED')
+    if (!status) {
+      throw new Error('Ticket Status CONFIRMED not found')
+    }
+
+    return await this.ticketRepository.createTicket({
+      ...data,
+      ticketStatusId: status.id,
+      purchasedAt: new Date()
+    }, tx)
+  }
+
+  async decrementStock(ticketTypeId: number, quantity: number, tx?: Prisma.TransactionClient): Promise<TicketType> {
+    return await this.ticketRepository.decrementTicketTypeQuantity(ticketTypeId, quantity, tx)
+  }
+
+  // Legacy/Purchased Tickets methods
+  async getAllTickets(take: number, skip: number, options?: { eventId?: number, userId?: number, baseUrl?: string }) {
+    const { data, total } = await this.ticketRepository.getAllTickets(take, skip, {
       eventId: options?.eventId,
-      isActive: options?.isActive
+      userId: options?.userId
     })
 
     return buildPaginatedResponse(data, total, {
@@ -100,35 +84,8 @@ export class TicketService {
       baseUrl: options?.baseUrl || '/tickets',
       queryParams: {
         eventId: options?.eventId,
-        isActive: options?.isActive
+        userId: options?.userId
       }
     })
-  }
-
-  async update(idEvent: number, data: UpdateEventDto, idAddress: number) {
-    await this.verifyEventIsExist(idEvent)
-    if (data.address) {
-      await this.addressService.update(data.address, idAddress)
-    }
-    if (!data.event) {
-      throw new BadRequestException('Dados do evento não informados para atualização')
-    }
-    const eventToUpdate = {
-      ...data.event,
-      link: data.event.link ?? '',
-      coverUrl: data.event.coverUrl ?? '',
-      title: data.event.title ?? '',
-      description: data.event.description ?? '',
-      startDateTime: data.event.startDateTime ? new Date(data.event.startDateTime) : new Date(),
-      endDateTime: data.event.endDateTime ? new Date(data.event.endDateTime) : new Date(),
-      modality: data.event.modality ?? ModalityEvent.ONLINE,
-      isActive: data.event.isActive ?? true
-    }
-    return await this.ticketRepository.update(idEvent, eventToUpdate)
-  }
-
-  async delete(idEvent: number) {
-    await this.verifyEventIsExist(idEvent)
-    await this.ticketRepository.delete(idEvent)
   }
 }

@@ -22,7 +22,12 @@ jest.mock('supertokens-node', () => ({
 }))
 
 jest.mock('supertokens-node/recipe/session', () => ({
-  default: {}
+  __esModule: true,
+  default: {
+    createNewSession: jest.fn(),
+    init: jest.fn()
+  },
+  SessionContainer: jest.fn()
 }))
 
 describe('AuthService', () => {
@@ -56,7 +61,11 @@ describe('AuthService', () => {
     debug: jest.fn()
   }
 
-  const mockPrismaService = {}
+  const mockPrismaService = {
+    user: {
+      create: jest.fn()
+    }
+  }
 
   beforeEach(async () => {
     moduleRef = await Test.createTestingModule({

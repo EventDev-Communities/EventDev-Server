@@ -1,6 +1,6 @@
 import { PrismaService } from '@db/prisma.service'
 import { AddressDto } from '@module/address/dto/address.dto'
-import { PartialAddressDto } from '@module/address/dto/partialAddress.dto'
+import { PartialAddressDto } from '@module/address/dto/partial-address.dto'
 import { Inject, Injectable } from '@nestjs/common'
 
 @Injectable()

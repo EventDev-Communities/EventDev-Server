@@ -10,7 +10,7 @@ const rootDir = process.cwd()
 const envTestPath = join(rootDir, 'test', '.env.test')
 
 if (existsSync(envTestPath)) {
-  config({ path: envTestPath, override: false })
+  config({ path: envTestPath, override: true })
 }
 
 const databaseUrl = process.env.DATABASE_URL

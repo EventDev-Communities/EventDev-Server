@@ -1,5 +1,5 @@
 import { PrismaService } from '@db/prisma.service'
-import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
+import { UpdateCommunityDto } from '@module/community/dto/update-community.dto'
 import { Inject, Injectable } from '@nestjs/common'
 import { CommunityInvitation, Prisma } from '@prisma/client'
 
@@ -80,6 +80,125 @@ export class CommunityRepository {
     return await this.prismaService.communityInvitation.update({
       where: { id },
       data: { isUsed: true }
+    })
+  }
+
+  async addMember(communityId: number, userId: number, roleCode: string) {
+    const role = await this.prismaService.userRole.findUnique({
+      where: { code: roleCode }
+    })
+
+    if (!role) {
+      throw new Error(`Role ${roleCode} not found`)
+    }
+
+    return await this.prismaService.communityUser.create({
+      data: {
+        communityId,
+        userId,
+        roleId: role.id
+      }
+    })
+  }
+
+  async removeMember(communityId: number, userId: number) {
+    return await this.prismaService.communityUser.delete({
+      where: {
+        communityId_userId: {
+          communityId,
+          userId
+        }
+      }
+    })
+  }
+
+  async isMember(communityId: number, userId: number) {
+    const count = await this.prismaService.communityUser.count({
+      where: {
+        communityId,
+        userId
+      }
+    })
+    return count > 0
+  }
+
+  async getMembers(communityId: number, take: number, skip: number) {
+    const [data, total] = await Promise.all([
+      this.prismaService.communityUser.findMany({
+        where: { communityId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              supertokensId: true
+              // Add other user fields if needed
+            }
+          },
+          role: true
+        },
+        take,
+        skip,
+        orderBy: {
+          joinedAt: 'desc'
+        }
+      }),
+      this.prismaService.communityUser.count({
+        where: { communityId }
+      })
+    ])
+
+    return { data, total }
+  }
+
+  async getMember(communityId: number, userId: number) {
+    return await this.prismaService.communityUser.findUnique({
+      where: {
+        communityId_userId: {
+          communityId,
+          userId
+        }
+      },
+      include: {
+        role: true
+      }
+    })
+  }
+
+  async getUserBySupertokensId(supertokensId: string) {
+    return await this.prismaService.user.findUnique({
+      where: { supertokensId }
+    })
+  }
+
+  async banUser(communityId: number, userId: number, reason?: string) {
+    return await this.prismaService.communityBan.create({
+      data: {
+        communityId,
+        userId,
+        reason
+      }
+    })
+  }
+
+  async isBanned(communityId: number, userId: number) {
+    const count = await this.prismaService.communityBan.count({
+      where: {
+        communityId,
+        userId
+      }
+    })
+    return count > 0
+  }
+
+  async unbanUser(communityId: number, userId: number) {
+    return await this.prismaService.communityBan.delete({
+      where: {
+        communityId_userId: {
+          communityId,
+          userId
+        }
+      }
     })
   }
 }

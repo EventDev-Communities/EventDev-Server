@@ -1,5 +1,5 @@
 import { AddressDto } from '@module/address/dto/address.dto'
-import { ModalityEvent } from '@module/ticket/dto/createEvent.dto'
+import { ModalityEvent } from '@module/event/dto/create-event.dto'
 import { Type } from 'class-transformer'
 import { IsBoolean, IsDateString, IsEnum, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator'
 

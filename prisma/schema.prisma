@@ -112,6 +112,7 @@ model User {
   // Relations
   communities       CommunityUser[]
   communityRequests CommunityUserRequest[]
+  communityBans     CommunityBan[]
   tickets           Ticket[]
   orders            Order[]
 
@@ -140,6 +141,7 @@ model Community {
   links        CommunityLink[]
   users        CommunityUser[]
   userRequests CommunityUserRequest[]
+  communityBans CommunityBan[]
   products     Product[]
 
   @@index([name])
@@ -258,6 +260,7 @@ model Event {
   address   Address?      @relation(fields: [addressId], references: [id], onDelete: SetNull)
   modality  EventModality @relation(fields: [modalityId], references: [id], onDelete: Restrict)
   tickets   Ticket[]
+  ticketTypes TicketType[]
 
   @@index([communityId, isActive])
   @@index([startDateTime, endDateTime])
@@ -394,11 +397,32 @@ model Product {
 // TICKET MODULE
 // ============================================================================
 
+/// Types of tickets available for an event (e.g. VIP, General)
+model TicketType {
+  id          Int      @id @default(autoincrement())
+  eventId     Int      @map("id_event")
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  price       Decimal  @db.Decimal(10, 2)
+  quantity    Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // Relations
+  event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets Ticket[]
+
+  @@index([eventId])
+  @@map("ticket_type")
+}
+
 /// Event tickets purchased by users
 model Ticket {
   id             Int      @id @default(autoincrement())
   eventId        Int      @map("id_event")
   userId         Int      @map("id_user")
+  ticketTypeId   Int      @map("id_ticket_type")
   ticketStatusId Int      @map("id_ticket_status")
   value          Decimal  @db.Decimal(10, 2)
   purchasedAt    DateTime @map("purchased_at") @db.Timestamp(6)
@@ -406,13 +430,30 @@ model Ticket {
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
 
   // Relations
-  event  Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status TicketStatus @relation(fields: [ticketStatusId], references: [id], onDelete: Restrict)
+  event      Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketType TicketType   @relation(fields: [ticketTypeId], references: [id], onDelete: Restrict)
+  status     TicketStatus @relation(fields: [ticketStatusId], references: [id], onDelete: Restrict)
   // Note: OrderItems reference tickets via polymorphic relationship (item_type_id + item_id)
 
   @@index([eventId, userId])
   @@index([userId])
+  @@index([ticketTypeId])
   @@index([ticketStatusId])
   @@map("ticket")
+}
+
+/// Banned users from communities
+model CommunityBan {
+  communityId Int      @map("community_id")
+  userId      Int      @map("user_id")
+  reason      String?  @db.VarChar(500)
+  bannedAt    DateTime @default(now()) @map("banned_at") @db.Timestamp(6)
+
+  // Relations
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([communityId, userId])
+  @@map("community_ban")
 }

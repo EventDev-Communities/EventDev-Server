@@ -1,4 +1,5 @@
 import { LoggerService } from '@common/logger/logger.service'
+import { EmailService } from '@infrastructure/email/email.service'
 import { CommunityRepository } from '@module/community/community.repository'
 import { CommunityService } from '@module/community/community.service'
 import { NotFoundException } from '@nestjs/common'
@@ -25,6 +26,10 @@ describe('Community Tests', () => {
     debug: jest.fn()
   }
 
+  const mockEmailService = {
+    sendInvitationEmail: jest.fn()
+  }
+
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       providers: [
@@ -36,6 +41,10 @@ describe('Community Tests', () => {
         {
           provide: LoggerService,
           useValue: mockLogger
+        },
+        {
+          provide: EmailService,
+          useValue: mockEmailService
         }
       ]
     }).compile()

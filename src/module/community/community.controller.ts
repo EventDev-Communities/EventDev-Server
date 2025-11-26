@@ -5,9 +5,9 @@ import { OwnershipType, RequireOwnership } from '@common/decorators/ownership.de
 import { Roles } from '@common/decorators/roles.decorator'
 import { UserRole } from '@common/enums/roles.enum'
 import { CommunityService } from '@module/community/community.service'
-import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
-import { InviteCommunityDto } from '@module/community/dto/inviteCommunity.dto'
-import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
+import { CreateCommunityDto } from '@module/community/dto/create-community.dto'
+import { InviteCommunityDto } from '@module/community/dto/invite-community.dto'
+import { UpdateCommunityDto } from '@module/community/dto/update-community.dto'
 import { Body, Controller, DefaultValuePipe, Delete, Get, HttpStatus, Inject, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { PublicAccess, VerifySession } from 'supertokens-nestjs'
@@ -127,5 +127,53 @@ export class CommunityController {
   })
   async validateInvite(@Param('token') token: string) {
     return await this.communityService.validateInvitation(token)
+  }
+
+  @Post(':id/join')
+  @VerifySession()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Entrar na comunidade (Seguir)' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Entrou na comunidade com sucesso' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Usuário já é membro' })
+  async join(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: IAuthUser) {
+    return await this.communityService.join(id, user.id)
+  }
+
+  @Post(':id/leave')
+  @VerifySession()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Sair da comunidade (Deixar de seguir)' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Saiu da comunidade com sucesso' })
+  @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Usuário não é membro' })
+  async leave(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: IAuthUser) {
+    return await this.communityService.leave(id, user.id)
+  }
+
+  @Get(':id/members')
+  @PublicAccess()
+  @ApiOperation({ summary: 'Listar membros da comunidade' })
+  @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
+  @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Lista de membros' })
+  async getMembers(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('take', new DefaultValuePipe(20), ParseIntPipe) take: number,
+    @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip: number
+  ) {
+    return await this.communityService.getMembers(id, take, skip)
+  }
+
+  @Delete(':id/members/:userId')
+  @VerifySession()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remover membro da comunidade (Banir)' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Membro removido com sucesso' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Sem permissão para remover membros' })
+  async removeMember(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) targetUserId: number,
+    @CurrentUser() user: IAuthUser
+  ) {
+    return await this.communityService.removeMember(id, user.id, targetUserId)
   }
 }

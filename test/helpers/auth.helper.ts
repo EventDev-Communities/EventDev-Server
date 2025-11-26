@@ -48,7 +48,6 @@ export async function createTestUser(
     data: {
       supertokensId,
       email,
-      password: 'test-password-hash', // Placeholder since SuperTokens manages real passwords
       isRoot,
       isActive: true
     }
@@ -114,7 +113,6 @@ export async function createTestCommunityUser(
     data: {
       supertokensId: community.supertokensId,
       email,
-      password: 'test-password-hash',
       isRoot: false,
       isActive: true
     }

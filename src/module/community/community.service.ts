@@ -4,10 +4,10 @@ import { buildPaginatedResponse } from '@common/dto/pagination.dto'
 import { LoggerService } from '@common/logger/logger.service'
 import { EmailService } from '@infrastructure/email/email.service'
 import { CommunityRepository } from '@module/community/community.repository'
-import { CreateCommunityDto } from '@module/community/dto/createCommunity.dto'
-import { InviteCommunityDto } from '@module/community/dto/inviteCommunity.dto'
-import { UpdateCommunityDto } from '@module/community/dto/updateCommunity.dto'
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { CreateCommunityDto } from '@module/community/dto/create-community.dto'
+import { InviteCommunityDto } from '@module/community/dto/invite-community.dto'
+import { UpdateCommunityDto } from '@module/community/dto/update-community.dto'
+import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 
 import { CommunityInvitation } from '@prisma/client'
 
@@ -125,5 +125,101 @@ export class CommunityService {
 
   async markInvitationAsUsed(id: number) {
     return await this.communityRepository.markInvitationAsUsed(id)
+  }
+
+  async join(communityId: number, supertokensId: string) {
+    await this.isExistCommunity(communityId)
+
+    const user = await this.communityRepository.getUserBySupertokensId(supertokensId)
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado')
+    }
+
+    const isBanned = await this.communityRepository.isBanned(communityId, user.id)
+    if (isBanned) {
+      throw new ForbiddenException('Você foi banido desta comunidade e não pode entrar novamente.')
+    }
+
+    const isMember = await this.communityRepository.isMember(communityId, user.id)
+    if (isMember) {
+      throw new BadRequestException('Usuário já é membro desta comunidade')
+    }
+
+    // Default role for new members is 'MEMBER'
+    await this.communityRepository.addMember(communityId, user.id, 'MEMBER')
+    this.logger.log(`Usuário ${user.id} entrou na comunidade ${communityId}`)
+
+    return { message: 'Entrou na comunidade com sucesso' }
+  }
+
+  async leave(communityId: number, supertokensId: string) {
+    await this.isExistCommunity(communityId)
+
+    const user = await this.communityRepository.getUserBySupertokensId(supertokensId)
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado')
+    }
+
+    const isMember = await this.communityRepository.isMember(communityId, user.id)
+    if (!isMember) {
+      throw new BadRequestException('Usuário não é membro desta comunidade')
+    }
+
+    // Check if user is the last owner (optional safety check, but maybe too complex for now)
+    // For now, just allow leaving.
+
+    await this.communityRepository.removeMember(communityId, user.id)
+    this.logger.log(`Usuário ${user.id} saiu da comunidade ${communityId}`)
+
+    return { message: 'Saiu da comunidade com sucesso' }
+  }
+
+  async getMembers(communityId: number, take: number, skip: number) {
+    await this.isExistCommunity(communityId)
+    const { data, total } = await this.communityRepository.getMembers(communityId, take, skip)
+
+    return buildPaginatedResponse(data, total, {
+      take,
+      skip,
+      baseUrl: `/communities/${communityId}/members`
+    })
+  }
+
+  async removeMember(communityId: number, requesterSupertokensId: string, targetUserId: number) {
+    await this.isExistCommunity(communityId)
+
+    const requesterUser = await this.communityRepository.getUserBySupertokensId(requesterSupertokensId)
+    if (!requesterUser) {
+      throw new NotFoundException('Usuário solicitante não encontrado')
+    }
+
+    const requesterMember = await this.communityRepository.getMember(communityId, requesterUser.id)
+    if (!requesterMember) {
+      throw new ForbiddenException('Você não é membro desta comunidade')
+    }
+
+    // Check permissions: Only OWNER (level 1) and ADMIN (level 2) can remove members
+    if (requesterMember.role.level > 2) {
+      throw new ForbiddenException('Você não tem permissão para remover membros')
+    }
+
+    const targetMember = await this.communityRepository.getMember(communityId, targetUserId)
+    if (!targetMember) {
+      throw new NotFoundException('Membro alvo não encontrado')
+    }
+
+    // Prevent removing someone with higher or equal role
+    if (requesterMember.role.level >= targetMember.role.level) {
+      throw new ForbiddenException('Você não pode remover um membro com cargo igual ou superior ao seu')
+    }
+
+    await this.communityRepository.removeMember(communityId, targetUserId)
+
+    // Ban the user to prevent re-joining
+    await this.communityRepository.banUser(communityId, targetUserId, `Removido por ${requesterUser.id}`)
+
+    this.logger.log(`Usuário ${targetUserId} removido e banido da comunidade ${communityId} por ${requesterUser.id}`)
+
+    return { message: 'Membro removido e banido com sucesso' }
   }
 }

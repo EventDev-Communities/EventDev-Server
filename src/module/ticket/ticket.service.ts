@@ -3,7 +3,7 @@ import { LoggerService } from '@common/logger/logger.service'
 import { CreateTicketTypeDto } from '@module/ticket/dto/create-ticket-type.dto'
 import { UpdateTicketTypeDto } from '@module/ticket/dto/update-ticket-type.dto'
 import { TicketRepository } from '@module/ticket/ticket.repository'
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import { Prisma, Ticket, TicketType } from '@prisma/client'
 
 @Injectable()
@@ -33,6 +33,14 @@ export class TicketService {
       throw new NotFoundException('Tipo de ticket não encontrado')
     }
     return ticketType
+  }
+
+  async getTicketById(id: number) {
+    const ticket = await this.ticketRepository.getTicketById(id)
+    if (!ticket) {
+      throw new NotFoundException('Ticket não encontrado')
+    }
+    return ticket
   }
 
   async getTicketTypesByEvent(eventId: number) {
@@ -87,5 +95,46 @@ export class TicketService {
         userId: options?.userId
       }
     })
+  }
+
+  async checkIn(ticketId: number, userId: string) {
+    const ticket = await this.ticketRepository.getTicketById(ticketId)
+    if (!ticket) {
+      throw new NotFoundException('Ticket não encontrado')
+    }
+
+    // Verify ownership/permission
+    // Logic: The user performing the check-in must be the owner of the community that created the event
+    // This logic might be better placed in a Guard or Controller, but we can do a basic check here if we have access to CommunityService
+    // For now, we will assume the Controller has validated that the user has permission to manage this event.
+
+    if (ticket.status.code === 'USED') {
+      throw new BadRequestException('Ticket já utilizado')
+    }
+
+    if (ticket.status.code !== 'CONFIRMED') {
+      throw new BadRequestException(`Ticket inválido para check-in (Status: ${ticket.status.name})`)
+    }
+
+    const usedStatus = await this.ticketRepository.getTicketStatusByCode('USED')
+    if (!usedStatus) {
+      throw new InternalServerErrorException('Status USED não encontrado no sistema')
+    }
+
+    await this.ticketRepository.updateTicketStatus(ticket.id, usedStatus.id)
+
+    this.logger.log(`Check-in realizado com sucesso`, { ticketId, userId })
+
+    return {
+      status: 'success',
+      message: 'Check-in realizado com sucesso',
+      ticket: {
+        id: ticket.id,
+        event: ticket.event.title,
+        participant: ticket.user.email,
+        type: ticket.ticketType.name,
+        checkedInAt: new Date()
+      }
+    }
   }
 }

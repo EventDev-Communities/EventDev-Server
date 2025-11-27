@@ -97,7 +97,34 @@ Este documento reúne as histórias de usuário que guiam o desenvolvimento das 
 - Se o ingresso já foi usado, o sistema deve alertar "JÁ UTILIZADO" (erro).
 - Se o ingresso for inválido ou de outro evento, deve alertar "INVÁLIDO".
 
-## 5. E-commerce (Futuro)
+## 5. Pagamentos e Integrações (PAY)
+
+### US-PAY-01: Compra de Ingresso Pago
+
+**Como** participante,
+**Quero** comprar um ingresso pago para um evento,
+**Para** garantir minha participação mediante pagamento.
+
+**Critérios de Aceite:**
+
+- O sistema deve criar uma "Order" com status PENDING.
+- O sistema deve retornar um link de pagamento (Checkout Pro) do Mercado Pago.
+- O ingresso só deve ser gerado após a confirmação do pagamento via Webhook.
+
+### US-PAY-02: Processamento de Pagamento (Webhook)
+
+**Como** sistema,
+**Quero** receber notificações de pagamento do Mercado Pago,
+**Para** atualizar o status dos pedidos e liberar os ingressos automaticamente.
+
+**Critérios de Aceite:**
+
+- O endpoint deve validar a assinatura HMAC do Mercado Pago para garantir autenticidade.
+- Se o pagamento for aprovado, o status da Order muda para COMPLETED e os Tickets são gerados.
+- Se o pagamento for rejeitado, o status da Order muda para CANCELLED.
+- O endpoint deve ser idempotente (processar o mesmo evento apenas uma vez).
+
+## 6. E-commerce (Futuro)
 
 ### US-ECO-01: Venda de Produtos
 

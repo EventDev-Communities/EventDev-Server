@@ -71,6 +71,12 @@ Este documento descreve as regras de negócio invariantes do sistema **EventDev-
 - **RN-PROD-01**: Produtos com estoque zero não podem ser adicionados a novos pedidos.
 - **RN-PROD-02**: A exclusão de um produto não deve apagar o histórico de pedidos que o contêm (soft delete ou desativação).
 
+### 4.3. Pagamentos (Payments)
+
+- **RN-PAY-01**: O status do pedido deve ser atualizado automaticamente via Webhook do provedor de pagamento (Mercado Pago).
+- **RN-PAY-02**: Pagamentos rejeitados devem cancelar o pedido e liberar o estoque/vagas reservados.
+- **RN-PAY-03**: A confirmação do pagamento (status `approved`) deve disparar a emissão definitiva dos ingressos.
+
 ## 5. Notificações (Notifications)
 
 ### 5.1. Segurança de Mensagens

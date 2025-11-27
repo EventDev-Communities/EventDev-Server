@@ -7,21 +7,34 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
   imports: [
     MailerModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        transport: {
-          host: configService.get<string>('SMTP_HOST') ?? 'smtp.gmail.com',
-          port: Number.parseInt(configService.get<string>('SMTP_PORT') ?? '587', 10),
-          secure: configService.get<string>('SMTP_SECURE') === 'true',
-          auth: {
-            user: configService.get<string>('SMTP_USER') ?? '',
-            pass: configService.get<string>('SMTP_PASS') ?? ''
+      useFactory: (configService: ConfigService) => {
+        if (configService.get('NODE_ENV') === 'test') {
+          return {
+            transport: {
+              jsonTransport: true
+            },
+            defaults: {
+              from: 'test@example.com'
+            }
           }
-        },
-        defaults: {
-          from: `"${configService.get<string>('SMTP_FROM_NAME') ?? 'EventDev'}" <${configService.get<string>('SMTP_FROM_EMAIL') ?? configService.get<string>('SMTP_USER') ?? ''}>`,
-          replyTo: configService.get<string>('SMTP_REPLY_TO')
         }
-      }),
+
+        return {
+          transport: {
+            host: configService.get<string>('SMTP_HOST') ?? 'smtp.gmail.com',
+            port: Number.parseInt(configService.get<string>('SMTP_PORT') ?? '587', 10),
+            secure: configService.get<string>('SMTP_SECURE') === 'true',
+            auth: {
+              user: configService.get<string>('SMTP_USER') ?? '',
+              pass: configService.get<string>('SMTP_PASS') ?? ''
+            }
+          },
+          defaults: {
+            from: `"${configService.get<string>('SMTP_FROM_NAME') ?? 'EventDev'}" <${configService.get<string>('SMTP_FROM_EMAIL') ?? configService.get<string>('SMTP_USER') ?? ''}>`,
+            replyTo: configService.get<string>('SMTP_REPLY_TO')
+          }
+        }
+      },
       inject: [ConfigService]
     })
   ],

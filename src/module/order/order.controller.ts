@@ -1,5 +1,5 @@
+import type { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { CurrentUser } from '@common/decorators/current-user.decorator'
-import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { LoggerService } from '@common/logger/logger.service'
 import { PrismaService } from '@db/prisma.service'
 import { CreateOrderDto } from '@module/order/dto/create-order.dto'

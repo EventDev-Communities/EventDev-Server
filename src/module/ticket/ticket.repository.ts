@@ -125,4 +125,25 @@ export class TicketRepository {
 
     return { data, total }
   }
+
+  async getTicketById(id: number) {
+    return await this.prismaService.ticket.findUnique({
+      where: { id },
+      include: {
+        event: true,
+        status: true,
+        ticketType: true,
+        user: true
+      }
+    })
+  }
+
+  async updateTicketStatus(id: number, statusId: number) {
+    return await this.prismaService.ticket.update({
+      where: { id },
+      data: {
+        ticketStatusId: statusId
+      }
+    })
+  }
 }

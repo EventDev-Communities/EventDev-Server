@@ -1,4 +1,13 @@
-import { IsEmail, IsNumber, IsOptional, IsString, Min } from 'class-validator'
+import { Type } from 'class-transformer'
+import { IsEmail, IsNumber, IsObject, IsOptional, IsString, Min, ValidateNested } from 'class-validator'
+
+class PayerIdentificationDto {
+  @IsString()
+  type: string
+
+  @IsString()
+  number: string
+}
 
 export class CreateOrderDto {
   @IsNumber()
@@ -25,4 +34,15 @@ export class CreateOrderDto {
 
   @IsEmail()
   payerEmail: string
+
+  @IsString()
+  payerFirstName: string
+
+  @IsString()
+  payerLastName: string
+
+  @IsObject()
+  @ValidateNested()
+  @Type(() => PayerIdentificationDto)
+  payerIdentification: PayerIdentificationDto
 }

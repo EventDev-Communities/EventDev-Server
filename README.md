@@ -10,6 +10,8 @@ O **EventDev Server** é a API backend para a plataforma EventDev, construída c
 - **Linguagem**: TypeScript
 - **Banco de Dados**: PostgreSQL (via Prisma ORM)
 - **Autenticação**: SuperTokens
+- **Pagamentos**: Mercado Pago (Pix e Cartão)
+- **Cache/Rate Limit**: Redis
 - **Compilação**: SWC (Speedy Web Compiler) para desenvolvimento rápido.
 
 ## Scripts Principais

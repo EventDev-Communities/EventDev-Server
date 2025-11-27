@@ -1,6 +1,6 @@
+import type { IAuthUser, ISignInResult, ISignUpResult } from '@common/interfaces/auth-user.interface'
 import { Permission } from '@common/enums/permissions.enum'
 import { UserRole } from '@common/enums/roles.enum'
-import { IAuthUser, ISignInResult, ISignUpResult } from '@common/interfaces/auth-user.interface'
 import { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
 import { Injectable } from '@nestjs/common'
 import supertokens from 'supertokens-node'

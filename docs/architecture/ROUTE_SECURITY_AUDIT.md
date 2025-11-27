@@ -71,6 +71,20 @@ As rotas de leitura (GET) "List All" são majoritariamente públicas, o que pode
 | POST | `/signup/community` | **Público** | `@PublicAccess` | Registro público de comunidade. |
 | POST | `/invite/accept` | **Público** | `@PublicAccess` | Aceitar convite. |
 
+### OrderController (`/orders`)
+
+| Método | Rota | Acesso | Decorators | Observações |
+| :--- | :--- | :--- | :--- | :--- |
+| POST | `/` | Protegido | `@VerifySession` | Cria uma nova ordem de compra. |
+| GET | `/` | Protegido | `@VerifySession` | Lista ordens do usuário logado. |
+| GET | `/:id` | Protegido | `@VerifySession` | Detalhes de uma ordem específica. |
+
+### OrderWebhookController (`/webhooks/mercadopago`)
+
+| Método | Rota | Acesso | Decorators | Observações |
+| :--- | :--- | :--- | :--- | :--- |
+| POST | `/` | **Público** | `@PublicAccess` | Recebe notificações de pagamento. Valida assinatura HMAC. |
+
 ### AppController (`/`)
 
 | Método | Rota | Acesso | Decorators | Observações |

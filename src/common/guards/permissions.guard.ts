@@ -1,6 +1,6 @@
+import type { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { PERMISSIONS_KEY } from '@common/decorators/permissions.decorator'
 import { Permission } from '@common/enums/permissions.enum'
-import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 

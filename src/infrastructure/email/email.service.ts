@@ -1,6 +1,14 @@
 import { LoggerService } from '@common/logger/logger.service'
 import { MailerService } from '@nestjs-modules/mailer'
 import { Inject, Injectable } from '@nestjs/common'
+import * as QRCode from 'qrcode'
+
+export interface TicketEmailData {
+  id: number
+  eventName: string
+  ticketType: string
+  participantName: string
+}
 
 @Injectable()
 export class EmailService {
@@ -53,6 +61,49 @@ export class EmailService {
       return true
     } catch (error) {
       this.logger.error(`Erro ao enviar convite para [REDACTED]`, error instanceof Error ? error.stack : String(error))
+      return false
+    }
+  }
+
+  async sendTicketEmail(to: string, tickets: TicketEmailData[]) {
+    try {
+      const ticketsHtml = await Promise.all(
+        tickets.map(async (ticket) => {
+          const qrCodeDataUrl = await QRCode.toDataURL(String(ticket.id))
+          return `
+            <div style="border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 10px;">
+              <h3>${ticket.eventName}</h3>
+              <p><strong>Participante:</strong> ${ticket.participantName}</p>
+              <p><strong>Tipo:</strong> ${ticket.ticketType}</p>
+              <p><strong>Ticket ID:</strong> #${ticket.id}</p>
+              <div style="text-align: center; margin-top: 15px;">
+                <img src="${qrCodeDataUrl}" alt="QR Code do Ticket #${ticket.id}" style="width: 200px; height: 200px;" />
+                <p style="font-size: 12px; color: #666;">Apresente este QR Code na entrada</p>
+              </div>
+            </div>
+          `
+        })
+      )
+
+      await this.mailerService.sendMail({
+        to,
+        subject: 'Seus ingressos chegaram! - EventDev',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2>Pagamento Confirmado!</h2>
+            <p>Olá,</p>
+            <p>Seu pagamento foi confirmado e seus ingressos já estão disponíveis.</p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+            ${ticketsHtml.join('')}
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p>Bom evento!</p>
+          </div>
+        `
+      })
+      this.logger.log(`Email de tickets enviado para [REDACTED]`)
+      return true
+    } catch (error) {
+      this.logger.error(`Erro ao enviar email de tickets para [REDACTED]`, error instanceof Error ? error.stack : String(error))
       return false
     }
   }

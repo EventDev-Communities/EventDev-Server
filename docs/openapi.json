@@ -304,6 +304,152 @@
         ]
       }
     },
+    "/api/v1/communities/{id}/join": {
+      "post": {
+        "operationId": "CommunityController_join",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entrou na comunidade com sucesso"
+          },
+          "400": {
+            "description": "Usuário já é membro"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Entrar na comunidade (Seguir)",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/communities/{id}/leave": {
+      "post": {
+        "operationId": "CommunityController_leave",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saiu da comunidade com sucesso"
+          },
+          "400": {
+            "description": "Usuário não é membro"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Sair da comunidade (Deixar de seguir)",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/communities/{id}/members": {
+      "get": {
+        "operationId": "CommunityController_getMembers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de membros"
+          }
+        },
+        "summary": "Listar membros da comunidade",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
+    "/api/v1/communities/{id}/members/{userId}": {
+      "delete": {
+        "operationId": "CommunityController_removeMember",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Membro removido com sucesso"
+          },
+          "403": {
+            "description": "Sem permissão para remover membros"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remover membro da comunidade (Banir)",
+        "tags": [
+          "communities"
+        ]
+      }
+    },
     "/api/v1/auth/signin": {
       "post": {
         "description": "Realiza login com email e senha. Retorna dados do usuário e seus papéis",
@@ -846,27 +992,24 @@
         ]
       }
     },
-    "/api/v1/tickets": {
+    "/api/v1/tickets/types": {
       "post": {
-        "description": "Cria um novo tipo de ticket para eventos da comunidade",
-        "operationId": "TicketController_create",
+        "description": "Cria um novo tipo de ticket (produto) para um evento",
+        "operationId": "TicketController_createTicketType",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateEventDto"
+                "$ref": "#/components/schemas/CreateTicketTypeDto"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Ticket criado com sucesso"
-          },
-          "403": {
-            "description": "Usuário não tem permissão de comunidade"
+            "description": "Tipo de ticket criado com sucesso"
           }
         },
         "security": [
@@ -874,20 +1017,140 @@
             "bearer": []
           }
         ],
-        "summary": "Criar novo ticket",
+        "summary": "Criar novo tipo de ticket",
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/api/v1/tickets/types/{id}": {
+      "get": {
+        "operationId": "TicketController_getTicketTypeById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados do tipo de ticket"
+          },
+          "404": {
+            "description": "Tipo de ticket não encontrado"
+          }
+        },
+        "summary": "Buscar tipo de ticket por ID",
         "tags": [
           "tickets"
         ]
       },
+      "patch": {
+        "description": "Atualiza um tipo de ticket existente",
+        "operationId": "TicketController_updateTicketType",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicketTypeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket atualizado com sucesso"
+          },
+          "404": {
+            "description": "Tipo de ticket não encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Atualizar tipo de ticket",
+        "tags": [
+          "tickets"
+        ]
+      },
+      "delete": {
+        "operationId": "TicketController_deleteTicketType",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket deletado com sucesso"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deletar tipo de ticket",
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/api/v1/tickets/event/{eventId}/types": {
       "get": {
-        "description": "Lista tipos de tickets disponíveis com paginação HATEOAS e filtros",
-        "operationId": "TicketController_getAll",
+        "operationId": "TicketController_getTicketTypesByEvent",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tipos de tickets"
+          }
+        },
+        "summary": "Listar tipos de tickets de um evento",
+        "tags": [
+          "tickets"
+        ]
+      }
+    },
+    "/api/v1/tickets": {
+      "get": {
+        "description": "Lista tickets comprados (instâncias) com paginação",
+        "operationId": "TicketController_getAllTickets",
         "parameters": [
           {
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "Quantidade de registros",
             "schema": {
               "example": 25,
               "type": "number"
@@ -897,7 +1160,6 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "Quantidade de registros para pular",
             "schema": {
               "example": 0,
               "type": "number"
@@ -907,35 +1169,39 @@
             "name": "eventId",
             "required": false,
             "in": "query",
-            "description": "Filtrar por ID do evento",
             "schema": {
               "type": "number"
             }
           },
           {
-            "name": "isActive",
+            "name": "userId",
             "required": false,
             "in": "query",
-            "description": "Filtrar por status ativo/inativo",
             "schema": {
-              "type": "boolean"
+              "type": "number"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Lista de tickets retornada com sucesso com links de navegação"
+            "description": ""
           }
         },
-        "summary": "Listar todos os tickets",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar tickets comprados",
         "tags": [
           "tickets"
         ]
       }
     },
-    "/api/v1/tickets/{id}": {
-      "get": {
-        "operationId": "TicketController_getByID",
+    "/api/v1/tickets/{id}/check-in": {
+      "post": {
+        "description": "Valida um ingresso e marca como utilizado. Requer permissão de staff da comunidade.",
+        "operationId": "TicketController_checkIn",
         "parameters": [
           {
             "name": "id",
@@ -948,58 +1214,44 @@
         ],
         "responses": {
           "200": {
-            "description": "Dados do ticket"
+            "description": "Check-in realizado com sucesso"
           },
-          "404": {
-            "description": "Ticket não encontrado"
+          "400": {
+            "description": "Ticket inválido ou já utilizado"
+          },
+          "403": {
+            "description": "Sem permissão para realizar check-in neste evento"
           }
         },
-        "summary": "Buscar ticket por ID",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Realizar Check-in",
         "tags": [
           "tickets"
         ]
-      },
-      "patch": {
-        "description": "Atualiza um tipo de ticket. Apenas o dono da comunidade pode atualizar",
-        "operationId": "TicketController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "idAddress",
-            "required": false,
-            "in": "query",
-            "description": "ID do endereço (se aplicável)",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
+      }
+    },
+    "/api/v1/orders": {
+      "post": {
+        "description": "Cria um pedido e processa o pagamento via Mercado Pago (Checkout Transparente)",
+        "operationId": "OrderController_createOrder",
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateEventDto"
+                "$ref": "#/components/schemas/CreateOrderDto"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Ticket atualizado com sucesso"
-          },
-          "403": {
-            "description": "Sem permissão para atualizar este ticket"
-          },
-          "404": {
-            "description": "Ticket não encontrado"
+          "201": {
+            "description": "Pedido criado e pagamento processado"
           }
         },
         "security": [
@@ -1007,43 +1259,41 @@
             "bearer": []
           }
         ],
-        "summary": "Atualizar ticket",
+        "summary": "Criar pedido (Checkout)",
         "tags": [
-          "tickets"
+          "orders"
         ]
-      },
-      "delete": {
-        "description": "Remove um tipo de ticket. Apenas o dono da comunidade pode deletar",
-        "operationId": "TicketController_delete",
+      }
+    },
+    "/api/v1/webhooks/mercadopago": {
+      "post": {
+        "operationId": "OrderWebhookController_handleMercadoPagoWebhook",
         "parameters": [
           {
-            "name": "id",
+            "name": "x-signature",
             "required": true,
-            "in": "path",
+            "in": "header",
             "schema": {
-              "type": "number"
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-request-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Ticket deletado com sucesso"
-          },
-          "403": {
-            "description": "Sem permissão para deletar este ticket"
-          },
-          "404": {
-            "description": "Ticket não encontrado"
+            "description": ""
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Deletar ticket",
+        "summary": "Receber notificações do Mercado Pago",
         "tags": [
-          "tickets"
+          "webhooks"
         ]
       }
     }
@@ -1395,6 +1645,18 @@
         "required": [
           "cep"
         ]
+      },
+      "CreateTicketTypeDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateTicketTypeDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {}
       }
     }
   }

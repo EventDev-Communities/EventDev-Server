@@ -10,7 +10,7 @@ export class LoggerService implements NestLoggerService {
   constructor() {
     this.logger = pino({
       level: env().LOG_LEVEL,
-      transport: env().NODE_ENV === 'production'
+      transport: (env().NODE_ENV === 'production' || env().NODE_ENV === 'test')
         ? undefined
         : {
             target: 'pino-pretty',

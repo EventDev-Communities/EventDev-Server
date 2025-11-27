@@ -1,6 +1,6 @@
+import type { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { ROLES_KEY } from '@common/decorators/roles.decorator'
 import { UserRole } from '@common/enums/roles.enum'
-import { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 

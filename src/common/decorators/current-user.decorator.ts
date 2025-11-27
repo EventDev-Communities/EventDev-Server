@@ -1,4 +1,4 @@
-import { IAuthUser } from '@common/interfaces/auth-user.interface'
+import type { IAuthUser } from '@common/interfaces/auth-user.interface'
 import { createParamDecorator, ExecutionContext } from '@nestjs/common'
 
 export const CurrentUser = createParamDecorator((data: unknown, ctx: ExecutionContext): IAuthUser => {

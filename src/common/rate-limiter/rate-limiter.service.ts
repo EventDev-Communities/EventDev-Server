@@ -287,8 +287,15 @@ export class RateLimiterService implements OnApplicationShutdown {
     }
 
     try {
-      await this.redisClient.quit()
+      // Tenta fechar graciosamente com timeout de 500ms
+      const quitPromise = this.redisClient.quit()
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Redis quit timeout')), 500)
+      })
+
+      await Promise.race([quitPromise, timeoutPromise])
     } catch {
+      // Se falhar ou der timeout, força desconexão
       this.redisClient.disconnect()
     }
   }

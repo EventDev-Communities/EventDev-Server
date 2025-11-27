@@ -1,13 +1,15 @@
 import { createHmac } from 'node:crypto'
 import { LoggerService } from '@common/logger/logger.service'
+import { env } from '@configs/env'
 import { PrismaService } from '@db/prisma.service'
+import { EmailService } from '@infrastructure/email/email.service'
 import { CreateOrderDto } from '@module/order/dto/create-order.dto'
 import { OrderRepository } from '@module/order/order.repository'
 import { TicketService } from '@module/ticket/ticket.service'
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Order, OrderStatus, Prisma, Ticket, TicketType } from '@prisma/client'
-import MercadoPagoConfig, { Payment } from 'mercadopago'
+import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { PaymentCreateRequest } from 'mercadopago/dist/clients/payment/create/types'
 
 interface MercadoPagoPaymentResponse {
@@ -51,6 +53,7 @@ export class OrderService {
     @Inject(TicketService) private readonly ticketService: ITicketService,
     @Inject(LoggerService) private readonly logger: LoggerService,
     @Inject(PrismaService) private readonly prismaService: PrismaService,
+    @Inject(EmailService) private readonly emailService: EmailService,
     private readonly configService: ConfigService
   ) {
     const accessToken = this.configService.get<string>('MERCADO_PAGO_ACCESS_TOKEN')
@@ -128,6 +131,8 @@ export class OrderService {
   }
 
   private async createPaymentTransaction(order: Order, data: CreateOrderDto, description: string, userId: number) {
+    const notificationUrl = `${env().WEBSITE_DOMAIN}/api/v1/webhooks`
+
     const paymentData: PaymentCreateRequest = {
       transaction_amount: Number(order.totalAmount),
       token: data.token,
@@ -136,8 +141,30 @@ export class OrderService {
       payment_method_id: data.paymentMethodId,
       issuer_id: data.issuerId ? Number(data.issuerId) : undefined,
       payer: {
-        email: data.payerEmail
+        email: data.payerEmail,
+        first_name: data.payerFirstName,
+        last_name: data.payerLastName,
+        identification: {
+          type: data.payerIdentification.type,
+          number: data.payerIdentification.number
+        }
       },
+      additional_info: {
+        items: [
+          {
+            id: String(data.ticketTypeId),
+            title: description,
+            description: `Ticket para ${description}`,
+            quantity: data.quantity,
+            unit_price: Number(order.totalAmount) / data.quantity,
+            category_id: 'tickets'
+          }
+        ]
+      },
+      external_reference: String(order.id),
+      notification_url: notificationUrl,
+      binary_mode: true,
+      statement_descriptor: 'EVENTDEV',
       metadata: {
         order_id: order.id,
         user_id: userId
@@ -182,10 +209,19 @@ export class OrderService {
     if (status === 'approved') {
       const approvedStatus = await this.orderRepository.getOrderStatusByCode('CONFIRMED')
       if (approvedStatus) {
+        // Use a variable to store tickets created in the transaction
+        let createdTickets: Ticket[] = []
+
         await this.prismaService.$transaction(async (tx) => {
-          await this.processApprovedOrder(orderId, tx)
+          createdTickets = await this.processApprovedOrder(orderId, tx)
           await this.orderRepository.updateOrderStatus(orderId, approvedStatus.id, transactionId, tx)
         })
+
+        // Send email after transaction commit
+        if (createdTickets.length > 0) {
+          // Fire and forget email sending to not block response
+          void this.sendTicketsEmail(orderId, createdTickets)
+        }
         return
       }
     } else if (status === 'rejected') {
@@ -199,13 +235,14 @@ export class OrderService {
     await this.orderRepository.updateOrderStatus(orderId, initialStatus.id, transactionId)
   }
 
-  private async processApprovedOrder(orderId: number, tx: Prisma.TransactionClient) {
+  private async processApprovedOrder(orderId: number, tx: Prisma.TransactionClient): Promise<Ticket[]> {
     const order = await this.orderRepository.getOrderByIdWithItems(orderId, tx)
     if (!order) {
-      return
+      return []
     }
 
     const ticketItems = order.items.filter((item) => item.itemType.code === 'TICKET')
+    const createdTickets: Ticket[] = []
 
     await Promise.all(
       ticketItems.map(async (item) => {
@@ -213,7 +250,7 @@ export class OrderService {
         await this.ticketService.decrementStock(ticketType.id, item.quantity, tx)
 
         const promises = Array.from({ length: item.quantity }).map(async () => {
-          return await this.ticketService.createTicket(
+          const ticket = await this.ticketService.createTicket(
             {
               eventId: ticketType.eventId,
               userId: order.userId,
@@ -222,10 +259,48 @@ export class OrderService {
             },
             tx
           )
+          createdTickets.push(ticket)
+          return ticket
         })
         await Promise.all(promises)
       })
     )
+    return createdTickets
+  }
+
+  private async sendTicketsEmail(orderId: number, tickets: Ticket[]) {
+    try {
+      const order = await this.orderRepository.getOrderByIdWithItems(orderId)
+      if (!order) {
+        return
+      }
+
+      const ticketsWithDetails = await Promise.all(
+        tickets.map(async (t) => {
+          return await this.prismaService.ticket.findUnique({
+            where: { id: t.id },
+            include: {
+              event: true,
+              ticketType: true,
+              user: true
+            }
+          })
+        })
+      )
+
+      const emailData = ticketsWithDetails
+        .filter((t): t is NonNullable<typeof t> => t !== null)
+        .map((t) => ({
+          id: t.id,
+          eventName: t.event.title,
+          ticketType: t.ticketType.name,
+          participantName: t.user.email // Or name if we had it
+        }))
+
+      await this.emailService.sendTicketEmail(order.user.email, emailData)
+    } catch (error) {
+      this.logger.error('Error sending ticket email', error instanceof Error ? error.message : String(error))
+    }
   }
 
   private async handlePaymentError(orderId: number, error: unknown) {

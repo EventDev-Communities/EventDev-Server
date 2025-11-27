@@ -1,6 +1,7 @@
 import { UserRole } from '@common/enums/roles.enum'
 import { PrismaService } from '@db/prisma.service'
 import { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
+import { EmailService } from '@infrastructure/email/email.service'
 import { AppModule } from '@module/app/app.module'
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common'
 import { Test, TestingModule } from '@nestjs/testing'
@@ -17,10 +18,18 @@ describe('Community Invite E2E Test', () => {
   const adminEmail = `admin-${Date.now()}@test.com`
   const adminPassword = 'AdminPassword123!'
 
+  const mockEmailService = {
+    sendInvitationEmail: jest.fn().mockResolvedValue(true),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(true)
+  }
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule]
-    }).compile()
+    })
+      .overrideProvider(EmailService)
+      .useValue(mockEmailService)
+      .compile()
 
     app = moduleFixture.createNestApplication()
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))
@@ -39,46 +48,30 @@ describe('Community Invite E2E Test', () => {
     const admins = await authAdapter.getUsersByRole(UserRole.ADMIN)
     await Promise.all(admins.map(async (adminId) => await deleteUser(adminId)))
 
-    // Create Admin User via Bootstrap (Real Auth)
-    // Note: We send role: 'user' to pass DTO validation, but bootstrapAdmin forces UserRole.ADMIN internally.
-    await request(app.getHttpServer())
-      .post('/auth/bootstrap/admin')
-      .send({
-        email: adminEmail,
-        password: adminPassword,
-        name: 'Admin User',
-        role: 'user',
-        is_active: true
-      })
-      .expect(HttpStatus.CREATED)
-
-    // Login to get tokens
-    const signinResponse = await request(app.getHttpServer())
-      .post('/auth/signin')
-      .send({
-        email: adminEmail,
-        password: adminPassword
-      })
-      .expect(HttpStatus.OK)
-
-    accessToken = signinResponse.headers['st-access-token']
-    refreshToken = signinResponse.headers['st-refresh-token']
-
-    if (!accessToken) {
-      throw new Error('Access token not found in signin response headers')
+    // Create Admin User
+    const signUpResponse = await authAdapter.signUp(adminEmail, adminPassword)
+    if (signUpResponse.status === 'OK' && signUpResponse.user) {
+      await authAdapter.addRoleToUser(signUpResponse.user.id, UserRole.ADMIN)
+    } else if (signUpResponse.status !== 'EMAIL_ALREADY_EXISTS') {
+      console.error('Signup failed:', signUpResponse)
     }
 
-    // Get User ID to upgrade role
-    const userId = signinResponse.body.user.id
+    // Sign In to get tokens
+    const loginResponse = await request(app.getHttpServer())
+      .post('/auth/signin')
+      .send({ email: adminEmail, password: adminPassword })
+      .expect(HttpStatus.OK)
 
-    // Upgrade to PLATFORM_ADMIN
-    await authAdapter.addRoleToUser(userId, UserRole.PLATFORM_ADMIN)
-  }, 60000)
+    accessToken = loginResponse.headers['st-access-token']
+    refreshToken = loginResponse.headers['st-refresh-token']
+
+    if (!accessToken || !refreshToken) {
+      console.error('Login failed, no tokens in headers:', loginResponse.headers)
+      throw new Error('Login failed, no tokens received')
+    }
+  })
 
   afterAll(async () => {
-    await prismaService.communityInvitation.deleteMany()
-    await prismaService.community.deleteMany()
-    await prismaService.user.deleteMany()
     await prismaService.$disconnect()
     await app.close()
   })

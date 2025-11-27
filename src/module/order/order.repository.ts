@@ -69,6 +69,7 @@ export class OrderRepository {
       where: { id },
       include: {
         orderStatus: true,
+        user: true, // Include user to get email
         items: {
           include: {
             itemType: true

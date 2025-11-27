@@ -1,6 +1,7 @@
 import { createHmac } from 'node:crypto'
 import { LoggerService } from '@common/logger/logger.service'
 import { PrismaService } from '@db/prisma.service'
+import { EmailService } from '@infrastructure/email/email.service'
 import { CreateOrderDto } from '@module/order/dto/create-order.dto'
 import { OrderRepository } from '@module/order/order.repository'
 import { OrderService } from '@module/order/order.service'
@@ -13,7 +14,7 @@ import { Order, OrderItemType, OrderStatus, TicketType } from '@prisma/client'
 jest.mock('mercadopago', () => {
   return {
     __esModule: true,
-    default: jest.fn(),
+    MercadoPagoConfig: jest.fn(),
     Payment: jest.fn().mockImplementation(() => ({
       create: jest.fn(),
       get: jest.fn()
@@ -27,6 +28,10 @@ describe('OrderService', () => {
   let ticketService: TicketService
   let configService: ConfigService
   let paymentMock: any
+
+  const mockEmailService = {
+    sendTicketEmail: jest.fn()
+  }
 
   const mockOrderRepository = {
     getOrderStatusByCode: jest.fn(),
@@ -66,6 +71,7 @@ describe('OrderService', () => {
         { provide: TicketService, useValue: mockTicketService },
         { provide: LoggerService, useValue: mockLoggerService },
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: EmailService, useValue: mockEmailService },
         { provide: ConfigService, useValue: mockConfigService }
       ]
     }).compile()
@@ -98,7 +104,13 @@ describe('OrderService', () => {
       token: 'test-token',
       payerEmail: 'test@test.com',
       installments: 1,
-      issuerId: '123'
+      issuerId: '123',
+      payerFirstName: 'Test',
+      payerLastName: 'User',
+      payerIdentification: {
+        type: 'CPF',
+        number: '12345678909'
+      }
     }
 
     const mockTicketType = {

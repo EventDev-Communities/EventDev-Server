@@ -11,7 +11,7 @@ O **EventDev Server** é a API backend para a plataforma EventDev, construída c
 - **Banco de Dados**: PostgreSQL (via Prisma ORM)
   - **Desenvolvimento**: Estratégia de bancos separados (`gt_dev` para aplicação, `supertokens_dev` para auth) para evitar race conditions.
 - **Autenticação**: SuperTokens
-- **Pagamentos**: Mercado Pago (Pix e Cartão)
+- **Pagamentos**: Mercado Pago Checkout Pro (Preferences)
 - **Cache/Rate Limit**: Redis
 - **Compilação**: SWC (Speedy Web Compiler) para desenvolvimento rápido.
 
@@ -36,6 +36,7 @@ Os testes estão organizados em `test/unit` (unitários) e `test/e2e` (integraç
 
 - `pnpm migrate-prod`: Aplica migrações em produção.
 - `pnpm seed`: Popula o banco de dados com dados iniciais.
+- `pnpm simulate-webhook <payment_id>`: Simula um webhook do Mercado Pago para um pagamento específico (útil para testar aprovação de pedidos localmente).
 
 ## Cobertura de Testes
 

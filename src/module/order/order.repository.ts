@@ -12,7 +12,7 @@ export class OrderRepository {
 
   async createOrder(userId: number, data: {
     totalAmount: number
-    paymentMethod: string
+    paymentMethod?: string
     transactionId?: string
     statusId: number
   }) {

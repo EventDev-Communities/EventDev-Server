@@ -4,7 +4,7 @@ import { LoggerService } from '@common/logger/logger.service'
 import { PrismaService } from '@db/prisma.service'
 import { CreateOrderDto } from '@module/order/dto/create-order.dto'
 import { OrderService } from '@module/order/order.service'
-import { Body, Controller, HttpStatus, Inject, NotFoundException, Post } from '@nestjs/common'
+import { Body, Controller, HttpStatus, Inject, NotFoundException, Post, UnauthorizedException } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { VerifySession } from 'supertokens-nestjs'
 
@@ -25,7 +25,10 @@ export class OrderController {
     description: 'Cria um pedido e processa o pagamento via Mercado Pago (Checkout Transparente)'
   })
   @ApiResponse({ status: HttpStatus.CREATED, description: 'Pedido criado e pagamento processado' })
-  async createOrder(@Body() data: CreateOrderDto, @CurrentUser() user: IAuthUser) {
+  async createOrder(@Body() data: CreateOrderDto, @CurrentUser() user?: IAuthUser) {
+    if (!user) {
+      throw new UnauthorizedException('User context not found')
+    }
     const dbUser = await this.prismaService.user.findUnique({ where: { supertokensId: user.id } })
     if (!dbUser) {
       throw new NotFoundException('User not found')

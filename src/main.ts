@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { LoggerService } from '@common/logger/logger.service'
-import { printBootstrapBanner } from '@common/utils/bootstrap-logger.util'
+import { printBootstrapBanner } from '@common/utils/bootstrap-logger.util.js'
 import { env } from '@configs/env'
 import { ensureSuperTokensInitialized } from '@configs/supertokens.config'
 import { AppModule } from '@module/app/app.module'

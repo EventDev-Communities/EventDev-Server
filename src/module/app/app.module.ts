@@ -1,4 +1,5 @@
 import { CustomSuperTokensAuthGuard } from '@common/guards/supertokens-auth.guard'
+import { UserContextInterceptor } from '@common/interceptors/user-context.interceptor'
 import { LoggerModule } from '@common/logger/logger.module'
 import { AuthContextMiddleware } from '@common/middleware/auth-context.middleware'
 import { RateLimitMiddleware } from '@common/middleware/rate-limit.middleware'
@@ -15,7 +16,7 @@ import { OrderModule } from '@module/order/order.module'
 import { TicketModule } from '@module/ticket/ticket.module'
 import { Injectable, MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_FILTER, APP_GUARD } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core'
 import { SuperTokensExceptionFilter } from 'supertokens-nestjs'
 import { middleware } from 'supertokens-node/framework/express'
 
@@ -52,6 +53,10 @@ class BootstrapProbeService implements OnModuleInit {
     {
       provide: APP_GUARD,
       useClass: CustomSuperTokensAuthGuard
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: UserContextInterceptor
     },
     {
       provide: APP_FILTER,

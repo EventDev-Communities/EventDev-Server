@@ -50,7 +50,10 @@ O **EventDev-Server** é uma plataforma backend para gerenciamento de eventos t�
 ### 4. Ingressos (Tickets)
 
 - **Emissão**: Participantes autenticados podem adquirir ingressos.
-- **Tipos**: Gratuitos ou Pagos (Integração com Mercado Pago. Métodos: Pix e Cartão).
+- **Tipos**: Gratuitos ou Pagos.
+- **Pagamento**: Integração via **Mercado Pago Checkout Pro**.
+  - O usuário é redirecionado para o ambiente seguro do Mercado Pago.
+  - Suporte nativo a Pix, Cartão de Crédito, Boleto e Saldo MP.
 - **Validação**: O sistema impede emissão para eventos passados, cancelados ou esgotados.
 - **Identificador Único**: Cada ingresso possui um UUID ou Hash único para geração de QR Code e validação no Check-in.
 

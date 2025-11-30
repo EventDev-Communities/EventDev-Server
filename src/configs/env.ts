@@ -42,7 +42,10 @@ export const envSchema = z.object({
 
   // Server
   NODE_PORT: z.coerce.number().default(5122),
-  ALLOWED_ORIGINS: z.string().optional()
+  ALLOWED_ORIGINS: z.string().optional(),
+
+  // Mercado Pago
+  MERCADO_PAGO_ACCESS_TOKEN: z.string().optional()
 })
 
 export type EnvConfig = z.infer<typeof envSchema>

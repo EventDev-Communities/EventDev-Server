@@ -9,8 +9,8 @@ import { TicketService } from '@module/ticket/ticket.service'
 import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Order, OrderStatus, Prisma, Ticket, TicketType } from '@prisma/client'
-import { MercadoPagoConfig, Payment } from 'mercadopago'
-import { PaymentCreateRequest } from 'mercadopago/dist/clients/payment/create/types'
+import { MercadoPagoConfig, Payment, Preference } from 'mercadopago'
+import { PreferenceRequest } from 'mercadopago/dist/clients/preference/commonTypes'
 
 interface MercadoPagoPaymentResponse {
   id: number
@@ -46,7 +46,8 @@ interface ITicketService {
 @Injectable()
 export class OrderService {
   private client: MercadoPagoConfig
-  private payment: Payment
+  private preferenceClient: Preference
+  private paymentClient: Payment
 
   constructor(
     @Inject(OrderRepository) private readonly orderRepository: OrderRepository,
@@ -60,8 +61,17 @@ export class OrderService {
     if (!accessToken) {
       this.logger.warn('MERCADO_PAGO_ACCESS_TOKEN not found in env')
     }
-    this.client = new MercadoPagoConfig({ accessToken: accessToken || '' })
-    this.payment = new Payment(this.client)
+
+    if (accessToken) {
+      this.logger.log(`Initializing Mercado Pago with token: ${accessToken.substring(0, 10)}...`)
+    }
+
+    this.client = new MercadoPagoConfig({
+      accessToken: accessToken || '',
+      options: { timeout: 5000 }
+    })
+    this.preferenceClient = new Preference(this.client)
+    this.paymentClient = new Payment(this.client)
   }
 
   async createOrder(userId: number, data: CreateOrderDto) {
@@ -108,76 +118,149 @@ export class OrderService {
     initialStatus: OrderStatus
   ) {
     try {
-      const paymentResponse = await this.createPaymentTransaction(order, data, description, userId)
-      const { id: transactionId, status, status_detail: statusDetail } = paymentResponse
+      // If total amount is 0, we don't need to create a payment preference
+      if (Number(order.totalAmount) === 0) {
+        this.logger.log('Processing free order', { orderId: order.id })
+        const transactionId = `FREE-${order.id}-${Date.now()}`
 
-      this.logger.log('Payment processed', { transactionId, status })
+        await this.updateOrderStatusAfterPayment(order.id, 'approved', initialStatus, transactionId)
 
-      await this.updateOrderStatusAfterPayment(order.id, status, initialStatus, String(transactionId))
+        return {
+          orderId: order.id,
+          status: 'approved',
+          statusDetail: 'accredited',
+          transactionId,
+          initPoint: null,
+          sandboxInitPoint: null
+        }
+      }
+
+      const preferenceResponse = await this.createPaymentTransaction(order, data, description)
+      const { id: preferenceId, init_point: initPoint, sandbox_init_point: sandboxInitPoint } = preferenceResponse
+
+      this.logger.log('Preference created', { preferenceId })
+
+      // We use the preference ID as the transaction ID initially
+      await this.updateOrderStatusAfterPayment(order.id, 'pending', initialStatus, String(preferenceId))
 
       return {
         orderId: order.id,
-        status,
-        statusDetail,
-        transactionId,
-        qrCode: paymentResponse.point_of_interaction?.transaction_data?.qr_code,
-        qrCodeBase64: paymentResponse.point_of_interaction?.transaction_data?.qr_code_base64,
-        ticketUrl: paymentResponse.point_of_interaction?.transaction_data?.ticket_url
+        status: 'pending',
+        statusDetail: 'pending_payment',
+        transactionId: preferenceId,
+        initPoint,
+        sandboxInitPoint
       }
     } catch (error) {
+      const trace = error instanceof Error ? error.stack : String(error)
+      this.logger.error('Payment processing error', trace)
       await this.handlePaymentError(order.id, error)
-      throw new BadRequestException(`Falha ao processar pagamento: ${error instanceof Error ? error.message : String(error)}`)
+
+      const errorMessage = this.extractErrorMessage(error)
+
+      throw new BadRequestException(`Falha ao processar pagamento: ${errorMessage}`)
     }
   }
 
-  private async createPaymentTransaction(order: Order, data: CreateOrderDto, description: string, userId: number) {
-    const notificationUrl = `${env().WEBSITE_DOMAIN}/api/v1/webhooks/mercadopago`
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message
+    }
 
-    const paymentData: PaymentCreateRequest = {
-      transaction_amount: Number(order.totalAmount),
-      token: data.token,
-      description: `Ticket: ${description}`,
-      installments: data.installments || 1,
-      payment_method_id: data.paymentMethodId,
-      issuer_id: data.issuerId ? Number(data.issuerId) : undefined,
+    if (typeof error !== 'object' || error === null) {
+      return String(error)
+    }
+
+    const mpError = error as { message?: string, cause?: unknown[] }
+
+    if (!mpError.message) {
+      return JSON.stringify(error)
+    }
+
+    if (mpError.message === 'Unauthorized use of live credentials') {
+      return `${mpError.message} (Ambiente de Produção detectado. Use Credenciais de Teste para dados fictícios)`
+    }
+
+    return mpError.message
+  }
+
+  private async createPaymentTransaction(order: Order, data: CreateOrderDto, description: string) {
+    // Mercado Pago requires a public HTTPS URL for webhooks.
+    // In development (localhost), we can't use localhost directly.
+    // We should use a tunneling service (ngrok) or a placeholder if just testing creation.
+    // For now, if we are in dev and using localhost, we'll use a dummy valid URL to pass validation
+    // or rely on the env var if it's set to a tunnel.
+    let notificationUrl = `${env().WEBSITE_DOMAIN}/api/v1/webhooks/mercadopago`
+    let backUrl = `${env().WEBSITE_DOMAIN}/checkout/status`
+
+    if (notificationUrl.includes('localhost')) {
+      // Fallback for local development to pass MP validation
+      // This means you won't receive webhooks locally unless you configure a tunnel
+      notificationUrl = 'https://api.eventdev.org/api/v1/webhooks/mercadopago'
+      backUrl = 'https://api.eventdev.org/checkout/status'
+      this.logger.warn(`Localhost detected. Using dummy webhook URL: ${notificationUrl}`)
+    }
+
+    const unitPrice = Number(order.totalAmount.toString()) / data.quantity
+
+    const preferenceData: PreferenceRequest = {
+      items: [
+        {
+          id: String(data.ticketTypeId),
+          title: description,
+          description: `Ticket para ${description}`,
+          quantity: data.quantity,
+          unit_price: unitPrice,
+          currency_id: 'BRL'
+        }
+      ],
       payer: {
         email: data.payerEmail,
-        first_name: data.payerFirstName,
-        last_name: data.payerLastName,
+        name: data.payerFirstName,
+        surname: data.payerLastName,
         identification: {
           type: data.payerIdentification.type,
-          number: data.payerIdentification.number
+          number: data.payerIdentification.number.replace(/\D/g, '')
         }
       },
-      additional_info: {
-        items: [
-          {
-            id: String(data.ticketTypeId),
-            title: description,
-            description: `Ticket para ${description}`,
-            quantity: data.quantity,
-            unit_price: Number(order.totalAmount) / data.quantity,
-            category_id: 'tickets'
-          }
-        ]
+      back_urls: {
+        success: backUrl,
+        failure: backUrl,
+        pending: backUrl
       },
-      external_reference: String(order.id),
+      auto_return: 'approved',
       notification_url: notificationUrl,
-      binary_mode: true,
+      external_reference: String(order.id),
       statement_descriptor: 'EVENTDEV',
       metadata: {
         order_id: order.id,
-        user_id: userId
-      }
+        user_id: order.userId
+      },
+      payment_methods: {
+        excluded_payment_types: [],
+        installments: 12 // Permite até 12x
+      },
+      expires: true,
+      date_of_expiration: new Date(Date.now() + 30 * 60 * 1000).toISOString() // Expira em 30 minutos (bom para PIX)
     }
 
-    this.logger.debug('Sending payment to Mercado Pago', paymentData)
-    return await this.payment.create({ body: paymentData })
+    this.logger.debug('Creating preference in Mercado Pago', preferenceData)
+    const response = await this.preferenceClient.create({ body: preferenceData })
+
+    if (!response.id) {
+      throw new Error('Failed to create preference')
+    }
+
+    return {
+      id: response.id,
+      init_point: response.init_point,
+      sandbox_init_point: response.sandbox_init_point
+    }
   }
 
   async handlePaymentWebhook(paymentId: string) {
     try {
-      const paymentResponse = await this.payment.get({ id: paymentId })
+      const paymentResponse = await this.paymentClient.get({ id: paymentId })
       const payment = paymentResponse as unknown as MercadoPagoPaymentResponse
       const status = payment.status
       const metadata = payment.metadata

@@ -18,7 +18,8 @@ export class CreateOrderDto {
   quantity: number
 
   @IsString()
-  paymentMethodId: string // e.g., 'master', 'visa', 'pix'
+  @IsOptional()
+  paymentMethodId?: string // e.g., 'master', 'visa', 'pix'
 
   @IsString()
   @IsOptional()

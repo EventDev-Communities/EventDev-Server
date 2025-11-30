@@ -12,7 +12,7 @@ EventDev-Server is a NestJS backend application for managing events and communit
 - **Database**: PostgreSQL (via Docker)
 - **ORM**: Prisma v7 (using `@prisma/adapter-pg` with native `pg` driver)
 - **Authentication**: SuperTokens (Session + EmailPassword)
-- **Payments**: Mercado Pago SDK (Webhooks + API)
+- **Payments**: Mercado Pago Checkout Pro (Preferences + Webhooks)
 - **Rate Limiting**: Redis-based (Sliding Window Lua Script)
 - **Package Manager**: PNPM v10
 - **Language**: TypeScript v5.9

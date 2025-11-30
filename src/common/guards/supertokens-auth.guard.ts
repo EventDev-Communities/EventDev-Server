@@ -1,12 +1,51 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common'
+import type { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
+import { IAuthUser } from '@common/interfaces/auth-user.interface'
+import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
+import { Request } from 'express'
 import { SuperTokensAuthGuard } from 'supertokens-nestjs'
+
+interface SessionContainer {
+  getUserId: () => string
+}
+
+interface AuthenticatedRequest extends Request {
+  session?: SessionContainer
+  user?: IAuthUser
+}
 
 @Injectable()
 export class CustomSuperTokensAuthGuard extends SuperTokensAuthGuard implements CanActivate {
+  constructor(
+    @Inject('IAuthAdapter') private readonly authAdapter: IAuthAdapter
+  ) {
+    super()
+  }
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const result = await super.canActivate(context)
-      return Boolean(result)
+
+      if (!result) {
+        return false
+      }
+
+      const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
+      const session = request.session
+
+      if (!session || typeof session.getUserId !== 'function') {
+        return true
+      }
+
+      const userId = session.getUserId()
+      const user = await this.authAdapter.getUserById(userId)
+
+      if (!user) {
+        console.warn(`[CustomSuperTokensAuthGuard] User not found for ID: ${userId}`)
+        return true
+      }
+
+      request.user = user
+      return true
     } catch (error: unknown) {
       this.handleAuthError(error)
       throw error

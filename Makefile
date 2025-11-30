@@ -182,7 +182,8 @@ db-seed: ## Execute `prisma db seed` inside the dev API container
 
 db-studio: ## Launch Prisma Studio via the dev API container
 	@echo " ✦  Opening Prisma Studio..."
-	@docker compose -f docker-compose.dev.yml exec api pnpm exec prisma studio
+	@echo "    Access it at: http://localhost:5555"
+	@docker compose -f docker-compose.dev.yml exec -e BROWSER=none api sh -c 'pnpm exec prisma studio --port $$PRISMA_STUDIO_PORT'
 
 db-reset: ## Run `prisma migrate reset --force` against the dev database
 	@echo " ✦  Resetting development database..."

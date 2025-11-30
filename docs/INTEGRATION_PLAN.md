@@ -54,6 +54,12 @@ Use estas credenciais para não perder tempo criando usuários:
 1. **Login**: Implementar tela de login usando componentes do SuperTokens ou custom UI chamando a API.
 2. **Dashboard**: Listar comunidades (`GET /api/v1/communities/me`).
 3. **Eventos**: Criar evento (`POST /api/v1/events`) e listar (`GET /api/v1/events`).
+4. **Checkout (Pagamento)**:
+   - Chamar `POST /api/v1/orders` com os dados do ingresso.
+   - A API retornará `{ initPoint: 'https://...' }`.
+   - Redirecionar o usuário para essa URL (Mercado Pago).
+   - O usuário paga (Pix ou Cartão) no ambiente do Mercado Pago.
+   - O Mercado Pago redireciona de volta para a URL de sucesso configurada (ex: `/checkout/status`).
 
 ### 3.4. Variáveis de Ambiente (Sugestão)
 

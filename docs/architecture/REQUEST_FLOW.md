@@ -65,14 +65,18 @@ sequenceDiagram
     API-->>Client: HTTP Response (JSON)
 
     rect rgb(255, 255, 240)
-        Note right of API: 5. Fluxo de Webhook (Pagamentos)
-        participant MP as Mercado Pago
-        MP->>API: POST /webhooks/mercadopago (Signature Header)
+        Note right of API: 5. Fluxo de Pagamento (Checkout Pro)
+        Client->>API: POST /orders (Create Order)
+        API->>MP: Create Preference
+        MP-->>API: Preference ID + Init Point URL
+        API-->>Client: Redirect URL (Init Point)
+        Client->>MP: User Pays on Mercado Pago
+        MP->>API: POST /webhooks/mercadopago (Payment Notification)
         API->>API: Validate HMAC Signature
         API->>MP: 200 OK (Ack)
-        API->>DB: Update Order Status
+        API->>DB: Update Order Status (Confirmed)
         opt Approved
-            API->>DB: Create Tickets
+            API->>DB: Create Tickets & Send Email
         end
     end
 ```

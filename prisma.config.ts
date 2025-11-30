@@ -17,7 +17,7 @@ if (!url && isGenerateCommand) {
 
 export default defineConfig({
   datasource: {
-    url: url || 'postgresql://dummy:dummy@localhost:5432/dummy'
+    url: url || 'postgresql://dummy:dummy@localhost:5439/dummy'
   },
   migrations: {
     seed: `node --import @swc-node/register/esm-register prisma/seed/index.ts`

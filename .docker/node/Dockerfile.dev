@@ -29,7 +29,7 @@ CMD ["sh", "-c", "\
   echo 'Running database migration...' && \
   pnpm exec prisma migrate deploy && \
   echo 'Running database seed...' && \
-  pnpm seed-prod && \
+  pnpm seed && \
   echo 'Starting development server with debug...' && \
   pnpm run start-debug -- --watchOptions.poll=1000 \
   "]

@@ -84,7 +84,7 @@ sequenceDiagram
 | **NestJS API** | 3000 | 5122 | Gateway principal, lógica de negócio, validação. |
 | **SuperTokens** | 3567 | 3567 | Gerenciamento de sessões, tokens e identidade. |
 | **Redis** | 6379 | 6379 | Rate limiting, cache de respostas e filas (futuro). |
-| **PostgreSQL** | 5432 | 5432 | Persistência de dados relacional. |
+| **PostgreSQL** | 5439 | 5432 | Persistência de dados relacional. |
 
 ## Fluxo de Rede (Docker)
 

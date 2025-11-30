@@ -12,6 +12,7 @@ import { seedAddresses } from './data/seed-addresses'
 import { seedAdmin } from './data/seed-admin'
 import { seedCommunities } from './data/seed-communities'
 import { seedEvents } from './data/seed-events'
+import { seedTicketTypes } from './data/seed-ticket-types'
 // Lookup tables
 import { seedCommunityUserRequestStatus } from './lookups/seed-community-user-request-status'
 import { seedEventModality } from './lookups/seed-event-modality'
@@ -80,6 +81,11 @@ async function main() {
     await seedEvents(prisma)
     logger.info('\n   - Events created\n')
 
+    // 6. Ensure Ticket Types (one per event minimum)
+    logger.info('PHASE 6: Ensuring Ticket Types\n')
+    await seedTicketTypes(prisma)
+    logger.info('\n   - Ticket types ensured\n')
+
     logger.info('SEEDING COMPLETED SUCCESSFULLY!\n')
     logger.info('Summary:')
     logger.info('   - 7 lookup tables seeded')
@@ -88,8 +94,15 @@ async function main() {
     logger.info('   - 3 addresses created')
     logger.info('   - 3 events created')
   } catch (error) {
-    logger.error('\nERROR DURING SEEDING:', error)
-    throw error
+    console.error('ERROR DURING SEEDING:');
+    if (error instanceof Error) {
+      console.error(error.message);
+      console.error(error.stack);
+    } else {
+      console.error(error);
+    }
+    logger.error('Fatal error:', error);
+    throw error;
   }
 }
 

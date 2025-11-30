@@ -19,9 +19,10 @@ services:
       - .env
     restart: always
     ports:
-      - "${DATABASE_PORT}:${DATABASE_PORT}"
+      - "${DATABASE_PORT}:5432"
     volumes:
       - postgres-db-dev-data:/var/lib/postgresql/data
+      - ./.docker/postgres/init-dev.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -61,7 +62,7 @@ services:
       - "${PRISMA_STUDIO_PORT}:${PRISMA_STUDIO_PORT}"
       - "9229:9229" # Node.js Inspector
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:${DATABASE_PORT}/${POSTGRES_DB}?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}?schema=public
       - REDIS_HOST=redis-cache
       - REDIS_PORT=${REDIS_PORT}
       - NODE_PORT=${NODE_PORT}
@@ -96,11 +97,12 @@ services:
       - "${SUPERTOKENS_PORT}:${SUPERTOKENS_PORT}"
     environment:
       - POSTGRESQL_HOST=postgres-db
-      - POSTGRESQL_PORT=${DATABASE_PORT}
+      - POSTGRESQL_PORT=5432
       - POSTGRESQL_USER=${POSTGRES_USER}
       - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRESQL_DATABASE_NAME=${POSTGRES_DB}
-      - POSTGRESQL_TABLE_SCHEMA=supertokens
+      - POSTGRESQL_DATABASE_NAME=supertokens_dev
+      - POSTGRESQL_TABLE_NAMES_PREFIX=st_
+      - ACCESS_TOKEN_VALIDITY=3600 # 1 hora para desenvolvimento
     depends_on:
       postgres-db:
         condition: service_healthy

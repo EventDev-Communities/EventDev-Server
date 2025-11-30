@@ -9,6 +9,7 @@ O **EventDev Server** é a API backend para a plataforma EventDev, construída c
 - **Framework**: NestJS
 - **Linguagem**: TypeScript
 - **Banco de Dados**: PostgreSQL (via Prisma ORM)
+  - **Desenvolvimento**: Estratégia de bancos separados (`gt_dev` para aplicação, `supertokens_dev` para auth) para evitar race conditions.
 - **Autenticação**: SuperTokens
 - **Pagamentos**: Mercado Pago (Pix e Cartão)
 - **Cache/Rate Limit**: Redis
@@ -23,6 +24,8 @@ O **EventDev Server** é a API backend para a plataforma EventDev, construída c
 
 ### Testes
 
+Os testes estão organizados em `test/unit` (unitários) e `test/e2e` (integração).
+
 - `pnpm test`: Executa testes unitários.
 - `pnpm test-e2e`: Executa testes de integração (E2E).
 - `pnpm test-all`: Executa **todos** os testes (unitários e E2E).
@@ -32,7 +35,7 @@ O **EventDev Server** é a API backend para a plataforma EventDev, construída c
 ### Banco de Dados
 
 - `pnpm migrate-prod`: Aplica migrações em produção.
-- `pnpm seed-prod`: Popula o banco de dados com dados iniciais.
+- `pnpm seed`: Popula o banco de dados com dados iniciais.
 
 ## Cobertura de Testes
 
@@ -62,7 +65,7 @@ O `Makefile` é a interface principal para gerenciar a infraestrutura Docker.
 
 | Comando | Caso de Uso | Descrição |
 | :--- | :--- | :--- |
-| `make dev-up` | **Início do Dia** | Sobe todo o ambiente de desenvolvimento (API + Banco + Redis + Auth). |
+| `make dev-up` | **Início do Dia** | Sobe todo o ambiente de desenvolvimento (API + Banco + Redis + Auth). Inclui script de inicialização (`init-dev.sql`) para criar os bancos separadamente. |
 | `make dev-down` | **Fim do Dia** | Para e remove todos os containers e volumes de desenvolvimento. |
 | `make dev-logs` | **Monitoramento** | Exibe os logs da API em tempo real. |
 | `make dev-shell` | **Debug Avançado** | Abre um terminal `sh` dentro do container da API. |

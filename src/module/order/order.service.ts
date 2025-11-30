@@ -131,7 +131,7 @@ export class OrderService {
   }
 
   private async createPaymentTransaction(order: Order, data: CreateOrderDto, description: string, userId: number) {
-    const notificationUrl = `${env().WEBSITE_DOMAIN}/api/v1/webhooks`
+    const notificationUrl = `${env().WEBSITE_DOMAIN}/api/v1/webhooks/mercadopago`
 
     const paymentData: PaymentCreateRequest = {
       transaction_amount: Number(order.totalAmount),

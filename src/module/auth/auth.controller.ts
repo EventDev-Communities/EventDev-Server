@@ -1,4 +1,4 @@
-import type { Request } from 'express'
+import type { Request, Response } from 'express'
 import type { SessionContainer } from 'supertokens-node/recipe/session'
 import { AuthService } from '@module/auth/auth.service'
 import { AcceptInviteDto } from '@module/auth/dto/accept-invite.dto'
@@ -6,7 +6,7 @@ import { ForgotPasswordDto } from '@module/auth/dto/forgot-password.dto'
 import { ResetPasswordDto } from '@module/auth/dto/reset-password.dto'
 import { SignInDto } from '@module/auth/dto/signin.dto'
 import { CommunitySignUpDto, UserSignUpDto } from '@module/auth/dto/signup.dto'
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post, Req, Res } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 import { PublicAccess, Session, VerifySession } from 'supertokens-nestjs'
 
@@ -28,9 +28,10 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
   async signIn(
     @Body() data: SignInDto,
-    @Req() req: Request
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
   ) {
-    return await this.authService.signInWithSession(data, req)
+    return await this.authService.signInWithSession(data, req, res)
   }
 
   @Post('signout')

@@ -22,7 +22,27 @@ function buildSuperTokensConfig(): TypeInput {
       apiBasePath: '/api/v1/auth',
       websiteBasePath: '/auth'
     },
-    recipeList: [EmailPassword.init(), Session.init(), UserRoles.init()]
+    recipeList: [
+      EmailPassword.init({
+        override: {
+          apis: (originalImplementation) => {
+            return {
+              ...originalImplementation,
+              // Disable default signin and signup API
+              signInPOST: undefined,
+              signUpPOST: undefined
+            }
+          }
+        }
+      }),
+      Session.init({
+        cookieSecure: isProd,
+        cookieSameSite: isProd ? 'none' : 'lax',
+        cookieDomain: undefined,
+        exposeAccessTokenToFrontendInCookieBasedAuth: true
+      }),
+      UserRoles.init()
+    ]
   }
 }
 

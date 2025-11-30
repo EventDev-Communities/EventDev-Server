@@ -1,6 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { LoggerService } from '@common/logger/logger.service'
+import { printBootstrapBanner } from '@common/utils/bootstrap-logger.util'
 import { env } from '@configs/env'
 import { ensureSuperTokensInitialized } from '@configs/supertokens.config'
 import { AppModule } from '@module/app/app.module'
@@ -11,7 +12,6 @@ import helmet from 'helmet'
 
 async function bootstrap() {
   const bootstrapLogger = new Logger('Bootstrap')
-  let isSuccess = false
 
   try {
     ensureSuperTokensInitialized()
@@ -111,36 +111,11 @@ async function bootstrap() {
 
     await app.listen(port)
     logger.log(`HTTP server is listening on port ${port}`)
-    isSuccess = true
+    setTimeout(() => printBootstrapBanner(true), 2000)
   } catch (error) {
     bootstrapLogger.error('Failed to start application', error instanceof Error ? error.stack : String(error))
     process.exitCode = 1
-  } finally {
-    const reset = '\x1B[0m'
-    const green = '\x1B[32m'
-    const yellow = '\x1B[33m'
-    const red = '\x1B[31m'
-    const port = env().NODE_PORT
-
-    const statusColor = isSuccess ? green : red
-    const statusMessage = isSuccess ? 'BOOTSTRAP COMPLETED SUCCESSFULLY' : 'BOOTSTRAP FAILED'
-
-    const envText = `Environment: ${env().NODE_ENV}`
-    const portText = `Port: ${port}`
-    const maxLength = Math.max(statusMessage.length, envText.length, portText.length)
-    const separator = '='.repeat(maxLength + 4)
-
-    process.stdout.write(
-      [
-        '',
-        `${statusColor}${separator}${reset}`,
-        `${statusColor}  ${statusMessage}${reset}`,
-        `${yellow}  ${envText}${reset}`,
-        `${yellow}  ${portText}${reset}`,
-        `${statusColor}${separator}${reset}`,
-        ''
-      ].join('\n')
-    )
+    setTimeout(() => printBootstrapBanner(false), 2000)
   }
 }
 

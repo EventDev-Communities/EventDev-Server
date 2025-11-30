@@ -33,18 +33,19 @@
     "format": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "docs-generate": "npx prisma generate --no-hints >/dev/null 2>&1 && npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script 2>&1 | grep -E '^(--|CREATE|ALTER|DROP)' > docs/schema.sql && echo 'Schemas gerados! Para gerar openapi.json execute: pnpm start-dev'",
     "generate-http": "node --import @swc-node/register/esm-register docs/rest-client/tools/generate-http.ts",
+    "simulate-webhook": "node --import @swc-node/register/esm-register tools/simulate-webhook.ts",
     "test": "jest --runInBand --detectOpenHandles",
     "test-watch": "jest --runInBand --watch",
     "test-cov": "jest --runInBand --coverage --coverageDirectory=test/coverage",
     "test-debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "pretest-e2e": "node --import @swc-node/register/esm-register test/infrastructure/prepare-test-db.ts",
+    "pretest-e2e": "node --import @swc-node/register/esm-register test/setup/prepare-test-db.ts",
     "test-e2e": "jest --config ./test/jest-e2e.json --testTimeout=20000 --runInBand",
-    "pretest-e2e-debug": "node --import @swc-node/register/esm-register test/infrastructure/prepare-test-db.ts",
+    "pretest-e2e-debug": "node --import @swc-node/register/esm-register test/setup/prepare-test-db.ts",
     "test-e2e-debug": "jest --config ./test/jest-e2e.json --testTimeout=20000 --detectOpenHandles",
     "test-all": "pnpm test && pnpm test-e2e",
-    "prepare-test-db": "node --import @swc-node/register/esm-register test/infrastructure/prepare-test-db.ts",
+    "prepare-test-db": "node --import @swc-node/register/esm-register test/setup/prepare-test-db.ts",
     "migrate-prod": "prisma migrate deploy",
-    "seed-prod": "prisma db seed",
+    "seed": "prisma db seed",
     "verify-all": "pnpm lint && pnpm test-all && pnpm build"
   },
   "dependencies": {
@@ -118,15 +119,18 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "src/**/*.(t|j)s",
+      "!src/main.ts",
+      "!src/metadata.ts",
+      "!test/**"
     ],
-    "coverageDirectory": "../test/coverage",
+    "coverageDirectory": "./test/coverage",
     "testEnvironment": "node",
     "coverageThreshold": {
       "global": {
@@ -137,18 +141,21 @@
       }
     },
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1",
-      "^@common/(.*)$": "<rootDir>/common/$1",
-      "^@module/(.*)$": "<rootDir>/module/$1",
-      "^@configs/(.*)$": "<rootDir>/configs/$1",
-      "^@decorators/(.*)$": "<rootDir>/decorators/$1",
-      "^@helper/(.*)$": "<rootDir>/helper/$1",
-      "^@infrastructure/(.*)$": "<rootDir>/infrastructure/$1",
-      "^@interface/(.*)$": "<rootDir>/interface/$1",
-      "^@db/prisma.service$": "<rootDir>/prisma/prisma.service",
-      "^@db/prisma.module$": "<rootDir>/prisma/prisma.module",
-      "^@seed-data/(.*)$": "<rootDir>/../prisma/seed/data/$1"
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@common/(.*)$": "<rootDir>/src/common/$1",
+      "^@module/(.*)$": "<rootDir>/src/module/$1",
+      "^@configs/(.*)$": "<rootDir>/src/configs/$1",
+      "^@decorators/(.*)$": "<rootDir>/src/decorators/$1",
+      "^@helper/(.*)$": "<rootDir>/src/helper/$1",
+      "^@infrastructure/(.*)$": "<rootDir>/src/infrastructure/$1",
+      "^@interface/(.*)$": "<rootDir>/src/interface/$1",
+      "^@db/prisma.service$": "<rootDir>/src/prisma/prisma.service",
+      "^@db/prisma.module$": "<rootDir>/src/prisma/prisma.module",
+      "^@seed-data/(.*)$": "<rootDir>/prisma/seed/data/$1"
     },
-    "snapshotResolver": "../test/infrastructure/snapshot-resolver.ts"
+    "snapshotResolver": "./test/setup/snapshot-resolver.ts",
+    "roots": [
+      "<rootDir>/test/unit"
+    ]
   }
 }

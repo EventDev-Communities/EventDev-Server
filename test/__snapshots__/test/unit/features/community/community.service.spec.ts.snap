@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`CommunityService getAll should return paginated response 1`] = `
+{
+  "data": [],
+  "links": {
+    "first": "/communities?take=10&skip=0",
+    "last": "/communities?take=10&skip=-10",
+    "next": undefined,
+    "prev": undefined,
+    "self": "/communities?take=10&skip=0",
+  },
+  "meta": {
+    "currentPage": 1,
+    "hasNext": false,
+    "hasPrev": false,
+    "skip": 0,
+    "take": 10,
+    "total": 0,
+    "totalPages": 0,
+  },
+}
+`;
+
+exports[`CommunityService getMembers should return paginated members 1`] = `
+{
+  "data": [],
+  "links": {
+    "first": "/communities/1/members?take=10&skip=0",
+    "last": "/communities/1/members?take=10&skip=-10",
+    "next": undefined,
+    "prev": undefined,
+    "self": "/communities/1/members?take=10&skip=0",
+  },
+  "meta": {
+    "currentPage": 1,
+    "hasNext": false,
+    "hasPrev": false,
+    "skip": 0,
+    "take": 10,
+    "total": 0,
+    "totalPages": 0,
+  },
+}
+`;

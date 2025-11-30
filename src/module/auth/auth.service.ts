@@ -27,13 +27,13 @@ export class AuthService {
     @Inject(LoggerService) private readonly logger: LoggerService
   ) {}
 
-  async signInWithSession(signInDto: SignInDto, req: Request) {
+  async signInWithSession(signInDto: SignInDto, req: Request, res?: Response) {
     try {
-      const res = (req as Request & { res: Response }).res
+      const response = res || (req as Request & { res: Response }).res
 
       const result = await EmailPassword.signIn('public', signInDto.email, signInDto.password, undefined, {
         req,
-        res
+        res: response
       })
 
       if (result.status === 'OK') {
@@ -42,7 +42,9 @@ export class AuthService {
 
         // Create session
         const recipeUserId = convertToRecipeUserId(userId)
-        await SessionRecipe.createNewSession(req, res, 'public', recipeUserId)
+        await SessionRecipe.createNewSession(req, response, 'public', recipeUserId)
+
+        this.forcePostmanCookies(response)
 
         return {
           status: 'OK',
@@ -393,5 +395,29 @@ export class AuthService {
     await this.communityService.markInvitationAsUsed(invitation.id)
 
     return { message: 'Convite aceito com sucesso', userId }
+  }
+
+  private forcePostmanCookies(response: Response) {
+    if (env().NODE_ENV !== 'development') {
+      return
+    }
+
+    const accessToken = response.getHeader('st-access-token')
+    const refreshToken = response.getHeader('st-refresh-token')
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax' as const,
+      path: '/'
+    }
+
+    if (accessToken !== undefined) {
+      response.cookie('sAccessToken', accessToken, cookieOptions)
+    }
+
+    if (refreshToken !== undefined) {
+      response.cookie('sRefreshToken', refreshToken, cookieOptions)
+    }
   }
 }

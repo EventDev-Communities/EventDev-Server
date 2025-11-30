@@ -15,5 +15,5 @@ export default {
     return path.join(process.cwd(), relativePath.slice(0, -snapshotExtension.length))
   },
 
-  testPathForConsistencyCheck: path.join(process.cwd(), 'src', 'module', 'app', 'app.controller.spec.ts')
+  testPathForConsistencyCheck: path.join(process.cwd(), 'test', 'unit', 'module', 'app', 'app.controller.spec.ts')
 }

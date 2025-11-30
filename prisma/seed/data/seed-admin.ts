@@ -9,32 +9,47 @@ export async function seedAdmin(prisma: PrismaClient) {
   logger.info('Seeding Platform Administrator...')
 
   try {
+    let userId = ''
     const adminUser = await EmailPassword.signUp('public', 'admin@eventdev.com', 'Admin123!')
 
     if (adminUser.status === 'OK') {
+      userId = adminUser.user.id
+    }
+
+    if (adminUser.status === 'EMAIL_ALREADY_EXISTS_ERROR') {
+      logger.info('   - Admin user already exists in SuperTokens, fetching ID...')
+      const users = await supertokens.listUsersByAccountInfo('public', { email: 'admin@eventdev.com' })
+      if (users.length > 0) {
+        userId = users[0].id
+      }
+    }
+
+    if (userId) {
       // Create platform administrator role in SuperTokens
       await UserRoles.createNewRoleOrAddPermissions('platform_admin', ['platform:manage', 'users:manage', 'communities:manage', 'events:manage'])
       await UserRoles.createNewRoleOrAddPermissions('user', [])
-      await UserRoles.addRoleToUser('public', adminUser.user.id, 'platform_admin')
+      await UserRoles.addRoleToUser('public', userId, 'platform_admin')
 
       // Create root user in database (platform administrator)
       await prisma.user.upsert({
         where: { email: 'admin@eventdev.com' },
-        update: {},
+        update: {
+          supertokensId: userId
+        },
         create: {
-          supertokensId: adminUser.user.id,
+          supertokensId: userId,
           email: 'admin@eventdev.com',
           isRoot: true, // Platform root user
           isActive: true
         }
       })
 
-      logger.info('   - Platform administrator created (isRoot: true)')
+      logger.info('   - Platform administrator synced (isRoot: true)')
       logger.info('   - Email: admin@eventdev.com')
       logger.info('   - Role: platform_admin')
     }
   } catch (error) {
-    logger.warn('   - Platform admin already exists or error creating:', error)
+    logger.warn('   - Error seeding admin:', error)
   }
 }
 

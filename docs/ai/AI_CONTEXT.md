@@ -53,14 +53,15 @@ EventDev-Server is a NestJS backend application for managing events and communit
 ### Database
 
 - **Prisma 7**: We use the new adapter pattern. Do not use `datasourceUrl` in `schema.prisma` for the runtime client; it is handled in `PrismaService`.
+- **Development Setup**: In Docker Dev, we use a split database strategy (`gt_dev` for app, `supertokens_dev` for auth) initialized via `.docker/postgres/init-dev.sql` to prevent race conditions during startup.
 - **Migrations**: Use `pnpm docs-generate` to update schema docs.
 
 ### Testing
 
 - **All Tests**: Use `pnpm test-all` to run both unit and E2E tests.
 - **Coverage**: Use `pnpm test-cov`. We enforce a **>90% coverage** threshold.
-- **E2E Tests**: Located in `test/`. Use `pnpm test-e2e`.
-- **Unit Tests**: Located alongside source files (`*.spec.ts`). Use `pnpm test`.
+- **E2E Tests**: Located in `test/e2e/`. Use `pnpm test-e2e`.
+- **Unit Tests**: Located in `test/unit/`. Use `pnpm test`.
 
 ### API Documentation
 

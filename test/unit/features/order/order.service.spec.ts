@@ -18,6 +18,9 @@ jest.mock('mercadopago', () => {
     Payment: jest.fn().mockImplementation(() => ({
       create: jest.fn(),
       get: jest.fn()
+    })),
+    Preference: jest.fn().mockImplementation(() => ({
+      create: jest.fn()
     }))
   }
 })
@@ -28,6 +31,7 @@ describe('OrderService', () => {
   let ticketService: TicketService
   let configService: ConfigService
   let paymentMock: any
+  let preferenceMock: any
 
   const mockEmailService = {
     sendTicketEmail: jest.fn()
@@ -85,7 +89,8 @@ describe('OrderService', () => {
     configService = module.get<ConfigService>(ConfigService)
 
     // Access the mocked Payment instance
-    paymentMock = (service as any).payment
+    paymentMock = (service as any).paymentClient
+    preferenceMock = (service as any).preferenceClient
   })
 
   afterEach(() => {
@@ -134,26 +139,19 @@ describe('OrderService', () => {
       mockOrderRepository.getOrderItemTypeByCode.mockResolvedValue(mockTicketItemType)
       mockOrderRepository.createOrder.mockResolvedValue(mockOrder)
 
-      paymentMock.create.mockResolvedValue({
-        id: 12345,
-        status: 'pending',
-        status_detail: 'pending_waiting_payment',
-        point_of_interaction: {
-          transaction_data: {
-            qr_code: 'qr-code',
-            qr_code_base64: 'base64',
-            ticket_url: 'url'
-          }
-        }
+      preferenceMock.create.mockResolvedValue({
+        id: 'pref-123',
+        init_point: 'https://mercadopago.com/init',
+        sandbox_init_point: 'https://sandbox.mercadopago.com/init'
       })
 
       const result = await service.createOrder(userId, createOrderDto)
 
       expect(result).toHaveProperty('orderId', 1)
-      expect(result).toHaveProperty('transactionId', 12345)
+      expect(result).toHaveProperty('transactionId', 'pref-123')
       expect(mockOrderRepository.createOrder).toHaveBeenCalled()
       expect(mockOrderRepository.createOrderItem).toHaveBeenCalled()
-      expect(paymentMock.create).toHaveBeenCalled()
+      expect(preferenceMock.create).toHaveBeenCalled()
     })
 
     it('should throw BadRequestException if quantity is unavailable', async () => {
@@ -183,7 +181,7 @@ describe('OrderService', () => {
       mockOrderRepository.getOrderItemTypeByCode.mockResolvedValue(mockTicketItemType)
       mockOrderRepository.createOrder.mockResolvedValue(mockOrder)
 
-      paymentMock.create.mockRejectedValue(new Error('Payment failed'))
+      preferenceMock.create.mockRejectedValue(new Error('Payment failed'))
 
       await expect(service.createOrder(userId, createOrderDto)).rejects.toThrow(BadRequestException)
 
@@ -457,41 +455,6 @@ describe('OrderService', () => {
       await service.handlePaymentWebhook('123')
 
       expect(loggerSpy).toHaveBeenCalledWith('Error handling payment webhook', 'Not found')
-    })
-
-    it('should handle issuerId in createPaymentTransaction', async () => {
-      const dto = {
-        ticketTypeId: 1,
-        quantity: 1,
-        paymentMethodId: 'credit_card',
-        issuerId: '123',
-        payerEmail: 'test@test.com',
-        payerFirstName: 'Test',
-        payerLastName: 'User',
-        payerIdentification: { type: 'CPF', number: '123' },
-        token: 'token'
-      } as CreateOrderDto
-
-      mockTicketService.getTicketTypeById.mockResolvedValue({ id: 1, quantity: 10, price: 100, name: 'Ticket' })
-      mockOrderRepository.getOrderStatusByCode.mockResolvedValue({ id: 1 })
-      mockOrderRepository.getOrderItemTypeByCode.mockResolvedValue({ id: 1 })
-      mockOrderRepository.createOrder.mockResolvedValue({ id: 1, totalAmount: 100 })
-      mockOrderRepository.createOrderItem.mockResolvedValue({})
-
-      paymentMock.create.mockResolvedValue({
-        id: 123,
-        status: 'approved',
-        status_detail: 'accredited',
-        point_of_interaction: {}
-      })
-
-      await service.createOrder(1, dto)
-
-      expect(paymentMock.create).toHaveBeenCalledWith(expect.objectContaining({
-        body: expect.objectContaining({
-          issuer_id: 123
-        })
-      }))
     })
   })
 })

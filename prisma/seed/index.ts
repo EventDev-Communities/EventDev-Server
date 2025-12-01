@@ -10,6 +10,7 @@ import { logger } from './logger'
 import { seedAddresses } from './data/seed-addresses'
 // Data tables
 import { seedAdmin } from './data/seed-admin'
+import { seedVisitors } from './data/seed-visitors'
 import { seedCommunities } from './data/seed-communities'
 import { seedEvents } from './data/seed-events'
 import { seedTicketTypes } from './data/seed-ticket-types'
@@ -65,6 +66,11 @@ async function main() {
     logger.info('PHASE 2: Creating Platform Administrator\n')
     await seedAdmin(prisma)
     logger.info('\n   - Platform administrator created\n')
+
+    // 2.1 Seed Visitors
+    logger.info('PHASE 2.1: Creating Visitors\n')
+    await seedVisitors(prisma)
+    logger.info('\n   - Visitors created\n')
 
     // 3. Seed Addresses (independent)
     logger.info('PHASE 3: Creating Addresses\n')

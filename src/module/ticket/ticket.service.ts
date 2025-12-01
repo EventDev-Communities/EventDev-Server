@@ -1,5 +1,6 @@
 import { buildPaginatedResponse } from '@common/dto/pagination.dto'
 import { LoggerService } from '@common/logger/logger.service'
+import { PrismaService } from '@db/prisma.service'
 import { CreateTicketTypeDto } from '@module/ticket/dto/create-ticket-type.dto'
 import { UpdateTicketTypeDto } from '@module/ticket/dto/update-ticket-type.dto'
 import { TicketRepository } from '@module/ticket/ticket.repository'
@@ -10,7 +11,8 @@ import { Prisma, Ticket, TicketType } from '@prisma/client'
 export class TicketService {
   constructor(
     @Inject(TicketRepository) private readonly ticketRepository: TicketRepository,
-    @Inject(LoggerService) private readonly logger: LoggerService
+    @Inject(LoggerService) private readonly logger: LoggerService,
+    @Inject(PrismaService) private readonly prismaService: PrismaService
   ) {
     this.logger.log('[TicketService] constructed')
   }
@@ -136,5 +138,15 @@ export class TicketService {
         checkedInAt: new Date()
       }
     }
+  }
+
+  async getUserTickets(userId: number) {
+    const { data } = await this.ticketRepository.getAllTickets(100, 0, { userId })
+    return data
+  }
+
+  async hasTicketForEvent(userId: number, eventId: number): Promise<boolean> {
+    const { total } = await this.ticketRepository.getAllTickets(1, 0, { userId, eventId })
+    return total > 0
   }
 }

@@ -2,6 +2,7 @@ import type { IAuthUser } from '@common/interfaces/auth-user.interface'
 import type { Request } from 'express'
 import { CurrentUser } from '@common/decorators/current-user.decorator'
 import { LoggerService } from '@common/logger/logger.service'
+import { PrismaService } from '@db/prisma.service'
 import { CreateTicketTypeDto } from '@module/ticket/dto/create-ticket-type.dto'
 import { UpdateTicketTypeDto } from '@module/ticket/dto/update-ticket-type.dto'
 import { TicketService } from '@module/ticket/ticket.service'
@@ -16,8 +17,21 @@ export class TicketController {
     @Inject(TicketService)
     private readonly ticketService: TicketService,
     @Inject(LoggerService)
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
+    @Inject(PrismaService)
+    private readonly prismaService: PrismaService
   ) {}
+
+  @Get('me')
+  @VerifySession()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar meus tickets' })
+  async getMyTickets(@CurrentUser() user: IAuthUser) {
+    if (typeof user.internalId !== 'number') {
+      return []
+    }
+    return await this.ticketService.getUserTickets(user.internalId)
+  }
 
   @Post('types')
   @VerifySession()

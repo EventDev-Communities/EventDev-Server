@@ -57,23 +57,23 @@
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.1.9",
     "@nestjs/swagger": "^11.2.3",
-    "@prisma/adapter-pg": "^7.0.0",
-    "@prisma/client": "^7.0.0",
+    "@prisma/adapter-pg": "^7.0.1",
+    "@prisma/client": "^7.0.1",
     "@swc-node/register": "^1.11.1",
     "@swc/core": "^1.15.3",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
+    "class-validator": "^0.14.3",
     "cross-env": "^10.1.0",
     "express": "^5.1.0",
     "handlebars": "^4.7.8",
     "helmet": "^8.1.0",
     "ioredis": "^5.8.2",
-    "mercadopago": "^2.10.1",
-    "nodemailer": "^7.0.10",
+    "mercadopago": "^2.11.0",
+    "nodemailer": "^7.0.11",
     "pg": "^8.16.3",
     "pino": "^10.1.0",
     "pino-pretty": "^13.1.2",
-    "prisma": "^7.0.0",
+    "prisma": "^7.0.1",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
@@ -85,7 +85,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.2.0",
-    "@nestjs/cli": "^11.0.12",
+    "@nestjs/cli": "^11.0.14",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.9",
     "@swc/cli": "^0.7.9",
@@ -96,7 +96,7 @@
     "@types/pg": "^8.15.6",
     "@types/qrcode": "^1.5.6",
     "@types/supertest": "^6.0.3",
-    "@typescript-eslint/parser": "^8.47.0",
+    "@typescript-eslint/parser": "^8.48.0",
     "eslint": "^9.39.1",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-format": "^1.0.2",
@@ -111,7 +111,7 @@
     "ts-loader": "^9.5.4",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
-    "typescript-eslint": "^8.47.0"
+    "typescript-eslint": "^8.48.0"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -157,5 +157,8 @@
     "roots": [
       "<rootDir>/test/unit"
     ]
+  },
+  "prisma": {
+    "seed": "node --import @swc-node/register/esm-register prisma/seed/index.ts"
   }
 }

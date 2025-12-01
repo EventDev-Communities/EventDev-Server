@@ -40,21 +40,35 @@ export async function seedEvents(prisma: PrismaClient) {
         }
       })
 
-      if (!address) {
-        logger.warn(`   - Address not found for ${data.title}`)
-        continue
+      if (address) {
+        addressId = address.id
       }
 
-      addressId = address.id
+      if (!address) {
+        logger.info(`   - Address not found for ${data.title}, creating new one...`)
+        const newAddress = await prisma.address.create({
+          data: data.address
+        })
+        addressId = newAddress.id
+      }
+    }
+
+    // Check if event already exists
+    const existingEvent = await prisma.event.findFirst({
+      where: {
+        title: data.title,
+        communityId: community.id
+      }
+    })
+
+    if (existingEvent) {
+      logger.debug(`   - Event ${data.title} already exists, skipping...`)
+      continue
     }
 
     // Create event
-    await prisma.event.upsert({
-      where: {
-        id: 0 // Placeholder - will always create new
-      },
-      update: {},
-      create: {
+    await prisma.event.create({
+      data: {
         communityId: community.id,
         modalityId: modality.id,
         addressId,

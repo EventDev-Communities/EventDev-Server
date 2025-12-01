@@ -42,7 +42,16 @@ export class CommunityRepository {
   }
 
   async getByID(id: number) {
-    return await this.prismaService.community.findUnique({ where: { id } })
+    return await this.prismaService.community.findUnique({
+      where: { id },
+      include: {
+        links: {
+          include: {
+            linkType: true
+          }
+        }
+      }
+    })
   }
 
   async getByUserId(userId: string) {

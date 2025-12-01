@@ -7,6 +7,7 @@ export interface IAuthUser {
   roles: UserRole[]
   permissions?: Permission[]
   communityId?: number
+  internalId?: number
 }
 
 export interface IAuthSession {

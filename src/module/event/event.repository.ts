@@ -33,7 +33,14 @@ export class EventRepository {
   }
 
   async getByID(id: number) {
-    return await this.prismaService.event.findUnique({ where: { id } })
+    return await this.prismaService.event.findUnique({
+      where: { id },
+      include: {
+        address: true,
+        community: true,
+        modality: true
+      }
+    })
   }
 
   async getAll(take: number, skip: number, filters?: { communityId?: number, modality?: string, isActive?: boolean }) {

@@ -34,16 +34,20 @@ export class CreateOrderDto {
   issuerId?: string // Bank issuer ID
 
   @IsEmail()
-  payerEmail: string
+  @IsOptional()
+  payerEmail?: string
 
   @IsString()
-  payerFirstName: string
+  @IsOptional()
+  payerFirstName?: string
 
   @IsString()
-  payerLastName: string
+  @IsOptional()
+  payerLastName?: string
 
   @IsObject()
   @ValidateNested()
   @Type(() => PayerIdentificationDto)
-  payerIdentification: PayerIdentificationDto
+  @IsOptional()
+  payerIdentification?: PayerIdentificationDto
 }

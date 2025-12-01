@@ -397,6 +397,52 @@ export class AuthService {
     return { message: 'Convite aceito com sucesso', userId }
   }
 
+  async signUp(data: UserSignUpDto, req: Request) {
+    try {
+      // Get the response object from the request (Express style)
+      const res = (req as Request & { res: Response }).res
+
+      // Use SuperTokens native signUp that automatically creates session and sets cookies
+      const result = await EmailPassword.signUp('public', data.email, data.password, undefined, {
+        req,
+        res
+      })
+
+      if (result.status !== 'OK') {
+        throw new ConflictException('Este email já está em uso.')
+      }
+
+      const userId = result.user.id
+      await this.authAdapter.addRoleToUser(userId, UserRole.USER)
+
+      // Create user in database
+      await this.prismaService.user.create({
+        data: {
+          supertokensId: userId,
+          email: data.email,
+          isActive: true
+        }
+      })
+
+      this.forcePostmanCookies(res)
+
+      return {
+        status: 'OK',
+        user: {
+          id: userId,
+          email: result.user.emails[0],
+          roles: [UserRole.USER]
+        }
+      }
+    } catch (err) {
+      if (err instanceof ConflictException) {
+        throw err
+      }
+      this.logger.error('Error in signUp:', err instanceof Error ? err.stack : String(err))
+      throw new InternalServerErrorException('Erro inesperado ao criar usuário.')
+    }
+  }
+
   private forcePostmanCookies(response: Response) {
     if (env().NODE_ENV !== 'development') {
       return

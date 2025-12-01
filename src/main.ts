@@ -109,8 +109,9 @@ async function bootstrap() {
     const port = env().NODE_PORT
     logger.log(`Starting HTTP server on port ${port}`)
 
-    await app.listen(port)
-    logger.log(`HTTP server is listening on port ${port}`)
+    // Listen on 0.0.0.0 to allow external access (e.g. from Docker, Flutter Emulator)
+    await app.listen(port, '0.0.0.0')
+    logger.log(`HTTP server is listening on port ${port} (0.0.0.0)`)
     setTimeout(() => printBootstrapBanner(true), 2000)
   } catch (error) {
     bootstrapLogger.error('Failed to start application', error instanceof Error ? error.stack : String(error))

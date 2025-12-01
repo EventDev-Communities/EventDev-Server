@@ -41,6 +41,7 @@ interface ITicketService {
     },
     tx?: Prisma.TransactionClient
   ) => Promise<Ticket>
+  hasTicketForEvent: (userId: number, eventId: number) => Promise<boolean>
 }
 
 @Injectable()
@@ -79,12 +80,23 @@ export class OrderService {
 
     const ticketType = await this.ticketService.getTicketTypeById(data.ticketTypeId)
 
+    const hasTicket = await this.ticketService.hasTicketForEvent(userId, ticketType.eventId)
+    if (hasTicket) {
+      throw new BadRequestException('Você já possui um ingresso para este evento.')
+    }
+
     if (ticketType.quantity < data.quantity) {
       throw new BadRequestException('Quantidade indisponível')
     }
 
     const unitPrice = Number(ticketType.price)
     const totalAmount = unitPrice * data.quantity
+
+    if (totalAmount > 0) {
+      if (!data.payerEmail || !data.payerFirstName || !data.payerLastName || !data.payerIdentification) {
+        throw new BadRequestException('Dados do pagador são obrigatórios para ingressos pagos')
+      }
+    }
 
     const pendingStatus = await this.orderRepository.getOrderStatusByCode('PENDING')
     const ticketItemType = await this.orderRepository.getOrderItemTypeByCode('TICKET')
@@ -185,6 +197,10 @@ export class OrderService {
   }
 
   private async createPaymentTransaction(order: Order, data: CreateOrderDto, description: string) {
+    if (!data.payerEmail || !data.payerFirstName || !data.payerLastName || !data.payerIdentification) {
+      throw new BadRequestException('Dados do pagador são obrigatórios para processar o pagamento')
+    }
+
     // Mercado Pago requires a public HTTPS URL for webhooks.
     // In development (localhost), we can't use localhost directly.
     // We should use a tunneling service (ngrok) or a placeholder if just testing creation.

@@ -1,8 +1,9 @@
 import type { IAuthUser, ISignInResult, ISignUpResult } from '@common/interfaces/auth-user.interface'
 import { Permission } from '@common/enums/permissions.enum'
 import { UserRole } from '@common/enums/roles.enum'
+import { PrismaService } from '@db/prisma.service'
 import { IAuthAdapter } from '@infrastructure/auth/auth.adapter.interface'
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import supertokens from 'supertokens-node'
 import { signIn, signUp, Error as STError } from 'supertokens-node/recipe/emailpassword'
 import UserRoles from 'supertokens-node/recipe/userroles'
@@ -10,6 +11,10 @@ import UserRoles from 'supertokens-node/recipe/userroles'
 @Injectable()
 export class SuperTokensAdapter implements IAuthAdapter {
   private readonly tenantId = 'public'
+
+  constructor(
+    @Inject(PrismaService) private readonly prismaService: PrismaService
+  ) {}
 
   async signUp(email: string, password: string): Promise<ISignUpResult> {
     try {
@@ -59,10 +64,11 @@ export class SuperTokensAdapter implements IAuthAdapter {
 
   async getUserById(userId: string): Promise<IAuthUser | null> {
     try {
-      const [roles, permissions, user] = await Promise.all([
+      const [roles, permissions, user, dbUser] = await Promise.all([
         this.getUserRoles(userId),
         this.getUserPermissions(userId),
-        supertokens.getUser(userId)
+        supertokens.getUser(userId),
+        this.prismaService.user.findUnique({ where: { supertokensId: userId } })
       ])
 
       if (!user) {
@@ -73,7 +79,8 @@ export class SuperTokensAdapter implements IAuthAdapter {
         id: userId,
         email: user.emails[0] ?? '',
         roles,
-        permissions
+        permissions,
+        internalId: dbUser?.id
       }
     } catch {
       return null

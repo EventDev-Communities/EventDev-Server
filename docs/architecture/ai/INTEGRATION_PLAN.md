@@ -25,7 +25,7 @@ Use estas credenciais para não perder tempo criando usuários:
 
 | Perfil | Email | Senha | Contexto |
 | :--- | :--- | :--- | :--- |
-| **Platform Admin** | `admin@eventdev.com` | `password123` | Gestão total do sistema. |
+| **Platform Admin** | `admin@eventdev.org` | `Senha123!` | Gestão total do sistema. |
 | **Community Owner** | `php@example.com` | `password123` | Dono da comunidade "PHP com Rapadura". |
 | **Usuário Comum** | `user@example.com` | `password123` | Comprador de ingressos. |
 

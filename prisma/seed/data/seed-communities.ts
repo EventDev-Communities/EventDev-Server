@@ -11,9 +11,20 @@ async function createSupertokensUser(prisma: PrismaClient, email: string, passwo
   const response = await EmailPassword.signUp('public', email, password)
   if (response.status !== 'OK') {
     logger.debug(`   - User ${email} already exists`)
-    // Find existing user
+
+    // Try to find in local DB first
     const existingUser = await prisma.user.findUnique({ where: { email } })
-    return existingUser?.supertokensId
+    if (existingUser) {
+      return existingUser.supertokensId
+    }
+
+    // If not in local DB (e.g. after db-reset), fetch from SuperTokens
+    const users = await supertokens.listUsersByAccountInfo('public', { email })
+    if (users.length > 0) {
+      return users[0].id
+    }
+
+    return null
   }
   await UserRoles.createNewRoleOrAddPermissions('community', [])
   await UserRoles.addRoleToUser('public', response.user.id, 'community')
@@ -63,7 +74,7 @@ export async function seedCommunities(prisma: PrismaClient) {
         name: data.name,
         description: data.description,
         logoUrl: data.logoUrl,
-        phoneNumber: data.phone,
+        phoneNumber: '',
         isActive: true
       }
     })

@@ -147,4 +147,20 @@ export class AuthController {
   async acceptInvite(@Body() data: AcceptInviteDto) {
     return await this.authService.acceptInvite(data)
   }
+
+  @Post('signup')
+  @PublicAccess()
+  @ApiOperation({
+    summary: 'Cadastro público de usuário',
+    description: 'Permite que usuários se registrem na plataforma'
+  })
+  @ApiResponse({ status: 201, description: 'Usuário cadastrado com sucesso' })
+  @ApiResponse({ status: 400, description: 'Dados inválidos' })
+  @ApiResponse({ status: 409, description: 'Email já cadastrado' })
+  async signUp(
+    @Body() data: UserSignUpDto,
+    @Req() req: Request
+  ) {
+    return await this.authService.signUp(data, req)
+  }
 }

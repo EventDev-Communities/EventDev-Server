@@ -734,6 +734,38 @@
         ]
       }
     },
+    "/api/v1/auth/signup": {
+      "post": {
+        "description": "Permite que usuários se registrem na plataforma",
+        "operationId": "AuthController_signUp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSignUpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário cadastrado com sucesso"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          },
+          "409": {
+            "description": "Email já cadastrado"
+          }
+        },
+        "summary": "Cadastro público de usuário",
+        "tags": [
+          "authentication"
+        ]
+      }
+    },
     "/api/v1/events": {
       "post": {
         "description": "Cria um novo evento para a comunidade do usuário autenticado",
@@ -989,6 +1021,26 @@
         "summary": "Criar novo endereço",
         "tags": [
           "address"
+        ]
+      }
+    },
+    "/api/v1/tickets/me": {
+      "get": {
+        "operationId": "TicketController_getMyTickets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar meus tickets",
+        "tags": [
+          "tickets"
         ]
       }
     },

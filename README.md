@@ -15,12 +15,20 @@ O **EventDev Server** é a API backend para a plataforma EventDev, construída c
 - **Cache/Rate Limit**: Redis
 - **Compilação**: SWC (Speedy Web Compiler) para desenvolvimento rápido.
 
+## Ferramentas necessárias
+
+- [**node.js**](https://nodejs.org/en/download)
+- [**docker**](https://www.docker.com/get-started/)
+- [**pnpm**](https://pnpm.io/pt/installation)
+
 ## Scripts Principais
 
 ### Desenvolvimento
 
-- `pnpm start-dev`: Inicia o servidor em modo de desenvolvimento (com hot-reload e SWC).
-- `pnpm start-debug`: Inicia em modo debug.
+```bash
+pnpm install # to install dependencies
+pnpm run dev # to start the development server
+```
 
 ### Testes
 
@@ -64,46 +72,46 @@ Abaixo estão os comandos essenciais organizados por ferramenta e caso de uso.
 
 O `Makefile` é a interface principal para gerenciar a infraestrutura Docker.
 
-| Comando | Caso de Uso | Descrição |
-| :--- | :--- | :--- |
-| `make dev-up` | **Início do Dia** | Sobe todo o ambiente de desenvolvimento (API + Banco + Redis + Auth). Inclui script de inicialização (`init-dev.sql`) para criar os bancos separadamente. |
-| `make dev-down` | **Fim do Dia** | Para e remove todos os containers e volumes de desenvolvimento. |
-| `make dev-logs` | **Monitoramento** | Exibe os logs da API em tempo real. |
-| `make dev-shell` | **Debug Avançado** | Abre um terminal `sh` dentro do container da API. |
-| `make test-deps-up` | **Testes Locais** | Sobe apenas as dependências (DB/Redis) para rodar testes locais (`pnpm test`). |
-| `make verify-all` | **CI/CD** | Executa a verificação completa (lint, testes, build) dentro do container. |
-| `make db-studio` | **Gestão de Dados** | Abre o Prisma Studio para visualizar/editar dados do banco. |
+| Comando             | Caso de Uso         | Descrição                                                                                                                                                 |
+| :------------------ | :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `make dev-up`       | **Início do Dia**   | Sobe todo o ambiente de desenvolvimento (API + Banco + Redis + Auth). Inclui script de inicialização (`init-dev.sql`) para criar os bancos separadamente. |
+| `make dev-down`     | **Fim do Dia**      | Para e remove todos os containers e volumes de desenvolvimento.                                                                                           |
+| `make dev-logs`     | **Monitoramento**   | Exibe os logs da API em tempo real.                                                                                                                       |
+| `make dev-shell`    | **Debug Avançado**  | Abre um terminal `sh` dentro do container da API.                                                                                                         |
+| `make test-deps-up` | **Testes Locais**   | Sobe apenas as dependências (DB/Redis) para rodar testes locais (`pnpm test`).                                                                            |
+| `make verify-all`   | **CI/CD**           | Executa a verificação completa (lint, testes, build) dentro do container.                                                                                 |
+| `make db-studio`    | **Gestão de Dados** | Abre o Prisma Studio para visualizar/editar dados do banco.                                                                                               |
 
 ### PNPM (Ciclo de Desenvolvimento)
 
 Comandos para o dia a dia de codificação.
 
-| Comando | Caso de Uso | Descrição |
-| :--- | :--- | :--- |
-| `pnpm start-dev` | **Codificação** | Roda a API localmente com hot-reload (SWC). |
-| `pnpm lint` | **Qualidade** | Verifica e corrige problemas de estilo de código. |
-| `pnpm test-all` | **Validação** | Roda testes unitários e E2E em sequência. |
-| `pnpm verify-all` | **CI/CD** | Roda lint, testes e build para garantir integridade total. |
-| `pnpm build` | **Deploy** | Compila o projeto para a pasta `dist` (produção). |
+| Comando           | Caso de Uso     | Descrição                                                  |
+| :---------------- | :-------------- | :--------------------------------------------------------- |
+| `pnpm start-dev`  | **Codificação** | Roda a API localmente com hot-reload (SWC).                |
+| `pnpm lint`       | **Qualidade**   | Verifica e corrige problemas de estilo de código.          |
+| `pnpm test-all`   | **Validação**   | Roda testes unitários e E2E em sequência.                  |
+| `pnpm verify-all` | **CI/CD**       | Roda lint, testes e build para garantir integridade total. |
+| `pnpm build`      | **Deploy**      | Compila o projeto para a pasta `dist` (produção).          |
 
 ### Docker (Infraestrutura)
 
 Comandos diretos do Docker Compose (geralmente abstraídos pelo Makefile).
 
-| Comando | Caso de Uso | Descrição |
-| :--- | :--- | :--- |
-| `docker compose -f docker-compose.dev.yml build` | **Atualização** | Reconstrói as imagens de desenvolvimento (útil após mudar `package.json`). |
-| `docker compose -f docker-compose.prod.yml build` | **Simulação Prod** | Constrói a imagem otimizada de produção. |
+| Comando                                           | Caso de Uso        | Descrição                                                                  |
+| :------------------------------------------------ | :----------------- | :------------------------------------------------------------------------- |
+| `docker compose -f docker-compose.dev.yml build`  | **Atualização**    | Reconstrói as imagens de desenvolvimento (útil após mudar `package.json`). |
+| `docker compose -f docker-compose.prod.yml build` | **Simulação Prod** | Constrói a imagem otimizada de produção.                                   |
 
 ### Nest CLI (Scaffolding)
 
 Comandos para gerar código boilerplate.
 
-| Comando | Caso de Uso | Descrição |
-| :--- | :--- | :--- |
+| Comando                       | Caso de Uso      | Descrição                                                      |
+| :---------------------------- | :--------------- | :------------------------------------------------------------- |
 | `nest g resource module/nome` | **Nova Feature** | Cria um novo módulo completo (Controller, Service, DTOs, etc). |
-| `nest g module module/nome` | **Estrutura** | Cria apenas o módulo. |
-| `nest g service module/nome` | **Lógica** | Cria apenas o service. |
+| `nest g module module/nome`   | **Estrutura**    | Cria apenas o módulo.                                          |
+| `nest g service module/nome`  | **Lógica**       | Cria apenas o service.                                         |
 
 ## Roadmap e Checklist
 
